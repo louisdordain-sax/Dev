@@ -2515,9 +2515,9 @@ function closePdfViewer(){
       const imgSrc=tile.imgData||tile.url;
       if(imgSrc && imgSrc.startsWith('data:application/pdf')){
         // Tuile PDF
-        previewHtml=`<div class="tile-preview-placeholder" style="cursor:pointer;flex-direction:column;gap:4px" onclick="event.stopPropagation();openPdfViewer('${tile.title||'Document'}',imgSrc);trackInteraction('${tile.id}')">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ct-info)" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          <span style="font-size:10px;color:var(--ct-info)">PDF</span></div>`;
+        previewHtml=`<div class="tile-preview-placeholder" style="cursor:pointer;flex-direction:column;gap:4px" data-pdf-url="${imgSrc.replace(/"/g, '&quot;')}" data-pdf-title="${(tile.title||'Document').replace(/"/g, '&quot;')}" data-tile-id="${tile.id}" onclick="event.stopPropagation();openPdfViewer(this.dataset.pdfTitle, this.dataset.pdfUrl);trackInteraction(this.dataset.tileId)">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ct-info)" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span style="font-size:10px;color:var(--ct-info)">PDF</span></div>`;
       } else {
         previewHtml=`<img class="tile-preview" src="${imgSrc}" draggable="false" style="cursor:zoom-in" onclick="event.stopPropagation();openLightbox('${imgSrc.replace(/'/g,"\\'")}','${(tile.title||'image').replace(/'/g,"\\'")}');trackInteraction('${tile.id}')" onerror="this.style.display='none'">`;
       }
