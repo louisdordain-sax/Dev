@@ -416,8 +416,9 @@ html.light #tile-preview-win{background:#fff;border-color:var(--cbr-tertiary);bo
 .tile-expand-btn:hover{border-color:var(--cbr-info);color:var(--ct-info);background:var(--cb-info)}
 
 /* ── SOUS-ONGLETS FICHIERS ── */
-.file-sub-tab{outline:none}
-.file-sub-tab:hover{opacity:.85}
+.file-sub-tab{outline:none;flex:1;font-size:11px;padding:6px 4px;border-radius:6px;border:none;background:none;color:var(--ct-secondary);cursor:pointer;font-family:var(--font-sans);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
+.file-sub-tab:hover:not(.active){background:var(--cb-primary);color:var(--ct-primary)}
+.file-sub-tab.active{background:var(--cb-info);color:var(--ct-info)}
 .ctx-color-row{display:flex;gap:5px;padding:6px 10px;flex-wrap:wrap;align-items:center}
 .ctx-color-dot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
 .ctx-color-dot:hover,.ctx-color-dot.active{border-color:#fff;transform:scale(1.18)}
@@ -633,7 +634,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
 
     <div class="prof-nav-end">
       <button class="btn btn-sm" id="ptab-parametres" onclick="showProfTab('parametres')" title="Paramètres" style="padding:6px 8px;transition:all .15s"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
-      <button class="btn btn-sm" id="theme-btn-home" onclick="toggleTheme()" title="Thème">
+      <button class="btn btn-sm" id="theme-btn-home" onclick="toggleTheme()" title="Thème" style="padding:6px 8px;transition:all .15s">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
       <button class="btn btn-sm btn-logout" onclick="doLogout()" title="Déconnexion" style="padding:6px 8px;transition:all .15s">
@@ -1184,14 +1185,14 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     <div id="tile-field-file" style="display:none">
       <!-- Sous-onglets de type de fichier -->
       <div style="display:flex;gap:4px;margin-bottom:10px;background:var(--cb-secondary);border-radius:var(--br-md);padding:4px;border:0.5px solid var(--cbr-tertiary)">
-        <button class="file-sub-tab active" data-sub="image" onclick="selectFileSubtype('image')" style="flex:1;font-size:11px;padding:5px 4px;border-radius:6px;border:none;background:var(--cb-info);color:var(--ct-info);cursor:pointer;font-family:var(--font-sans);transition:all .15s">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Image/PDF
+        <button class="file-sub-tab active" data-sub="image" onclick="selectFileSubtype('image')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Image/PDF
         </button>
-        <button class="file-sub-tab" data-sub="audio" onclick="selectFileSubtype('audio')" style="flex:1;font-size:11px;padding:5px 4px;border-radius:6px;border:none;background:none;color:var(--ct-secondary);cursor:pointer;font-family:var(--font-sans);transition:all .15s">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Audio
+        <button class="file-sub-tab" data-sub="audio" onclick="selectFileSubtype('audio')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Audio
         </button>
-        <button class="file-sub-tab" data-sub="download" onclick="selectFileSubtype('download')" style="flex:1;font-size:11px;padding:5px 4px;border-radius:6px;border:none;background:none;color:var(--ct-secondary);cursor:pointer;font-family:var(--font-sans);transition:all .15s">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Téléchargeable
+        <button class="file-sub-tab" data-sub="download" onclick="selectFileSubtype('download')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Téléchargeable
         </button>
       </div>
       <!-- Sous-section Image/PDF -->
@@ -2564,12 +2565,16 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
   const typeTxtCols={link:'var(--ct-info)',media:'#c4b5fd',image:'var(--ct-success)',audio:'var(--ct-warning)',text:'var(--ct-secondary)',download:'var(--ct-warning)'};
   const showPreview=tile.showPreview!==false;
 
+  // Détection PDF (doit être avant previewHtml)
+  const _imgSrcForBadge = tile.type==='image' ? (tile.imgData||tile.url||'') : '';
+  const _isPdfTile = tile.type==='image' && _imgSrcForBadge.startsWith('data:application/pdf');
+
   let previewHtml='';
   if(showPreview){
     if(tile.type==='image'&&(tile.imgData||tile.url)){
       const imgSrc=tile.imgData||tile.url;
-      if(imgSrc && imgSrc.startsWith('data:application/pdf')){
-        previewHtml=`<div class="tile-preview-placeholder" style="cursor:pointer;flex-direction:column;gap:4px" onclick="event.stopPropagation();openPdfViewer('${tile.title||'Document'}',imgSrc);trackInteraction('${tile.id}')">
+      if(_isPdfTile){
+        previewHtml=`<div class="tile-preview-placeholder" style="cursor:pointer;flex-direction:column;gap:4px" onclick="event.stopPropagation();openPdfViewerById('${tile.id}','${(tile.title||'Document').replace(/'/g,"\\'")}');trackInteraction('${tile.id}')">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ct-info)" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           <span style="font-size:10px;color:var(--ct-info)">PDF</span></div>`;
       } else {
@@ -2613,9 +2618,25 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
     const ext=tile.fileName.split('.').pop().toUpperCase();
     metaExtra=`<span style="opacity:.55;font-family:var(--font-mono);font-size:9px">${ext}</span>`;
   }
-  // Bouton aperçu grand format (loupe) — tous utilisateurs, pour image/audio/text/lien/fichier
-  const canPreview = tile.type==='image'||tile.type==='audio'||tile.type==='text'||tile.type==='link'||tile.type==='download';
-  const previewBtnHtml = canPreview ? `<button class="tile-expand-btn" onclick="event.stopPropagation();openTilePreview('${tile.type==='image'?(tile.imgData||tile.url||'').replace(/'/g,"\\'"):tile.id}','${(tile.title||'').replace(/'/g,"\\'")}','${tile.type}')" title="Aperçu agrandi"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>` : '';
+  // Détection PDF stocké comme image
+  const _imgSrcForType = tile.type==='image' ? (tile.imgData||tile.url||'') : '';
+  const isPdf = _isPdfTile; // alias
+
+  // Bouton aperçu grand format (loupe) — image, audio, text, lien. PDF → visionneuse. Téléchargeable → icône téléchargement.
+  const canPreview = tile.type==='image'||tile.type==='audio'||tile.type==='text'||tile.type==='link';
+  let previewBtnHtml = '';
+  if(isPdf){
+    previewBtnHtml = `<button class="tile-expand-btn" onclick="event.stopPropagation();openPdfViewerById('${tile.id}','${(tile.title||'Document').replace(/'/g,"\\'")}');trackInteraction('${tile.id}')" title="Ouvrir le PDF"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button>`;
+  } else if(tile.type==='download'){
+    previewBtnHtml = `<button class="tile-expand-btn" onclick="event.stopPropagation();downloadTileFile('${tile.id}');trackInteraction('${tile.id}')" title="Télécharger"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>`;
+  } else if(canPreview){
+    previewBtnHtml = `<button class="tile-expand-btn" onclick="event.stopPropagation();openTilePreview('${tile.type==='image'?_imgSrcForType.replace(/'/g,"\\'"):tile.id}','${(tile.title||'').replace(/'/g,"\\'")}','${tile.type}')" title="Aperçu agrandi"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>`;
+  }
+
+  // Badge : label et couleur (PDF détecté dynamiquement)
+  const _badgeLabel = isPdf ? 'PDF' : (typeLabels[tile.type]||tile.type);
+  const _badgeColor = isPdf ? 'var(--cbr-danger)' : (typeCols[tile.type]||typeCols.text);
+  const _badgeTxtColor = isPdf ? 'var(--ct-danger)' : (typeTxtCols[tile.type]||typeTxtCols.text);
 
   // Bouton unique ⚙️ (settings) en mode prof
   const gearBtn=boardIsProfMode?`<button class="tile-gear-btn" onclick="event.stopPropagation();openTileMenu('${colId}','${tile.id}',this)" title="Réglages"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>`:'';
@@ -2627,7 +2648,7 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
     <div class="tile-body" ${bodyClick}>
       <div class="tile-title">${tile.title}</div>
       <div class="tile-meta">
-        <span class="tile-type-badge" style="border-color:${typeCols[tile.type]||typeCols.text};color:${typeTxtCols[tile.type]||typeTxtCols.text}">${typeLabels[tile.type]||tile.type}</span>
+        <span class="tile-type-badge" style="border-color:${_badgeColor};color:${_badgeTxtColor}">${_badgeLabel}</span>
         ${metaExtra}
         ${previewBtnHtml}
       </div>
@@ -2751,11 +2772,24 @@ function openTilePreview(tileIdOrSrc, title, kind){
     aWrap.appendChild(aud);
     body.appendChild(aWrap);
   } else if(kind==='text'&&tile){
-    body.style.cssText='flex:1;overflow:auto;padding:20px;align-items:flex-start;justify-content:flex-start';
-    var pre=document.createElement('div');
-    pre.style.cssText='font-size:14px;line-height:1.7;color:var(--ct-primary);white-space:pre-wrap;word-break:break-word;width:100%';
-    pre.textContent=tile.content||'';
-    body.appendChild(pre);
+    // Plein écran pour les notes : on ferme la floating window et on ouvre un modal overlay
+    if(_tilePreviewWin){_tilePreviewWin.remove();_tilePreviewWin=null;}
+    var noteModal = document.getElementById('tile-note-fullscreen');
+    if(!noteModal){
+      noteModal = document.createElement('div');
+      noteModal.id = 'tile-note-fullscreen';
+      noteModal.style.cssText = 'position:fixed;inset:0;z-index:9600;background:var(--cb-primary);display:flex;flex-direction:column;animation:ctxFadeIn .15s ease';
+      document.body.appendChild(noteModal);
+    }
+    noteModal.innerHTML = '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:0.5px solid var(--cbr-tertiary);flex-shrink:0;background:var(--cb-secondary)">'
+      +'<div style="flex:1;font-size:14px;font-weight:600;color:var(--ct-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(title||'Note')+'</div>'
+      +'<button onclick="document.getElementById(\'tile-note-fullscreen\').style.display=\'none\'" style="background:none;border:none;cursor:pointer;color:var(--ct-tertiary);font-size:22px;padding:2px 8px;line-height:1;flex-shrink:0">✕</button>'
+      +'</div>'
+      +'<div style="flex:1;overflow-y:auto;padding:24px;max-width:720px;margin:0 auto;width:100%">'
+      +'<div style="font-size:15px;line-height:1.8;color:var(--ct-primary);white-space:pre-wrap;word-break:break-word">'+escHtml(tile.content||'')+'</div>'
+      +'</div>';
+    noteModal.style.display = 'flex';
+    return;
   } else if(kind==='link'&&tile){
     body.style.justifyContent='center';body.style.padding='24px';
     body.innerHTML='<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">🔗</div>'
@@ -3576,9 +3610,7 @@ function selectFileSubtype(sub){
     if(el) el.style.display=s===sub?'block':'none';
   });
   document.querySelectorAll('.file-sub-tab').forEach(function(btn){
-    var active=btn.dataset.sub===sub;
-    btn.style.background=active?'var(--cb-info)':'none';
-    btn.style.color=active?'var(--ct-info)':'var(--ct-secondary)';
+    btn.classList.toggle('active', btn.dataset.sub===sub);
   });
 }
 
@@ -4287,6 +4319,11 @@ function openPdfViewer(title, dataUrl){
 function closePdfViewer(){
   var modal = document.getElementById('modal-pdf-viewer');
   if(modal){ modal.style.display='none'; document.getElementById('pdf-viewer-frame').src=''; }
+}
+function openPdfViewerById(tileId, title){
+  var src = '';
+  boardColumns.forEach(function(col){ (col.tiles||[]).forEach(function(t){ if(t.id===tileId) src=(t.imgData||t.url||''); }); });
+  if(src) openPdfViewer(title||'Document', src);
 }
 </script>
 <style>
@@ -5006,7 +5043,7 @@ function confirmAddEvt(){
   _editEvtId=null;
   _saveAgendaEvents();
   closeModal('modal-evt');
-  renderAgenda(); _renderEvtPanel(date);
+  renderAgenda();
 }
 
 
