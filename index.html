@@ -1673,6 +1673,13 @@ async function loadLocal(){
     ];
   }
 
+  // Filet de sécurité final : garantit que chaque cycle a bien ses compétences
+  for(let c=1;c<=3;c++){
+    if(!Array.isArray(skillsData[c]) || !skillsData[c].length){
+      skillsData[c] = JSON.parse(JSON.stringify(DEFAULT_SKILLS[c]));
+    }
+  }
+
   saveLocal();
   _cloudReady = true;
   loader.remove();
@@ -1686,7 +1693,6 @@ async function loadLocal(){
       // Ne recharger que si on n'est pas en train de sauvegarder
       if(_saveTimeout) return;
       students       = d.students     || students;
-      skillsData     = d.skills       || skillsData;
       schools        = d.schools      || schools;
       boardColumns   = (d.boardColumns||[]).map(function(c){if(!c)return null;return{id:c.id||('col'+Date.now()),title:c.title||'Section',tiles:Array.isArray(c.tiles)?c.tiles:[]};}).filter(Boolean) || boardColumns;
       tileInteractions = d.tileInteractions || tileInteractions;
@@ -1695,7 +1701,11 @@ async function loadLocal(){
       // Sync des compétences en temps réel (multi-onglets / multi-appareils)
       if(d.skillsData && typeof d.skillsData === 'object'){
         for(let c=1;c<=3;c++){
-          if(Array.isArray(d.skillsData[c]) && d.skillsData[c].length > 0) skillsData[c] = d.skillsData[c];
+          var sc = d.skillsData[c] || d.skillsData[String(c)];
+          if(sc){
+            // Firebase peut renvoyer un objet {0:{...},1:{...}} à la place d'un tableau
+            skillsData[c] = Array.isArray(sc) ? sc : Object.values(sc);
+          }
         }
       }
       // Rafraîchir la home si ouverte
