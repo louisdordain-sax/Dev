@@ -1572,12 +1572,12 @@ function _initFirebase(){
 /* ── STORAGE (Firebase Realtime Database) ── */
 function saveLocal(){
   // Sauvegarde localStorage (fallback hors-ligne)
-  try{localStorage.setItem(SK,JSON.stringify({students,profCode,schools,boardColumns,tileInteractions}))}catch(e){}
+  try{localStorage.setItem(SK,JSON.stringify({students,profCode,schools,boardColumns,tileInteractions,skillsData,branches:BRANCHES}))}catch(e){}
   // Sauvegarde Firebase (debouncée 800ms pour éviter les écritures en rafale)
   if(_saveTimeout) clearTimeout(_saveTimeout);
   _saveTimeout = setTimeout(async ()=>{
     if(!_db) return;
-    const payload = {students,profCode,schools,boardColumns,tileInteractions};
+    const payload = {students,profCode,schools,boardColumns,tileInteractions,skillsData,branches:BRANCHES};
     try{
       await _db.ref(FIREBASE_PATH).set(payload);
       _showSyncIndicator('✓ Synchronisé', '#34d399');
@@ -1643,8 +1643,26 @@ async function loadLocal(){
     schools          = cloudData.schools        || [];
     boardColumns     = cloudData.boardColumns   || [];
     tileInteractions = cloudData.tileInteractions || {};
-    // Branches et compétences : toujours utiliser les valeurs du code (structure v12)
-    // On ignore ce qui est dans Firebase pour forcer la nouvelle organisation
+    // Charger les compétences depuis Firebase si elles ont déjà été sauvegardées
+    if(cloudData.skillsData && typeof cloudData.skillsData === 'object'){
+      for(let c=1;c<=3;c++){
+        if(Array.isArray(cloudData.skillsData[c]) && cloudData.skillsData[c].length > 0){
+          skillsData[c] = cloudData.skillsData[c];
+        } else {
+          skillsData[c] = JSON.parse(JSON.stringify(DEFAULT_SKILLS[c]));
+        }
+      }
+    } else {
+      // Premier démarrage : utiliser DEFAULT_SKILLS comme base initiale
+      for(let c=1;c<=3;c++) skillsData[c] = JSON.parse(JSON.stringify(DEFAULT_SKILLS[c]));
+    }
+    // Charger les familles (branches) depuis Firebase si disponibles
+    if(Array.isArray(cloudData.branches) && cloudData.branches.length > 0){
+      BRANCHES = cloudData.branches;
+    }
+  } else {
+    // Aucune donnée en base : initialiser avec les valeurs par défaut
+    for(let c=1;c<=3;c++) skillsData[c] = JSON.parse(JSON.stringify(DEFAULT_SKILLS[c]));
   }
 
   if(!students.length){
@@ -1654,8 +1672,6 @@ async function loadLocal(){
       {id:'std2',name:'Emma Martin',cycle:2,color:'#7F77DD',school:schools[0]||'',skillStates:{s2_01:'done',s2_11:'done',s2_31:'progress',s2_02:'done',s2_12:'done',s2_38:'progress'},examPassed:{1:true},examData:{1:{note:14,date:'15/06/2024'}},password:'emartin'},
     ];
   }
-  // Toujours recharger les compétences depuis DEFAULT_SKILLS (structure v12)
-  for(let c=1;c<=3;c++) skillsData[c] = JSON.parse(JSON.stringify(DEFAULT_SKILLS[c]));
 
   saveLocal();
   _cloudReady = true;
@@ -1676,6 +1692,12 @@ async function loadLocal(){
       tileInteractions = d.tileInteractions || tileInteractions;
       if(d.branches && d.branches.length) BRANCHES = d.branches;
       if(d.branchAngles) Object.assign(BRANCH_ANGLES, d.branchAngles);
+      // Sync des compétences en temps réel (multi-onglets / multi-appareils)
+      if(d.skillsData && typeof d.skillsData === 'object'){
+        for(let c=1;c<=3;c++){
+          if(Array.isArray(d.skillsData[c]) && d.skillsData[c].length > 0) skillsData[c] = d.skillsData[c];
+        }
+      }
       // Rafraîchir la home si ouverte
       if(profMode && document.getElementById('sc-home')?.classList.contains('active')) renderHome();
     });
