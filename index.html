@@ -1379,7 +1379,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
 /* ═══════════════════════════════════════════════════════
    §1 — CONSTANTES & DONNÉES PAR DÉFAUT
    ═══════════════════════════════════════════════════════ */
-const SK='sax_v12';
+const SK='sax_v11';
 const COLORS_POOL=['#378ADD','#1D9E75','#7F77DD','#D85A30','#EF9F27'];
 var BRANCHES=[
   {id:'identite',label:'Identité du musicien',color:'#7F77DD'},
@@ -1572,12 +1572,12 @@ function _initFirebase(){
 /* ── STORAGE (Firebase Realtime Database) ── */
 function saveLocal(){
   // Sauvegarde localStorage (fallback hors-ligne)
-  try{localStorage.setItem(SK,JSON.stringify({students,skills:skillsData,profCode,schools,boardColumns,tileInteractions,branches:BRANCHES,branchAngles:BRANCH_ANGLES}))}catch(e){}
+  try{localStorage.setItem(SK,JSON.stringify({students,profCode,schools,boardColumns,tileInteractions}))}catch(e){}
   // Sauvegarde Firebase (debouncée 800ms pour éviter les écritures en rafale)
   if(_saveTimeout) clearTimeout(_saveTimeout);
   _saveTimeout = setTimeout(async ()=>{
     if(!_db) return;
-    const payload = {students,skills:skillsData,profCode,schools,boardColumns,tileInteractions,branches:BRANCHES,branchAngles:BRANCH_ANGLES};
+    const payload = {students,profCode,schools,boardColumns,tileInteractions};
     try{
       await _db.ref(FIREBASE_PATH).set(payload);
       _showSyncIndicator('✓ Synchronisé', '#34d399');
@@ -1638,24 +1638,24 @@ async function loadLocal(){
   }
 
   if(cloudData){
-    students       = cloudData.students     || [];
-    skillsData     = cloudData.skills       || {1:[],2:[],3:[]};
-    profCode       = cloudData.profCode === 'PROF2025' ? DEFAULT_PROF_CODE : (cloudData.profCode || DEFAULT_PROF_CODE);
-    schools        = cloudData.schools      || [];
-    boardColumns   = cloudData.boardColumns || [];
+    students         = cloudData.students       || [];
+    profCode         = cloudData.profCode === 'PROF2025' ? DEFAULT_PROF_CODE : (cloudData.profCode || DEFAULT_PROF_CODE);
+    schools          = cloudData.schools        || [];
+    boardColumns     = cloudData.boardColumns   || [];
     tileInteractions = cloudData.tileInteractions || {};
-    if(cloudData.branches && cloudData.branches.length) BRANCHES = cloudData.branches;
-    if(cloudData.branchAngles) Object.assign(BRANCH_ANGLES, cloudData.branchAngles);
+    // Branches et compétences : toujours utiliser les valeurs du code (structure v12)
+    // On ignore ce qui est dans Firebase pour forcer la nouvelle organisation
   }
 
   if(!students.length){
     if(!schools.length) schools = ['École de musique Exemple'];
     students = [
-      {id:'std1',name:'Lucas Durand',cycle:1,color:'#378ADD',school:schools[0]||'',skillStates:{s1_01:'done',s1_02:'done',s1_03:'progress',s1_05:'done',s1_06:'progress',s1_08:'done'},examPassed:{},examData:{},password:'ldurand'},
-      {id:'std2',name:'Emma Martin',cycle:2,color:'#7F77DD',school:schools[0]||'',skillStates:{s2_01:'done',s2_05:'done',s2_10:'progress',s2_08:'done',s2_02:'done',s2_09:'progress'},examPassed:{1:true},examData:{1:{note:14,date:'15/06/2024'}},password:'emartin'},
+      {id:'std1',name:'Lucas Durand',cycle:1,color:'#378ADD',school:schools[0]||'',skillStates:{s1_01:'done',s1_02:'done',s1_03:'progress',s1_09:'done',s1_11:'progress',s1_29:'done'},examPassed:{},examData:{},password:'ldurand'},
+      {id:'std2',name:'Emma Martin',cycle:2,color:'#7F77DD',school:schools[0]||'',skillStates:{s2_01:'done',s2_11:'done',s2_31:'progress',s2_02:'done',s2_12:'done',s2_38:'progress'},examPassed:{1:true},examData:{1:{note:14,date:'15/06/2024'}},password:'emartin'},
     ];
   }
-  for(let c=1;c<=3;c++) if(!skillsData[c]?.length) skillsData[c] = JSON.parse(JSON.stringify(DEFAULT_SKILLS[c]));
+  // Toujours recharger les compétences depuis DEFAULT_SKILLS (structure v12)
+  for(let c=1;c<=3;c++) skillsData[c] = JSON.parse(JSON.stringify(DEFAULT_SKILLS[c]));
 
   saveLocal();
   _cloudReady = true;
