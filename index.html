@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Arbre de compétences — Saxophone 🎷 (En ligne)</title>
+<title>Classes de Louis Dordain — Saxophone 🎷 (En ligne)</title>
 <!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -369,13 +369,7 @@ canvas{display:block;width:100%;height:100%;cursor:default;position:absolute;ins
 .tile-body{padding:9px 12px}
 .tile-title{font-size:13px;font-weight:500;color:var(--ct-primary);margin-bottom:3px;line-height:1.35;word-break:break-word}
 .tile-meta{font-size:10px;color:var(--ct-tertiary);display:flex;align-items:center;gap:4px;flex-wrap:wrap}
-.tile-type-badge{font-size:10px;padding:1px 6px;border-radius:99px;border:0.5px solid;flex-shrink:0}
-.tile-actions{position:absolute;top:5px;right:5px;display:none;gap:3px;z-index:5}
-.tile:hover .tile-actions{display:flex}
-.tile-action-btn{background:rgba(8,12,24,.88);border:0.5px solid var(--cbr-tertiary);border-radius:var(--br-sm);padding:3px 7px;font-size:11px;cursor:pointer;color:var(--ct-secondary);transition:all .15s;backdrop-filter:blur(4px)}
-.tile-action-btn:hover{color:var(--ct-primary);border-color:var(--cbr-secondary)}
-.tile-action-btn.del:hover{background:var(--cb-danger);color:var(--ct-danger);border-color:var(--cbr-danger)}
-.add-tile-btn-small{border:0.5px dashed var(--cbr-tertiary);background:none;border-radius:var(--br-md);padding:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ct-tertiary);font-size:11px;gap:5px;transition:all .15s;width:100%;font-family:var(--font-sans)}
+.tile-type-badge{font-size:10px;padding:1px 6px;border-radius:99px;border:0.5px solid;flex-shrink:0}.add-tile-btn-small{border:0.5px dashed var(--cbr-tertiary);background:none;border-radius:var(--br-md);padding:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ct-tertiary);font-size:11px;gap:5px;transition:all .15s;width:100%;font-family:var(--font-sans)}
 .add-tile-btn-small:hover{border-color:var(--cbr-info);color:var(--ct-info);background:var(--cb-info)}
 .board-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1rem;color:var(--ct-tertiary);font-size:13px;text-align:center;width:100%}
 /* Modal board */
@@ -392,7 +386,32 @@ canvas{display:block;width:100%;height:100%;cursor:default;position:absolute;ins
 .color-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
 .color-swatch.selected{border-color:#fff;transform:scale(1.15)}
 .color-swatch.none{background:var(--cb-secondary);border:0.5px solid var(--cbr-secondary)}
-/* ══ ESPACE OUTILS PLEIN ÉCRAN ══ */
+
+/* ── GEAR BUTTON TUILE ── */
+.tile-gear-wrap{position:absolute;top:5px;right:5px;z-index:5}
+.tile-gear-btn{width:26px;height:26px;border-radius:50%;border:0.5px solid var(--cbr-tertiary);background:rgba(15,20,32,0.82);color:var(--ct-tertiary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;backdrop-filter:blur(4px);opacity:0;pointer-events:none}
+.tile:hover .tile-gear-btn{opacity:1;pointer-events:auto}
+.tile-gear-btn:hover{border-color:var(--cbr-info);color:var(--ct-info);background:rgba(30,58,95,0.92)}
+html.light .tile-gear-btn{background:rgba(255,255,255,0.92)}
+html.light .tile:hover .tile-gear-btn{opacity:1}
+
+/* ── GEAR BUTTON SECTION PADLET ── */
+.board-col-gear-btn{width:26px;height:26px;border-radius:50%;border:0.5px solid var(--cbr-tertiary);background:none;color:var(--ct-tertiary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;padding:0}
+.board-col-gear-btn:hover{border-color:var(--cbr-info);color:var(--ct-info);background:var(--cb-info)}
+
+/* ── DROPDOWN MENU CONTEXTUEL ── */
+.ctx-menu{position:fixed;z-index:9500;background:var(--cb-primary);border:0.5px solid var(--cbr-secondary);border-radius:var(--br-lg);padding:6px;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,0.45);animation:ctxFadeIn .12s ease}
+@keyframes ctxFadeIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.ctx-menu-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--br-md);font-size:12px;color:var(--ct-secondary);cursor:pointer;transition:all .12s;border:none;background:none;width:100%;text-align:left;font-family:var(--font-sans)}
+.ctx-menu-item:hover{background:var(--cb-secondary);color:var(--ct-primary)}
+.ctx-menu-item.danger{color:var(--ct-danger)}
+.ctx-menu-item.danger:hover{background:var(--cb-danger)}
+.ctx-menu-sep{height:0.5px;background:var(--cbr-tertiary);margin:4px 6px}
+.ctx-color-row{display:flex;gap:5px;padding:6px 10px;flex-wrap:wrap;align-items:center}
+.ctx-color-dot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
+.ctx-color-dot:hover,.ctx-color-dot.active{border-color:#fff;transform:scale(1.18)}
+.ctx-color-dot.none{background:var(--cb-secondary);border-color:var(--cbr-tertiary)}
+html.light .ctx-menu{background:#fff;border-color:var(--cbr-tertiary);box-shadow:0 4px 24px rgba(80,100,150,0.18)}
 #sc-toolbox{position:fixed;inset:0;z-index:15;display:none;overflow:hidden;
   background:radial-gradient(ellipse 80% 80% at 50% 40%,#0d1830 0%,#080d1a 60%,#050810 100%)}
 #sc-toolbox.active{display:block}
@@ -1750,9 +1769,6 @@ function renderHome(){
       const examBadge=cs==='awaiting_exam'?`<span style="font-size:10px;padding:2px 8px;border-radius:99px;background:#3a2800;color:#EF9F27;border:0.5px solid rgba(239,159,39,.4)">⏳ Examen</span>`:'';
       const row=document.createElement('div');row.className='std-row';
       var _validerBtn = cs==='awaiting_exam'
-        ? '<button class="btn btn-success btn-sm" onclick="openExamModal(\'' + s.id + '\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Valider</button>'
-        : '';
-      var _validerBtn = cs==='awaiting_exam'
         ? '<button class="btn btn-success btn-sm" style="white-space:nowrap" onclick="openExamModal(\'' + s.id + '\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Valider</button>'
         : '';
       var _cycleYear = getCycleYear(s);
@@ -1769,7 +1785,7 @@ function renderHome(){
         <button class="btn btn-sm" onclick="openTree('${s.id}')">Arbre</button>
         <button class="btn btn-warn btn-sm" onclick="openTreeEdit('${s.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Éditer</button>
         <button class="btn btn-sm" onclick="openEditStudentModal('${s.id}')">Profil</button>
-        <button class="btn btn-sm" title="Réinitialiser le mot de passe" onclick="resetStudentPassword('${s.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/><polyline points="16 16 18 18 22 14" transform="translate(-6,-3) scale(0.7)"/></svg> MDP</button>
+        <button class="btn btn-sm" title="Réinitialiser le mot de passe" onclick="resetStudentPassword('${s.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/><polyline points="16 16 18 18 22 14" transform="translate(-6,-3) scale(0.7)"/></svg> </button>
       `;
       grp.appendChild(row);
     }
@@ -2278,7 +2294,7 @@ function showCompetencesEditor(){ceCycle=1;if(profMode){show('sc-home');showProf
 function renderCEScreen(){const tabs=document.getElementById('ce-ctabs');tabs.innerHTML='';for(let c=1;c<=3;c++){const t=document.createElement('div');t.className='ctab'+(c===ceCycle?' active':'');t.textContent='Cycle '+c;const cc=c;t.onclick=()=>{ceCycle=cc;renderCEContent()};tabs.appendChild(t)}renderCEContent()}
 function renderCEContent(){
   document.querySelectorAll('#ce-ctabs .ctab').forEach((t,i)=>t.classList.toggle('active',i+1===ceCycle));
-  let html='';
+  let html='<div style="margin-bottom:12px"><button class="btn btn-sm" onclick="openFamilyModal()" style="display:flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Gérer les familles</button></div>';
   for(const br of BRANCHES){const bs=(skillsData[ceCycle]||[]).filter(s=>s.b===br.id);html+=`<div class="ce-section"><div class="ce-section-header"><div class="branch-dot" style="background:${br.color}"></div><div style="font-size:13px;font-weight:500;color:${br.color};flex:1">${br.label}</div><span style="font-size:11px;color:var(--ct-secondary);margin-right:8px">${bs.length} compétence${bs.length!==1?'s':''}</span><button class="btn btn-info btn-sm" onclick="openAddSkModal(${ceCycle},'${br.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ajouter</button></div>`;if(!bs.length)html+=`<div style="padding:14px 16px;font-size:12px;color:var(--ct-tertiary);font-style:italic">Aucune compétence</div>`;for(const sk of bs){html+=`<div class="ce-skill-row"><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;color:${br.color}">${sk.l}</div><div style="font-size:11px;color:var(--ct-secondary)">${sk.d}</div>${sk.todo?`<div style="font-size:11px;color:var(--ct-tertiary);margin-top:2px;font-style:italic">💡 ${sk.todo}</div>`:''}</div><button class="icon-btn" onclick="openEditSkModal(${ceCycle},'${sk.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="icon-btn del" onclick="askDeleteSkill(${ceCycle},'${sk.id}')">🗑️</button></div>`}html+='</div>'}
   document.getElementById('ce-content').innerHTML=html;
 }
@@ -2415,12 +2431,16 @@ function renderBoard(){
   boardColumns.forEach((col,colIdx)=>{
     const colEl=document.createElement('div');
     colEl.className='board-col';colEl.dataset.colidx=colIdx;
-    if(col.color){colEl.style.borderColor=col.color+'88';colEl.style.setProperty('--col-accent',col.color);}
+    // Couleur de section : bordure épaisse bien visible
+    if(col.color){
+      colEl.style.border=`3px solid ${col.color}`;
+      colEl.style.setProperty('--col-accent',col.color);
+    }
     const colColor = col.color||'';
     const titleHtml=boardIsProfMode
       ?`<input class="board-col-title" value="${col.title.replace(/"/g,'&quot;')}" placeholder="Titre" onblur="renameColumn(${colIdx},this.value)" onkeydown="if(event.key==='Enter')this.blur()">`
       :`<div class="board-col-title" style="cursor:default;user-select:none">${col.title}</div>`;
-    const menuHtml=boardIsProfMode?`<input type="color" value="${colColor||'#2a3a5a'}" title="Couleur de la section" onchange="setColColor(${colIdx},this.value)" style="width:22px;height:22px;border:none;border-radius:50%;cursor:pointer;padding:0;background:none;margin-right:2px"><button class="board-col-menu" title="Supprimer" onclick="deleteColumn(${colIdx})">×</button>`:'';
+    const menuHtml=boardIsProfMode?`<button class="board-col-gear-btn" title="Réglages de la section" onclick="event.stopPropagation();openColMenu(${colIdx},this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>`:'';
     colEl.innerHTML=`
       <div class="board-col-header">
         ${boardIsProfMode?`<span style="cursor:grab;color:var(--ct-tertiary);font-size:15px;padding:0 3px;line-height:1" draggable="true" ondragstart="startColDrag(event,${colIdx})" ondragend="endColDrag()"><svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor" opacity=".35"><circle cx="3" cy="3" r=".9"/><circle cx="7" cy="3" r=".9"/><circle cx="3" cy="7" r=".9"/><circle cx="7" cy="7" r=".9"/><circle cx="3" cy="11" r=".9"/><circle cx="7" cy="11" r=".9"/></svg></span>`:''}
@@ -2477,7 +2497,12 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
   const el=document.createElement('div');
   const sizeClass=tile.size||'md';
   el.className=`tile tile-size-${sizeClass}`;
-  if(tile.color){el.setAttribute('data-color',tile.color);el.style.setProperty('--tile-color',tile.color);el.style.background=tile.color+'22';el.style.borderColor=tile.color+'66';}
+  // Couleur : bordure épaisse uniquement (pas de fond coloré)
+  if(tile.color){
+    el.setAttribute('data-color',tile.color);
+    el.style.setProperty('--tile-color',tile.color);
+    el.style.border=`3px solid ${tile.color}`;
+  }
   if(boardIsProfMode)el.draggable=true;
 
   const typeLabels={link:'Lien',media:'Média',image:'Image',audio:'Audio',text:'Note'};
@@ -2523,10 +2548,8 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
   if(tile.type==='link'){try{metaExtra=`<span style="opacity:.45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px">${new URL(tile.url).hostname}</span>`}catch(e){}}
   if(tile.type==='media'){const info=parseMediaUrl(tile.mediaUrl);if(info)metaExtra=`<span style="opacity:.45">${info.platform==='youtube'?'YouTube':'Spotify'}</span>`;}
 
-  // Boutons edit/delete en utilisant l'index dans le tableau pour éviter tout problème d'id
-  const colIdxStr=String(colIdx),tileIdxStr=String(tileIdx);
-  const editBtn=boardIsProfMode?`<button class="tile-action-btn" onclick="event.stopPropagation();openEditTileModal('${colId}','${tile.id}')" title="Modifier"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>`:'';
-  const delBtn=boardIsProfMode?`<button class="tile-action-btn del" onclick="event.stopPropagation();deleteTileById('${colId}','${tile.id}')" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>`:'';
+  // Bouton unique ⚙️ (settings) en mode prof
+  const gearBtn=boardIsProfMode?`<button class="tile-gear-btn" onclick="event.stopPropagation();openTileMenu('${colId}','${tile.id}',this)" title="Réglages"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>`:'';
 
   el.innerHTML=`
     ${boardIsProfMode?'<div class="tile-grab"><svg width="10" height="14" viewBox="0 0 10 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".4"><circle cx="3" cy="3" r=".8" fill="currentColor" stroke="none"/><circle cx="7" cy="3" r=".8" fill="currentColor" stroke="none"/><circle cx="3" cy="7" r=".8" fill="currentColor" stroke="none"/><circle cx="7" cy="7" r=".8" fill="currentColor" stroke="none"/><circle cx="3" cy="11" r=".8" fill="currentColor" stroke="none"/><circle cx="7" cy="11" r=".8" fill="currentColor" stroke="none"/></svg></div>':''}
@@ -2539,7 +2562,7 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
         ${metaExtra}
       </div>
     </div>
-    ${boardIsProfMode?`<div class="tile-actions">${editBtn}${delBtn}</div>`:''}
+    ${boardIsProfMode?`<div class="tile-gear-wrap">${gearBtn}</div>`:''}
   `;
 
   if(tile.type==='audio'&&tile.audioData){
@@ -2573,7 +2596,10 @@ function addColumn(){
   setTimeout(()=>{const i=document.querySelectorAll('.board-col-title');if(i.length)i[i.length-1].focus();},80);
 }
 function renameColumn(colIdx,val){if(boardColumns[colIdx])boardColumns[colIdx].title=val||'Section';saveLocal();}
-function setColColor(colIdx,color){if(boardColumns[colIdx])boardColumns[colIdx].color=color;saveLocal();renderBoard();}
+function setColColor(colIdx,color){
+  if(boardColumns[colIdx])boardColumns[colIdx].color=color||null;
+  saveLocal();renderBoard();
+}
 function deleteColumn(colIdx){
   const col=boardColumns[colIdx];if(!col)return;
   const tiles=col.tiles||[];
@@ -2591,8 +2617,6 @@ function deleteTileById(colId,tileId){
   col.tiles=col.tiles.filter(t=>t.id!==tileId);
   saveLocal();renderBoard();
 }
-function _doDeleteTile(colId,tileId){deleteTileById(colId,tileId);}
-function deleteTile(colId,tileId){deleteTileById(colId,tileId);}
 
 function showTextTile(colIdx,tileIdx){
   const tile=boardColumns[colIdx]?.tiles[tileIdx];if(!tile)return;
@@ -2698,19 +2722,96 @@ function openInteractionsModal(){
   });
   body.innerHTML=html;openModal('modal-interactions');
 }
-function deleteTileFromModal(){
-  if(!tileEditingId||!tileEditingColId)return;
-  var col=boardColumns.find(function(c){return c.id===tileEditingColId;});
-  if(!col)return;
-  var tile=col.tiles.find(function(t){return t.id===tileEditingId;});
-  if(!tile)return;
-  if(!window.confirm('Supprimer "'+tile.title+'" ?'))return;
-  col.tiles=col.tiles.filter(function(t){return t.id!==tileEditingId;});
-  saveLocal();closeModal('modal-tile');if(_sharePanelOpen)renderSharePanel();else renderBoard();
-}
 function clearInteractions(){
   if(!confirm('Réinitialiser toutes les interactions ?'))return;
   tileInteractions={};saveLocal();openInteractionsModal();
+}
+
+/* ═══════════════════════════════════════════════════════
+   MENUS CONTEXTUELS — TUILE & SECTION
+   ═══════════════════════════════════════════════════════ */
+var _ctxMenu = null;
+var _CTX_COLORS = [null,'#378ADD','#1D9E75','#7F77DD','#D85A30','#EF9F27','#f87171','#94a3b8'];
+
+function _closeCtxMenu(){
+  if(_ctxMenu){_ctxMenu.remove();_ctxMenu=null;}
+  document.removeEventListener('click',_closeCtxMenu,true);
+}
+
+function _buildCtxMenu(x,y,items){
+  _closeCtxMenu();
+  var m=document.createElement('div');
+  m.className='ctx-menu';
+  items.forEach(function(item){
+    if(item==='-'){
+      var sep=document.createElement('div');sep.className='ctx-menu-sep';m.appendChild(sep);return;
+    }
+    if(item.type==='colors'){
+      var row=document.createElement('div');row.className='ctx-color-row';
+      _CTX_COLORS.forEach(function(hex){
+        var d=document.createElement('div');
+        d.className='ctx-color-dot'+(item.current===hex?' active':'')+(hex===null?' none':'');
+        if(hex)d.style.background=hex;
+        if(hex===null)d.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="19" x2="19" y2="5"/></svg>';
+        d.title=hex||'Aucune';
+        d.onclick=function(e){e.stopPropagation();item.onselect(hex);_closeCtxMenu();};
+        row.appendChild(d);
+      });
+      m.appendChild(row);
+      return;
+    }
+    var btn=document.createElement('button');
+    btn.className='ctx-menu-item'+(item.danger?' danger':'');
+    btn.innerHTML=(item.icon?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">'+item.icon+'</svg> ':'')+item.label;
+    btn.onclick=function(e){e.stopPropagation();_closeCtxMenu();item.action();};
+    m.appendChild(btn);
+  });
+  document.body.appendChild(m);
+  _ctxMenu=m;
+  // Positionnement
+  var W=window.innerWidth,H=window.innerHeight;
+  var mW=m.offsetWidth||200,mH=m.offsetHeight||160;
+  var left=Math.min(x,W-mW-8);
+  var top=y+6;
+  if(top+mH>H-8) top=y-mH-6;
+  m.style.left=left+'px';m.style.top=top+'px';
+  setTimeout(function(){document.addEventListener('click',_closeCtxMenu,true);},0);
+}
+
+/* Menu contextuel d'une tuile */
+function openTileMenu(colId,tileId,btn){
+  var col=boardColumns.find(function(c){return c.id===colId;});
+  if(!col)return;
+  var tile=col.tiles.find(function(t){return t.id===tileId;});
+  if(!tile)return;
+  var r=btn.getBoundingClientRect();
+  _buildCtxMenu(r.left, r.bottom, [
+    {label:'Modifier', icon:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>', action:function(){openEditTileModal(colId,tileId);}},
+    '-',
+    {label:'Couleur de la tuile', type:'dummy'},
+    {type:'colors', current:tile.color||null, onselect:function(hex){
+      tile.color=hex;saveLocal();renderBoard();
+    }},
+    '-',
+    {label:'Supprimer', danger:true, icon:'<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>', action:function(){deleteTileById(colId,tileId);}},
+  ].filter(function(i){return !(i.type==='dummy');}));
+}
+
+/* Menu contextuel d'une section (colonne) */
+function openColMenu(colIdx,btn){
+  var col=boardColumns[colIdx];if(!col)return;
+  var r=btn.getBoundingClientRect();
+  _buildCtxMenu(r.left, r.bottom, [
+    {label:'Renommer…', icon:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>', action:function(){
+      var v=window.prompt('Renommer "'+col.title+'"',col.title);
+      if(v&&v.trim()){renameColumn(colIdx,v.trim());renderBoard();}
+    }},
+    '-',
+    {label:'Couleur du contour', type:'dummy'},
+    {type:'colors', current:col.color||null, onselect:function(hex){setColColor(colIdx,hex);}},
+    '-',
+    {label:'Supprimer la section', danger:true, icon:'<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>', action:function(){deleteColumn(colIdx);}},
+  ].filter(function(i){return !(i.type==='dummy');}));
 }
 
 /* ══ ESPACE OUTILS PLEIN ÉCRAN ══ */
@@ -3053,7 +3154,12 @@ function renderFamilyList(){
   }).join('');
 }
 function openFamilyModal(){
+  _editingBranchId=null;
   renderFamilyList();
+  document.getElementById('family-modal-title').textContent='Nouvelle famille';
+  document.getElementById('family-label-inp').value='';
+  document.getElementById('family-color-inp').value='#60a5fa';
+  document.getElementById('family-edit-panel').style.display='none';
   openModal('modal-families');
 }
 
@@ -3063,7 +3169,7 @@ function openEditFamilyModal(id){
   if(!br)return;
   document.getElementById('family-label-inp').value=br.label;
   document.getElementById('family-color-inp').value=br.color;
-  document.getElementById('family-modal-title').textContent='Modifier la famille';
+  document.getElementById('family-modal-title').textContent='Modifier : '+br.label;
   document.getElementById('family-edit-panel').style.display='block';
 }
 function openAddFamilyPanel(){
@@ -3072,6 +3178,10 @@ function openAddFamilyPanel(){
   document.getElementById('family-color-inp').value='#60a5fa';
   document.getElementById('family-modal-title').textContent='Nouvelle famille';
   document.getElementById('family-edit-panel').style.display='block';
+}
+function cancelFamilyEdit(){
+  document.getElementById('family-edit-panel').style.display='none';
+  _editingBranchId=null;
 }
 function saveFamilyEdit(){
   var lbl=document.getElementById('family-label-inp').value.trim();
@@ -3117,11 +3227,6 @@ renderHome=function(){
   var sc=document.getElementById('hw-student-count');
   if(sc) sc.textContent=students.length+' élève'+(students.length!==1?'s':'');
 };
-
-
-/* ══ NAVIGATION PROF ══ */
-var _currentProfTab='accueil';
-
 
 
 
@@ -3814,22 +3919,29 @@ function _restoreSession(){
 <!-- Modal Familles de compétences -->
 <div class="modal-overlay" id="modal-families">
   <div class="modal-box" style="max-width:440px">
-    <h3 id="family-modal-title">Gérer les familles</h3>
+    <h3>Gérer les familles de compétences</h3>
     <div id="family-list" style="margin-bottom:14px"></div>
     <hr style="border:none;border-top:0.5px solid var(--cbr-tertiary);margin:10px 0">
-    <h4 style="font-size:13px;margin-bottom:8px">Ajouter une famille</h4>
-    <div style="display:flex;gap:8px;align-items:flex-end">
-      <div style="flex:1">
-        <div class="field-label">Nom</div>
-        <input type="text" id="family-label-inp" placeholder="ex: Rythme" style="margin-bottom:0">
+    <!-- Panneau édition / ajout d'une famille -->
+    <div id="family-edit-panel">
+      <h4 id="family-modal-title" style="font-size:13px;margin-bottom:10px;color:var(--ct-primary)">Nouvelle famille</h4>
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <div style="flex:1">
+          <div class="field-label">Nom</div>
+          <input type="text" id="family-label-inp" placeholder="ex: Rythme" style="margin-bottom:0">
+        </div>
+        <div>
+          <div class="field-label">Couleur</div>
+          <input type="color" id="family-color-inp" value="#60a5fa" style="width:44px;height:38px;padding:2px;margin-bottom:0;cursor:pointer">
+        </div>
+        <button class="btn btn-info" onclick="saveFamilyEdit()" style="margin-bottom:0;white-space:nowrap">Enregistrer</button>
       </div>
-      <div>
-        <div class="field-label">Couleur</div>
-        <input type="color" id="family-color-inp" value="#60a5fa" style="width:44px;height:38px;padding:2px;margin-bottom:0;cursor:pointer">
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn btn-sm" onclick="cancelFamilyEdit()">Annuler</button>
       </div>
-      <button class="btn btn-info" onclick="confirmFamily()" style="margin-bottom:0;white-space:nowrap">Ajouter</button>
     </div>
     <div class="modal-footer" style="margin-top:14px">
+      <button class="btn btn-info btn-sm" onclick="openAddFamilyPanel()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ajouter une famille</button>
       <button class="btn" onclick="closeModal('modal-families')">Fermer</button>
     </div>
   </div>
@@ -3907,9 +4019,8 @@ function _restoreSession(){
 .time-picker-btn:hover{border-color:var(--cbr-info);background:var(--cb-info)}
 .time-picker-btn.has-value{border-color:var(--cbr-info);color:var(--ct-info)}
 html.light .time-picker-btn{background:#fff;border-color:var(--cbr-tertiary)}
-
-
-
+</style>
+<script>
 /* ── VISIONNEUSE PDF ── */
 function openPdfViewer(title, dataUrl){
   var modal = document.getElementById('modal-pdf-viewer');
@@ -3935,7 +4046,8 @@ function closePdfViewer(){
   var modal = document.getElementById('modal-pdf-viewer');
   if(modal){ modal.style.display='none'; document.getElementById('pdf-viewer-frame').src=''; }
 }
-
+</script>
+<style>
 /* ── LIGHTBOX ── */
 #lightbox{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.93);display:none;flex-direction:column;align-items:center;justify-content:center}
 #lightbox.open{display:flex}
@@ -5165,6 +5277,11 @@ html.light #student-fab-toggle{background:rgba(255,255,255,0.94)}
 
 <div id="student-fab">
   <div id="student-fab-menu">
+    <!-- Suggérer une ressource (board ouvert uniquement) -->
+    <button class="sfab-btn" id="sfab-suggest-btn" onclick="_sfabSuggest()" style="display:none">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Suggérer une ressource
+    </button>
     <!-- Thème -->
     <button class="sfab-btn" onclick="_sfabTheme()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -5232,7 +5349,7 @@ function openSuggestModal(){
 
 function confirmSuggestTile(){
   var title = document.getElementById('tile-title').value.trim();
-  if(!title){ document.getElementById('tile-modal-error').style.display='block'; return; }
+  if(!title){ document.getElementById('tile-err').style.display='block'; return; }
   var type = document.querySelector('.tile-type-opt.selected')?.dataset.type || 'link';
   var sug = {
     id: 'sug'+Date.now(),
@@ -5264,7 +5381,7 @@ function openSuggestionsPanel(){
     modal.innerHTML = '<div class="modal-box" style="max-width:500px;max-height:85vh;overflow-y:auto">'
       +'<h3>Suggestions des élèves</h3>'
       +'<div id="suggestions-list" style="margin-top:12px"></div>'
-      +'<div class="modal-footer"><button class="btn" onclick="closeModal('modal-suggestions')">Fermer</button></div>'
+      +'<div class="modal-footer"><button class="btn" onclick="closeModal(\'modal-suggestions\')">Fermer</button></div>'
       +'</div>';
     document.body.appendChild(modal);
   }
@@ -5289,8 +5406,8 @@ function _renderSuggestionsList(){
         +'<div style="font-size:11px;color:var(--ct-tertiary);margin-bottom:8px">De '+s.studentName+' · '+s.date+'</div>'
         +(s.url?'<div style="font-size:11px;color:var(--ct-secondary);margin-bottom:8px;word-break:break-all">'+s.url+'</div>':'')
         +'<div style="display:flex;gap:6px">'
-        +'<button class="btn btn-success btn-sm" onclick="approveSuggestion(''+s.id+'')">✓ Ajouter au partage</button>'
-        +'<button class="btn btn-danger btn-sm" onclick="rejectSuggestion(''+s.id+'')">Refuser</button>'
+        +'<button class="btn btn-success btn-sm" onclick="approveSuggestion(\''+s.id+'\')">✓ Ajouter au partage</button>'
+        +'<button class="btn btn-danger btn-sm" onclick="rejectSuggestion(\''+s.id+'\')">Refuser</button>'
         +'</div></div>';
     });
   }
@@ -5349,12 +5466,19 @@ function _sfabLogout(){
   _sfabClose();
   doLogout();
 }
+function _sfabSuggest(){
+  _sfabClose();
+  openSuggestModal();
+}
 function _updateStudentFab(){
   var fab = document.getElementById('student-fab');
   if(!fab) return;
-  // Visible uniquement sur sc-tree en mode élève
   var onTree = document.getElementById('sc-tree') && document.getElementById('sc-tree').classList.contains('active');
-  fab.style.display = (!profMode && currentStudent && onTree) ? 'flex' : 'none';
+  var onBoard = document.getElementById('sc-board') && document.getElementById('sc-board').classList.contains('board-open');
+  fab.style.display = (!profMode && currentStudent && (onTree||onBoard)) ? 'flex' : 'none';
+  // Bouton suggestion : visible uniquement sur le board en mode élève
+  var sugBtn = document.getElementById('sfab-suggest-btn');
+  if(sugBtn) sugBtn.style.display = (onBoard && !profMode) ? 'flex' : 'none';
   _sfabUpdateThemeLabel();
 }
 
@@ -5374,11 +5498,6 @@ document.addEventListener('click', function(e){
   if(_sfabOpen && fab && !fab.contains(e.target)) _sfabClose();
 });
 </script>
-
-<!-- ══ BARRE FLOTTANTE PERSISTANTE ══ -->
-<style>
-
-
 
 </body>
 </html>
