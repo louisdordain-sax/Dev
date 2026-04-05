@@ -111,10 +111,12 @@ html.light .drawer-handle{background:rgba(58,78,112,0.15)}
 .interaction-bar{height:5px;border-radius:99px;background:var(--cbr-tertiary);flex:1;overflow:hidden;min-width:60px}
 .interaction-bar-fill{height:100%;border-radius:99px;background:#378ADD;transition:width .4s}
 .toolbox-drawer{background:var(--cb-primary);border:0.5px solid var(--cbr-secondary)}
-.color-swatches{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.color-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
-.color-swatch.selected{border-color:#fff;transform:scale(1.15)}
+.color-swatches{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.color-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0;outline:3px solid transparent;outline-offset:2px}
+.color-swatch.selected{outline-color:#60a5fa;transform:scale(1.12)}
 .color-swatch.none{background:var(--cb-secondary);border:0.5px solid var(--cbr-secondary)}
+.color-swatch.none.selected{outline-color:#60a5fa}
+html.light .color-swatch.selected{outline-color:#1558a8}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--body-bg);color:var(--ct-primary);font-family:var(--font-sans);min-height:100vh}
 .app{padding:1rem;max-width:600px;margin:0 auto}
@@ -368,7 +370,7 @@ canvas{display:block;width:100%;height:100%;cursor:default;position:absolute;ins
 .spotify-open-btn svg{flex-shrink:0}
 .tile-body{padding:9px 12px}
 .tile-title{font-size:13px;font-weight:500;color:var(--ct-primary);margin-bottom:3px;line-height:1.35;word-break:break-word}
-.tile-meta{font-size:10px;color:var(--ct-tertiary);display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.tile-meta{font-size:10px;color:var(--ct-tertiary);display:flex;align-items:center;gap:4px;flex-wrap:nowrap;overflow:hidden}
 .tile-type-badge{font-size:10px;padding:1px 6px;border-radius:99px;border:0.5px solid;flex-shrink:0}.add-tile-btn-small{border:0.5px dashed var(--cbr-tertiary);background:none;border-radius:var(--br-md);padding:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ct-tertiary);font-size:11px;gap:5px;transition:all .15s;width:100%;font-family:var(--font-sans)}
 .add-tile-btn-small:hover{border-color:var(--cbr-info);color:var(--ct-info);background:var(--cb-info)}
 .board-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1rem;color:var(--ct-tertiary);font-size:13px;text-align:center;width:100%}
@@ -382,10 +384,7 @@ canvas{display:block;width:100%;height:100%;cursor:default;position:absolute;ins
 .audio-player{padding:8px 10px;background:var(--cb-secondary);border-top:0.5px solid var(--cbr-tertiary)}
 .audio-player audio{width:100%;height:34px}
 /* Swatch couleur */
-.color-swatches{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.color-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
-.color-swatch.selected{border-color:#fff;transform:scale(1.15)}
-.color-swatch.none{background:var(--cb-secondary);border:0.5px solid var(--cbr-secondary)}
+/* color-swatch rules defined above */
 
 /* ── GEAR BUTTON TUILE ── */
 .tile-gear-wrap{position:absolute;top:5px;right:5px;z-index:5}
@@ -407,6 +406,18 @@ html.light .tile:hover .tile-gear-btn{opacity:1}
 .ctx-menu-item.danger{color:var(--ct-danger)}
 .ctx-menu-item.danger:hover{background:var(--cb-danger)}
 .ctx-menu-sep{height:0.5px;background:var(--cbr-tertiary);margin:4px 6px}
+
+/* ── FENÊTRE APERÇU TUILE ── */
+#tile-preview-win{font-family:var(--font-sans);animation:ctxFadeIn .15s ease}
+html.light #tile-preview-win{background:#fff;border-color:var(--cbr-tertiary);box-shadow:0 8px 32px rgba(80,100,150,0.18)}
+
+/* ── BOUTON EXPAND APERÇU ── */
+.tile-expand-btn{margin-left:auto;flex-shrink:0;background:none;border:0.5px solid var(--cbr-tertiary);border-radius:4px;padding:2px 5px;color:var(--ct-tertiary);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center}
+.tile-expand-btn:hover{border-color:var(--cbr-info);color:var(--ct-info);background:var(--cb-info)}
+
+/* ── SOUS-ONGLETS FICHIERS ── */
+.file-sub-tab{outline:none}
+.file-sub-tab:hover{opacity:.85}
 .ctx-color-row{display:flex;gap:5px;padding:6px 10px;flex-wrap:wrap;align-items:center}
 .ctx-color-dot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
 .ctx-color-dot:hover,.ctx-color-dot.active{border-color:#fff;transform:scale(1.18)}
@@ -690,8 +701,8 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     <div id="ptab-content-outils" style="display:none">
       <div class="home-cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
 
-        <!-- Métronome -->
-        <div class="home-card" id="card-metro-home" onclick="toggleMetroDrawer()">
+        <!-- Métronome : visible pour les élèves uniquement (pas dans la vue prof) -->
+        <div class="home-card" id="card-metro-home" onclick="toggleMetroDrawer()" style="display:none">
           <div class="home-card-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
           <div class="home-card-title">Métronome</div>
         </div>
@@ -713,7 +724,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     </div>
 
 
-      <!-- Tiroir Métronome (inline dans l'onglet Outils) -->
+      <!-- Tiroir Métronome (réservé aux élèves, masqué ici) -->
       <div id="metro-drawer" style="display:none;margin-top:16px;background:var(--cb-secondary);border:0.5px solid var(--cbr-tertiary);border-radius:var(--br-lg);overflow:hidden">
         <div style="display:flex;align-items:center;padding:12px 16px;border-bottom:0.5px solid var(--cbr-tertiary)">
           <span style="font-size:14px;font-weight:600;color:var(--ct-primary);flex:1">🎵 Métronome</span>
@@ -1132,9 +1143,8 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     <h3 id="tile-modal-title">Ajouter une ressource</h3>
     <div class="tile-type-picker" id="tile-type-picker">
       <button class="tile-type-opt selected" data-type="link" onclick="selectTileType('link')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Lien</button>
-      <button class="tile-type-opt" data-type="media" onclick="selectTileType('media')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Média</button>
-      <button class="tile-type-opt" data-type="image" onclick="selectTileType('image')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Image/PDF</button>
-      <button class="tile-type-opt" data-type="audio" onclick="selectTileType('audio')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Audio</button>
+      <button class="tile-type-opt" data-type="media" onclick="selectTileType('media')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Médias en ligne</button>
+      <button class="tile-type-opt" data-type="file" onclick="selectTileType('file')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>Fichiers</button>
       <button class="tile-type-opt" data-type="text" onclick="selectTileType('text')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Note</button>
     </div>
     <div class="field-label">Titre</div>
@@ -1169,6 +1179,50 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
         <input type="file" id="tile-audio-file" accept="audio/*" onchange="handleTileAudioFile(event)">
       </label>
       <div id="tile-audio-name" style="font-size:11px;color:var(--ct-success);display:none;margin-bottom:6px"></div>
+    </div>
+    <!-- Fichiers locaux (image, pdf, audio, téléchargeable) -->
+    <div id="tile-field-file" style="display:none">
+      <!-- Sous-onglets de type de fichier -->
+      <div style="display:flex;gap:4px;margin-bottom:10px;background:var(--cb-secondary);border-radius:var(--br-md);padding:4px;border:0.5px solid var(--cbr-tertiary)">
+        <button class="file-sub-tab active" data-sub="image" onclick="selectFileSubtype('image')" style="flex:1;font-size:11px;padding:5px 4px;border-radius:6px;border:none;background:var(--cb-info);color:var(--ct-info);cursor:pointer;font-family:var(--font-sans);transition:all .15s">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Image/PDF
+        </button>
+        <button class="file-sub-tab" data-sub="audio" onclick="selectFileSubtype('audio')" style="flex:1;font-size:11px;padding:5px 4px;border-radius:6px;border:none;background:none;color:var(--ct-secondary);cursor:pointer;font-family:var(--font-sans);transition:all .15s">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Audio
+        </button>
+        <button class="file-sub-tab" data-sub="download" onclick="selectFileSubtype('download')" style="flex:1;font-size:11px;padding:5px 4px;border-radius:6px;border:none;background:none;color:var(--ct-secondary);cursor:pointer;font-family:var(--font-sans);transition:all .15s">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Téléchargeable
+        </button>
+      </div>
+      <!-- Sous-section Image/PDF -->
+      <div id="file-sub-image">
+        <div class="field-label">Image (fichier ou URL)</div>
+        <input type="url" id="tile-img-url" placeholder="https://... (laisser vide pour upload)">
+        <label class="av-photo-label" style="margin-bottom:10px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle;margin-right:4px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Choisir une image ou un PDF
+          <input type="file" id="tile-img-file" accept="image/*,application/pdf" style="display:none" onchange="handleTileImageFile(event)">
+        </label>
+        <div id="tile-img-preview" style="display:none;margin-bottom:10px"><img id="tile-img-preview-img" style="max-width:100%;max-height:120px;border-radius:var(--br-md)"></div>
+      </div>
+      <!-- Sous-section Audio -->
+      <div id="file-sub-audio" style="display:none">
+        <div class="field-label">Fichier audio</div>
+        <label class="av-photo-label" style="margin-bottom:8px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle;margin-right:4px"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Choisir un fichier audio
+          <input type="file" id="tile-audio-file" accept="audio/*" onchange="handleTileAudioFile(event)">
+        </label>
+        <div id="tile-audio-name" style="font-size:11px;color:var(--ct-success);display:none;margin-bottom:6px"></div>
+      </div>
+      <!-- Sous-section Téléchargeable -->
+      <div id="file-sub-download" style="display:none">
+        <div class="field-label">Fichier à télécharger</div>
+        <div style="font-size:10px;color:var(--ct-tertiary);margin-bottom:8px">Tout type de fichier : partition, tableur, présentation, archive…</div>
+        <label class="av-photo-label" style="margin-bottom:8px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle;margin-right:4px"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg> Choisir un fichier
+          <input type="file" id="tile-dl-file" style="display:none" onchange="handleTileDownloadFile(event)">
+        </label>
+        <div id="tile-dl-name" style="font-size:11px;color:var(--ct-success);display:none;margin-bottom:6px"></div>
+      </div>
     </div>
     <!-- Note -->
     <div id="tile-field-text" style="display:none">
@@ -2505,9 +2559,9 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
   }
   if(boardIsProfMode)el.draggable=true;
 
-  const typeLabels={link:'Lien',media:'Média',image:'Image',audio:'Audio',text:'Note'};
-  const typeCols={link:'var(--cbr-info)',media:'#7c3aed',image:'var(--cbr-success)',audio:'var(--cbr-warning)',text:'var(--cbr-secondary)'};
-  const typeTxtCols={link:'var(--ct-info)',media:'#c4b5fd',image:'var(--ct-success)',audio:'var(--ct-warning)',text:'var(--ct-secondary)'};
+  const typeLabels={link:'Lien',media:'Média',image:'Image',audio:'Audio',text:'Note',download:'Fichier'};
+  const typeCols={link:'var(--cbr-info)',media:'#7c3aed',image:'var(--cbr-success)',audio:'var(--cbr-warning)',text:'var(--cbr-secondary)',download:'var(--cbr-warning)'};
+  const typeTxtCols={link:'var(--ct-info)',media:'#c4b5fd',image:'var(--ct-success)',audio:'var(--ct-warning)',text:'var(--ct-secondary)',download:'var(--ct-warning)'};
   const showPreview=tile.showPreview!==false;
 
   let previewHtml='';
@@ -2515,12 +2569,11 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
     if(tile.type==='image'&&(tile.imgData||tile.url)){
       const imgSrc=tile.imgData||tile.url;
       if(imgSrc && imgSrc.startsWith('data:application/pdf')){
-        // Tuile PDF
         previewHtml=`<div class="tile-preview-placeholder" style="cursor:pointer;flex-direction:column;gap:4px" onclick="event.stopPropagation();openPdfViewer('${tile.title||'Document'}',imgSrc);trackInteraction('${tile.id}')">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ct-info)" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           <span style="font-size:10px;color:var(--ct-info)">PDF</span></div>`;
       } else {
-        previewHtml=`<img class="tile-preview" src="${imgSrc}" draggable="false" style="cursor:zoom-in" onclick="event.stopPropagation();openLightbox('${imgSrc.replace(/'/g,"\\'")}','${(tile.title||'image').replace(/'/g,"\\'")}');trackInteraction('${tile.id}')" onerror="this.style.display='none'">`;
+        previewHtml=`<img class="tile-preview" src="${imgSrc}" draggable="false" style="cursor:zoom-in" onclick="event.stopPropagation();openTilePreview(this.src,'${(tile.title||'image').replace(/'/g,"\\'")}','image');trackInteraction('${tile.id}')" onerror="this.style.display='none'">`;
       }
     } else if(tile.type==='link'){
       let domain='';try{domain=new URL(tile.url).hostname}catch(e){}
@@ -2533,20 +2586,36 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
         else previewHtml=spotifyOpenBtn(info,tile.title,tile.id);
       }
     } else if(tile.type==='audio'){
-      previewHtml=`<div class="tile-preview-placeholder" style="height:50px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>`;
+      previewHtml=`<div class="tile-preview-placeholder" style="height:50px;cursor:pointer" onclick="event.stopPropagation();openTilePreview('${tile.id}','${(tile.title||'').replace(/'/g,"\\'")}','audio');trackInteraction('${tile.id}')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span style="font-size:10px;color:var(--ct-secondary);margin-top:4px">Cliquer pour écouter</span></div>`;
+    } else if(tile.type==='download'){
+      const ext=(tile.fileName||'').split('.').pop().toLowerCase();
+      const icons={pdf:'📄',mp3:'🎵',wav:'🎵',ogg:'🎵',zip:'📦',rar:'📦',doc:'📝',docx:'📝',xls:'📊',xlsx:'📊',ppt:'📑',pptx:'📑',txt:'📃',mxl:'🎼',xml:'🎼',mscz:'🎼'};
+      const icon=icons[ext]||'📁';
+      previewHtml=`<div class="tile-preview-placeholder" style="height:56px;cursor:pointer;flex-direction:column;gap:3px" onclick="event.stopPropagation();downloadTileFile('${tile.id}');trackInteraction('${tile.id}')">
+        <span style="font-size:22px">${icon}</span>
+        <span style="font-size:10px;color:var(--ct-secondary)">${tile.fileName||'Fichier'}</span>
+      </div>`;
     } else if(tile.type==='text'){
       const exc=(tile.content||'').slice(0,120).replace(/</g,'&lt;');
-      previewHtml=`<div class="tile-preview-placeholder" style="height:70px;font-size:11px;padding:10px;align-items:flex-start;text-align:left;line-height:1.6;color:var(--ct-secondary)">${exc}${exc.length<(tile.content||'').length?'…':''}</div>`;
+      previewHtml=`<div class="tile-preview-placeholder" style="height:70px;font-size:11px;padding:10px;align-items:flex-start;text-align:left;line-height:1.6;color:var(--ct-secondary);cursor:pointer" onclick="event.stopPropagation();openTilePreview('${tile.id}','${(tile.title||'').replace(/'/g,"\\'")}','text')">${exc}${exc.length<(tile.content||'').length?'…':''}</div>`;
     }
   }
 
   let bodyClick='';
   if(tile.type==='link')bodyClick=`onclick="trackInteraction('${tile.id}');window.open(${JSON.stringify(tile.url)},'_blank')" style="cursor:pointer"`;
-  else if(tile.type==='text')bodyClick=`onclick="showTextTile('${colIdx}','${tileIdx}')" style="cursor:pointer"`;
+  else if(tile.type==='text')bodyClick=`onclick="event.stopPropagation();openTilePreview('${tile.id}','${(tile.title||'').replace(/'/g,"\\'")}','text')" style="cursor:pointer"`;
+  else if(tile.type==='download')bodyClick=`onclick="event.stopPropagation();downloadTileFile('${tile.id}');trackInteraction('${tile.id}')" style="cursor:pointer"`;
 
   let metaExtra='';
   if(tile.type==='link'){try{metaExtra=`<span style="opacity:.45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px">${new URL(tile.url).hostname}</span>`}catch(e){}}
   if(tile.type==='media'){const info=parseMediaUrl(tile.mediaUrl);if(info)metaExtra=`<span style="opacity:.45">${info.platform==='youtube'?'YouTube':'Spotify'}</span>`;}
+  if(tile.type==='download'&&tile.fileName){
+    const ext=tile.fileName.split('.').pop().toUpperCase();
+    metaExtra=`<span style="opacity:.55;font-family:var(--font-mono);font-size:9px">${ext}</span>`;
+  }
+  // Bouton aperçu grand format (loupe) — tous utilisateurs, pour image/audio/text/lien/fichier
+  const canPreview = tile.type==='image'||tile.type==='audio'||tile.type==='text'||tile.type==='link'||tile.type==='download';
+  const previewBtnHtml = canPreview ? `<button class="tile-expand-btn" onclick="event.stopPropagation();openTilePreview('${tile.type==='image'?(tile.imgData||tile.url||'').replace(/'/g,"\\'"):tile.id}','${(tile.title||'').replace(/'/g,"\\'")}','${tile.type}')" title="Aperçu agrandi"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>` : '';
 
   // Bouton unique ⚙️ (settings) en mode prof
   const gearBtn=boardIsProfMode?`<button class="tile-gear-btn" onclick="event.stopPropagation();openTileMenu('${colId}','${tile.id}',this)" title="Réglages"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>`:'';
@@ -2558,8 +2627,9 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
     <div class="tile-body" ${bodyClick}>
       <div class="tile-title">${tile.title}</div>
       <div class="tile-meta">
-        <span class="tile-type-badge" style="border-color:${typeCols[tile.type]};color:${typeTxtCols[tile.type]}">${typeLabels[tile.type]||tile.type}</span>
+        <span class="tile-type-badge" style="border-color:${typeCols[tile.type]||typeCols.text};color:${typeTxtCols[tile.type]||typeTxtCols.text}">${typeLabels[tile.type]||tile.type}</span>
         ${metaExtra}
+        ${previewBtnHtml}
       </div>
     </div>
     ${boardIsProfMode?`<div class="tile-gear-wrap">${gearBtn}</div>`:''}
@@ -2620,8 +2690,127 @@ function deleteTileById(colId,tileId){
 
 function showTextTile(colIdx,tileIdx){
   const tile=boardColumns[colIdx]?.tiles[tileIdx];if(!tile)return;
-  alert(`${tile.title}\n\n${tile.content}`);
+  openTilePreview(tile.id,tile.title,'text');
 }
+
+/* ─── Téléchargement fichier ─── */
+function downloadTileFile(tileId){
+  var tile=null;
+  boardColumns.forEach(function(col){col.tiles.forEach(function(t){if(t.id===tileId)tile=t;});});
+  if(!tile||!tile.fileData)return;
+  var a=document.createElement('a');a.href=tile.fileData;a.download=tile.fileName||'fichier';a.click();
+}
+
+/* ─── Fenêtre flottante d'aperçu grand écran ─── */
+var _tilePreviewWin=null;
+
+function openTilePreview(tileIdOrSrc, title, kind){
+  // Fermer toute fenêtre précédente
+  if(_tilePreviewWin){_tilePreviewWin.remove();_tilePreviewWin=null;}
+
+  var tile=null;
+  if(kind!=='image'){
+    boardColumns.forEach(function(col){col.tiles.forEach(function(t){if(t.id===tileIdOrSrc)tile=t;});});
+  }
+
+  var win=document.createElement('div');
+  win.id='tile-preview-win';
+  win.style.cssText='position:fixed;z-index:9600;background:var(--cb-primary);border:0.5px solid var(--cbr-secondary);border-radius:14px;box-shadow:0 12px 48px rgba(0,0,0,0.55);display:flex;flex-direction:column;overflow:hidden;resize:both;min-width:320px;min-height:200px;max-width:90vw;max-height:88vh;width:480px;height:auto';
+  // Position initiale : centré
+  win.style.left=Math.max(20,window.innerWidth/2-240)+'px';
+  win.style.top=Math.max(60,window.innerHeight/2-200)+'px';
+
+  // Header drag
+  var header=document.createElement('div');
+  header.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:0.5px solid var(--cbr-tertiary);cursor:grab;flex-shrink:0;background:var(--cb-secondary);user-select:none';
+  header.innerHTML='<div style="flex:1;font-size:13px;font-weight:500;color:var(--ct-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(title||'Aperçu')+'</div>'
+    +'<button onclick="closeTilePreview()" style="background:none;border:none;cursor:pointer;color:var(--ct-tertiary);font-size:18px;padding:2px 6px;line-height:1;flex-shrink:0">✕</button>';
+  win.appendChild(header);
+
+  // Contenu
+  var body=document.createElement('div');
+  body.style.cssText='flex:1;overflow:auto;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start';
+
+  if(kind==='image'){
+    // tileIdOrSrc est directement le src de l'image
+    var img=document.createElement('img');
+    img.src=tileIdOrSrc;
+    img.style.cssText='max-width:100%;height:auto;display:block;padding:12px;object-fit:contain';
+    img.onerror=function(){body.innerHTML='<div style="padding:20px;color:var(--ct-tertiary);font-size:13px">Impossible d\'afficher l\'image.</div>';};
+    body.appendChild(img);
+  } else if(kind==='audio'&&tile&&tile.audioData){
+    body.style.justifyContent='center';
+    body.style.padding='24px';
+    var aWrap=document.createElement('div');
+    aWrap.style.cssText='display:flex;flex-direction:column;align-items:center;gap:16px;width:100%';
+    aWrap.innerHTML='<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--ct-info)" stroke-width="1.2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>'
+      +'<div style="font-size:13px;color:var(--ct-secondary);text-align:center">'+escHtml(title||'Audio')+'</div>';
+    var aud=document.createElement('audio');
+    aud.controls=true;aud.autoplay=false;aud.src=tile.audioData;
+    aud.style.cssText='width:100%;max-width:340px';
+    aWrap.appendChild(aud);
+    body.appendChild(aWrap);
+  } else if(kind==='text'&&tile){
+    body.style.cssText='flex:1;overflow:auto;padding:20px;align-items:flex-start;justify-content:flex-start';
+    var pre=document.createElement('div');
+    pre.style.cssText='font-size:14px;line-height:1.7;color:var(--ct-primary);white-space:pre-wrap;word-break:break-word;width:100%';
+    pre.textContent=tile.content||'';
+    body.appendChild(pre);
+  } else if(kind==='link'&&tile){
+    body.style.justifyContent='center';body.style.padding='24px';
+    body.innerHTML='<div style="text-align:center"><div style="font-size:32px;margin-bottom:12px">🔗</div>'
+      +'<div style="font-size:13px;color:var(--ct-primary);margin-bottom:16px">'+escHtml(tile.title)+'</div>'
+      +'<a href="'+escHtml(tile.url||'')+'" target="_blank" rel="noopener noreferrer" style="padding:10px 24px;background:var(--cb-info);color:var(--ct-info);border:0.5px solid var(--cbr-info);border-radius:99px;text-decoration:none;font-size:13px;display:inline-block">Ouvrir le lien →</a>'
+      +'<div style="font-size:11px;color:var(--ct-tertiary);margin-top:10px;word-break:break-all">'+escHtml(tile.url||'')+'</div></div>';
+  } else {
+    body.innerHTML='<div style="padding:20px;color:var(--ct-tertiary);font-size:13px">Aperçu non disponible.</div>';
+  }
+
+  win.appendChild(body);
+  document.body.appendChild(win);
+  _tilePreviewWin=win;
+
+  // Drag
+  var dragging=false,ox=0,oy=0,startL=0,startT=0;
+  header.addEventListener('mousedown',function(e){
+    dragging=true;ox=e.clientX;oy=e.clientY;
+    startL=parseInt(win.style.left)||0;startT=parseInt(win.style.top)||0;
+    header.style.cursor='grabbing';e.preventDefault();
+  });
+  document.addEventListener('mousemove',function(e){
+    if(!dragging)return;
+    var nl=startL+(e.clientX-ox),nt=startT+(e.clientY-oy);
+    nl=Math.max(0,Math.min(window.innerWidth-100,nl));
+    nt=Math.max(0,Math.min(window.innerHeight-60,nt));
+    win.style.left=nl+'px';win.style.top=nt+'px';
+  });
+  document.addEventListener('mouseup',function(){dragging=false;header.style.cursor='grab';});
+
+  // Touch drag
+  var tx=0,ty=0,tsl=0,tst=0;
+  header.addEventListener('touchstart',function(e){
+    var t=e.touches[0];tx=t.clientX;ty=t.clientY;
+    tsl=parseInt(win.style.left)||0;tst=parseInt(win.style.top)||0;
+    e.preventDefault();
+  },{passive:false});
+  header.addEventListener('touchmove',function(e){
+    var t=e.touches[0];
+    var nl=tsl+(t.clientX-tx),nt=tst+(t.clientY-ty);
+    nl=Math.max(0,Math.min(window.innerWidth-100,nl));
+    nt=Math.max(0,Math.min(window.innerHeight-60,nt));
+    win.style.left=nl+'px';win.style.top=nt+'px';
+    e.preventDefault();
+  },{passive:false});
+}
+
+function closeTilePreview(){
+  if(_tilePreviewWin){_tilePreviewWin.remove();_tilePreviewWin=null;}
+}
+
+function escHtml(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 
 /* ── Ouverture / fermeture ── */
 
@@ -3283,14 +3472,15 @@ function openAddTileModal(colId){
   tileTargetColId=colId;tileEditingId=null;tileEditingColId=null;
   document.getElementById('tile-modal-title').textContent='Ajouter une ressource';
   document.getElementById('tile-modal-confirm-btn').textContent='Ajouter';
-  // delete btn removed
   var _t=function(id,v){var e=document.getElementById(id);if(e)e.value=v||'';};
   _t('tile-title','');_t('tile-url','');_t('tile-media-url','');
   _t('tile-img-url','');_t('tile-text-content','');
   var an=document.getElementById('tile-audio-name');if(an)an.style.display='none';
+  var dn=document.getElementById('tile-dl-name');if(dn)dn.style.display='none';
   var prev=document.getElementById('tile-img-preview');if(prev)prev.style.display='none';
   var mprev=document.getElementById('tile-media-preview');if(mprev)mprev.style.display='none';
-  tileImgData=null;tileAudioData=null;tileModalColor=null;tileModalSize='md';
+  tileImgData=null;tileAudioData=null;tileDownloadData=null;tileDownloadName='';
+  tileModalColor=null;tileModalSize='md';tileFileSubtype='image';
   initColorSwatches();selectTileType('link');openModal('modal-tile');
 }
 function openEditTileModal(colId,tileId){
@@ -3301,29 +3491,50 @@ function openEditTileModal(colId,tileId){
   tileTargetColId=colId;tileEditingId=tileId;tileEditingColId=colId;
   document.getElementById('tile-modal-title').textContent='Modifier la ressource';
   document.getElementById('tile-modal-confirm-btn').textContent='Enregistrer';
-  // delete btn removed
   var _t=function(id,v){var e=document.getElementById(id);if(e)e.value=v||'';};
   _t('tile-title',tile.title);_t('tile-url',tile.url);
   _t('tile-media-url',tile.mediaUrl);_t('tile-img-url',tile.url);
   _t('tile-text-content',tile.content);
   var an=document.getElementById('tile-audio-name');
   if(an){an.textContent=tile.audioData?'Audio conservé':'';an.style.display=tile.audioData?'block':'none';}
+  var dn=document.getElementById('tile-dl-name');
+  if(dn){dn.textContent=tile.fileName?tile.fileName:'';dn.style.display=tile.fileName?'block':'none';}
   tileImgData=tile.imgData||null;tileAudioData=tile.audioData||null;
+  tileDownloadData=tile.fileData||null;tileDownloadName=tile.fileName||'';
   tileModalColor=tile.color||null;tileModalSize=tile.size||'md';
-  initColorSwatches();selectTileType(tile.type||'link');openModal('modal-tile');
+  // Déterminer le sous-onglet fichier si nécessaire
+  if(tile.type==='audio'){tileFileSubtype='audio';}
+  else if(tile.type==='download'){tileFileSubtype='download';}
+  else{tileFileSubtype='image';}
+  initColorSwatches();
+  // Mapper les anciens types image/audio vers le nouveau type 'file'
+  var modalType=tile.type;
+  if(tile.type==='audio'||tile.type==='image'||tile.type==='download') modalType='file';
+  selectTileType(modalType||'link');
+  openModal('modal-tile');
 }
 function confirmAddTile(){
   var title=document.getElementById('tile-title').value.trim();if(!title)return;
   var type=tileModalType;
   var _gv=function(id){var e=document.getElementById(id);return e?e.value.trim():'';};
-  var tile={id:'tile'+Date.now(),title:title,type:type,
+
+  // Déterminer le type stocké selon le sous-type fichier
+  var storedType=type;
+  if(type==='file'){
+    if(tileFileSubtype==='audio') storedType='audio';
+    else if(tileFileSubtype==='download') storedType='download';
+    else storedType='image';
+  }
+
+  var tile={id:'tile'+Date.now(),title:title,type:storedType,
     url:_gv('tile-url'),
     description:'',
     mediaUrl:_gv('tile-media-url'),
     content:_gv('tile-text-content'),
     size:tileModalSize||'md',color:tileModalColor,showPreview:true};
-  if(type==='image')tile.imgData=tileImgData;
-  if(type==='audio')tile.audioData=tileAudioData;
+  if(storedType==='image') tile.imgData=tileImgData;
+  if(storedType==='audio') tile.audioData=tileAudioData;
+  if(storedType==='download'){tile.fileData=tileDownloadData;tile.fileName=tileDownloadName;}
   if(tileEditingId){
     var col=boardColumns.find(function(c){return c.id===tileEditingColId;});if(!col)return;
     var idx=col.tiles.findIndex(function(t){return t.id===tileEditingId;});if(idx<0)return;
@@ -3355,12 +3566,43 @@ function initColorSwatches(){
     wrap.appendChild(btn);
   });
 }
+var tileFileSubtype='image'; // 'image' | 'audio' | 'download'
+var tileDownloadData=null, tileDownloadName='';
+
+function selectFileSubtype(sub){
+  tileFileSubtype=sub;
+  ['image','audio','download'].forEach(function(s){
+    var el=document.getElementById('file-sub-'+s);
+    if(el) el.style.display=s===sub?'block':'none';
+  });
+  document.querySelectorAll('.file-sub-tab').forEach(function(btn){
+    var active=btn.dataset.sub===sub;
+    btn.style.background=active?'var(--cb-info)':'none';
+    btn.style.color=active?'var(--ct-info)':'var(--ct-secondary)';
+  });
+}
+
+function handleTileDownloadFile(ev){
+  var f=ev.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    tileDownloadData=e.target.result;
+    tileDownloadName=f.name;
+    var n=document.getElementById('tile-dl-name');
+    if(n){n.textContent=f.name+' ('+Math.round(f.size/1024)+' Ko)';n.style.display='block';}
+  };
+  r.readAsDataURL(f);
+}
+
 function selectTileType(type){
   tileModalType=type;
   document.querySelectorAll('.tile-type-opt').forEach(function(b){b.classList.toggle('selected',b.dataset.type===type);});
-  ['link','media','image','audio','text'].forEach(function(t){
+  // Tous les champs visibles
+  ['link','media','file','image','audio','text'].forEach(function(t){
     var el=document.getElementById('tile-field-'+t);if(el)el.style.display=t===type?'block':'none';
   });
+  // Si type=file, initialiser le sous-onglet par défaut
+  if(type==='file') selectFileSubtype(tileFileSubtype||'image');
 }
 function handleTileImage(input){
   var f=input.files[0];if(!f)return;
