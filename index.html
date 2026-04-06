@@ -554,6 +554,31 @@ html.light .sp-tile{background:#fff}
 html.light .btn-back-tree,html.light .hud-top .btn{background:rgba(255,255,255,0.88)!important;color:var(--ct-primary)!important;border-color:var(--cbr-secondary)!important}
 html.light .congrats-overlay .btn-info{background:#1e3a6e!important;color:#fff!important;border-color:#1e3a6e!important;}
 html.light .congrats-overlay .btn-info:hover{background:#163060!important;border-color:#163060!important;}
+
+/* ── Fixs largeur mobile supplémentaires ── */
+@media (max-width: 600px) {
+  /* Éviter les dépassements horizontaux */
+  .app, .prof-content, .modal-box, .ce-section, .ep-header {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  /* Boîte à outils : iframe Spotify responsive */
+  #toolbox-scroll iframe { width: 100% !important; }
+  /* Barre de métronome : boutons qui s'adaptent */
+  #metro-panel .btn-sm { flex: 1; min-width: 0; font-size: 10px; }
+  /* Partage : colonnes min-width plus petites */
+  .board-col { min-width: 240px !important; max-width: 92vw !important; }
+  /* Skill rows : wrap les boutons */
+  .skill-edit-row { flex-wrap: wrap; gap: 6px; }
+  .seg { flex-shrink: 0; }
+  /* Formulaires prof */
+  .prof-content input, .prof-content select, .prof-content textarea { box-sizing: border-box; }
+  /* Home cards sur mobile : 2 colonnes */
+  .home-cards { grid-template-columns: repeat(2, 1fr) !important; }
+  /* Grille toolbox : toujours 3 colonnes */
+  #toolbox-scroll .home-card { padding: 12px 6px !important; }
+}
+
 </style>
 </head>
 <body>
@@ -897,6 +922,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     <div style="flex:1"></div>
     <button class="btn btn-sm" onclick="openToolboxScreen()" title="Boîte à outils" style="backdrop-filter:blur(4px);background:rgba(15,20,32,0.7);margin-right:4px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.77 3.77z"/></svg> Outils</button>
     <button class="btn btn-warn btn-sm" id="btn-edit-mode" onclick="toggleEditMode()" style="display:none;backdrop-filter:blur(4px);background:rgba(58,40,0,0.7)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Éditer</button>
+    <button class="btn btn-sm" id="btn-recenter-tree" onclick="_treeResetView()" title="Recentrer" style="backdrop-filter:blur(4px);background:rgba(15,20,32,0.7);padding:6px 8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
   </div>
 
   <!-- HUD tabs cycles (haut droit) -->
@@ -1014,131 +1040,96 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     <span style="font-size:14px;font-weight:600;color:var(--ct-primary)">Boîte à outils</span>
   </div>
 
-  <!-- Grille de cartes centrée -->
-  <div style="position:absolute;top:56px;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:center;overflow:auto;padding:60px 20px 20px">
-    <div style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center;max-width:560px">
+  <!-- Contenu scrollable de la boîte à outils -->
+  <div id="toolbox-scroll" style="position:absolute;top:56px;bottom:0;left:0;right:0;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+    <div style="max-width:560px;margin:0 auto;padding:16px 16px 32px;">
 
-      <!-- Carte Métronome -->
-      <div class="home-card" id="card-metro" onclick="toggleMetroPanel()" style="min-width:140px;flex:1">
-        <div class="home-card-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      <!-- Grille de cartes -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+        <div class="home-card" id="card-metro" onclick="toggleMetroPanel()" style="padding:16px 8px">
+          <div class="home-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+          <div class="home-card-title" style="font-size:12px">Métronome</div>
         </div>
-        <div class="home-card-title">Métronome</div>
+        <div class="home-card" onclick="openBoard(false)" style="padding:16px 8px">
+          <div class="home-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div class="home-card-title" style="font-size:12px">Partage</div>
+        </div>
+        <div class="home-card" onclick="openAgenda()" style="padding:16px 8px">
+          <div class="home-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <div class="home-card-title" style="font-size:12px">Agenda</div>
+        </div>
       </div>
 
-      <!-- Carte Partage (lecture seule pour élève) -->
-      <div class="home-card" onclick="openBoard(false)" style="min-width:140px;flex:1">
-        <div class="home-card-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <!-- Métronome inline (masqué par défaut) -->
+      <div id="metro-panel" style="display:none;background:var(--cb-secondary);border:0.5px solid var(--cbr-tertiary);border-radius:14px;padding:18px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <span style="font-size:14px;font-weight:600;color:var(--ct-primary)">🎵 Métronome</span>
+          <button onclick="closeMetroPanel()" style="background:none;border:none;cursor:pointer;color:var(--ct-tertiary);font-size:18px;padding:2px 6px;line-height:1">✕</button>
         </div>
-        <div class="home-card-title">Partage</div>
+        <div style="text-align:center;margin-bottom:12px">
+          <div id="metro-bpm-display" style="font-size:48px;font-weight:700;font-family:var(--font-mono);color:var(--ct-primary);line-height:1">120</div>
+          <div style="font-size:11px;color:var(--ct-tertiary);margin-top:2px">BPM</div>
+        </div>
+        <input type="range" id="metro-bpm-slider" min="40" max="240" value="120"
+          style="width:100%;height:4px;accent-color:#378ADD;margin-bottom:0;border:none;cursor:pointer"
+          oninput="setMetroBpm(this.value)">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ct-tertiary);margin-top:3px;margin-bottom:12px"><span>40</span><span>BPM</span><span>240</span></div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">
+          <button class="btn btn-sm" onclick="setMetroBpm(52)" style="flex:1">Lento<br><span style="font-size:9px;opacity:.5">52</span></button>
+          <button class="btn btn-sm" onclick="setMetroBpm(76)" style="flex:1">Andante<br><span style="font-size:9px;opacity:.5">76</span></button>
+          <button class="btn btn-sm" onclick="setMetroBpm(108)" style="flex:1">Moderato<br><span style="font-size:9px;opacity:.5">108</span></button>
+          <button class="btn btn-sm" onclick="setMetroBpm(132)" style="flex:1">Allegro<br><span style="font-size:9px;opacity:.5">132</span></button>
+          <button class="btn btn-sm" onclick="setMetroBpm(176)" style="flex:1">Presto<br><span style="font-size:9px;opacity:.5">176</span></button>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:100px">
+            <div style="font-size:11px;color:var(--ct-secondary);margin-bottom:5px">Carrure</div>
+            <select id="metro-beats-select" onchange="setMetroBeatsPerBar(this.value)" style="margin-bottom:0;font-size:13px;padding:6px 8px;width:100%">
+              <option value="2">2 temps</option><option value="3">3 temps</option>
+              <option value="4" selected>4 temps</option><option value="5">5 temps</option>
+              <option value="6">6 temps</option><option value="7">7 temps</option><option value="8">8 temps</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:100px">
+            <div style="font-size:11px;color:var(--ct-secondary);margin-bottom:5px">Son</div>
+            <select id="metro-sound-select" onchange="setMetroSound(this.value)" style="margin-bottom:0;font-size:13px;padding:6px 8px;width:100%">
+              <option value="wood" selected>Woodblock</option>
+              <option value="rim">Rimshot</option>
+              <option value="beep">Bip électro</option>
+              <option value="bell">Cloche</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px;flex-wrap:wrap" id="metro-beats-display"></div>
+        <button id="metro-play-btn" onclick="startStopMetro()" style="width:100%;padding:13px;font-size:14px;border-radius:var(--br-lg);border:0.5px solid var(--cbr-info);background:var(--cb-info);color:var(--ct-info);cursor:pointer;font-family:var(--font-sans);font-weight:500">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px"><polygon points="5 3 19 12 5 21 5 3"/></svg> Démarrer
+        </button>
       </div>
 
-      <!-- Carte Agenda -->
-      <div class="home-card" onclick="openAgenda()" style="min-width:140px;flex:1">
-        <div class="home-card-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <!-- Playlist Spotify (toujours visible) -->
+      <div style="background:var(--cb-secondary);border:0.5px solid var(--cbr-tertiary);border-radius:14px;padding:14px 14px 10px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+          <span style="font-size:13px;font-weight:600;color:var(--ct-primary)">Playlist du cours</span>
         </div>
-        <div class="home-card-title">Agenda</div>
-      </div>
-
-      <!-- Carte Playlist Spotify -->
-      <div class="home-card" onclick="toggleSpotifyPanel()" style="min-width:140px;flex:1">
-        <div class="home-card-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M8 11.5c2.5-1 5.5-.8 8 .5M7 14.5c3-1.2 7-1 10 .5M9 17.5c2-0.8 4.5-.7 7 .5"/>
-          </svg>
-        </div>
-        <div class="home-card-title">Playlist</div>
+        <iframe style="border-radius:10px;display:block" src="https://open.spotify.com/embed/playlist/5xBFp4hSf9Nc3NkbmASlRe?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
       </div>
 
     </div>
   </div>
 
-  <!-- Volet Métronome (slide depuis le bas) -->
-  <div id="metro-panel" style="position:absolute;bottom:0;left:0;right:0;z-index:30;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);background:var(--cb-primary);border-top:0.5px solid var(--cbr-secondary);border-radius:18px 18px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,0.45);max-height:85vh;overflow-y:auto">
-    <div style="padding:12px 20px 0;text-align:center">
-      <div style="width:36px;height:4px;background:var(--cbr-tertiary);border-radius:99px;margin:0 auto 14px"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <span style="font-size:15px;font-weight:600;color:var(--ct-primary)">Métronome</span>
-        <button onclick="closeMetroPanel()" style="background:none;border:none;cursor:pointer;color:var(--ct-tertiary);font-size:18px;padding:4px 6px;line-height:1">✕</button>
-      </div>
-    </div>
-    <div style="padding:0 20px 28px">
-      <div style="text-align:center;margin-bottom:14px">
-        <div id="metro-bpm-display" style="font-size:52px;font-weight:700;font-family:var(--font-mono);color:var(--ct-primary);line-height:1">120</div>
-        <div style="font-size:11px;color:var(--ct-tertiary);margin-top:2px">BPM</div>
-      </div>
-      <input type="range" id="metro-bpm-slider" min="40" max="240" value="120"
-        style="width:100%;height:4px;accent-color:#378ADD;margin-bottom:0;border:none;cursor:pointer"
-        oninput="setMetroBpm(this.value)">
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ct-tertiary);margin-top:3px;margin-bottom:12px"><span>40</span><span>BPM</span><span>240</span></div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">
-        <button class="btn btn-sm" onclick="setMetroBpm(52)">Lento<br><span style="font-size:9px;opacity:.5">52</span></button>
-        <button class="btn btn-sm" onclick="setMetroBpm(76)">Andante<br><span style="font-size:9px;opacity:.5">76</span></button>
-        <button class="btn btn-sm" onclick="setMetroBpm(108)">Moderato<br><span style="font-size:9px;opacity:.5">108</span></button>
-        <button class="btn btn-sm" onclick="setMetroBpm(132)">Allegro<br><span style="font-size:9px;opacity:.5">132</span></button>
-        <button class="btn btn-sm" onclick="setMetroBpm(176)">Presto<br><span style="font-size:9px;opacity:.5">176</span></button>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
-        <div style="flex:1;min-width:100px">
-          <div style="font-size:11px;color:var(--ct-secondary);margin-bottom:5px">Carrure</div>
-          <select id="metro-beats-select" onchange="setMetroBeatsPerBar(this.value)" style="margin-bottom:0;font-size:13px;padding:6px 8px;width:100%">
-            <option value="2">2 temps</option><option value="3">3 temps</option>
-            <option value="4" selected>4 temps</option><option value="5">5 temps</option>
-            <option value="6">6 temps</option><option value="7">7 temps</option><option value="8">8 temps</option>
-          </select>
-        </div>
-        <div style="flex:1;min-width:100px">
-          <div style="font-size:11px;color:var(--ct-secondary);margin-bottom:5px">Son</div>
-          <select id="metro-sound-select" onchange="setMetroSound(this.value)" style="margin-bottom:0;font-size:13px;padding:6px 8px;width:100%">
-            <option value="wood" selected>Woodblock</option>
-            <option value="rim">Rimshot</option>
-            <option value="beep">Bip électro</option>
-            <option value="bell">Cloche</option>
-          </select>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px;flex-wrap:wrap" id="metro-beats-display"></div>
-      <button id="metro-play-btn" onclick="startStopMetro()" style="width:100%;padding:13px;font-size:14px;border-radius:var(--br-lg);border:0.5px solid var(--cbr-info);background:var(--cb-info);color:var(--ct-info);cursor:pointer;font-family:var(--font-sans);font-weight:500">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px"><polygon points="5 3 19 12 5 21 5 3"/></svg> Démarrer
-      </button>
-    </div>
-  </div>
-
-  <!-- Volet Partage (sc-board intégré en slide-up) -->
+  <!-- Volet Partage (sc-board intégré en slide-up — inchangé) -->
   <div id="share-panel" style="position:absolute;bottom:0;left:0;right:0;top:56px;z-index:28;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);background:var(--cb-primary);border-top:0.5px solid var(--cbr-secondary);display:flex;flex-direction:column;overflow:hidden">
-    <!-- Header partage -->
     <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:0.5px solid var(--cbr-tertiary);flex-shrink:0;background:var(--cb-secondary)">
       <button onclick="closeSharePanel()" style="background:none;border:none;cursor:pointer;color:var(--ct-tertiary);font-size:18px;padding:2px 6px;line-height:1">✕</button>
       <span style="font-size:14px;font-weight:600;color:var(--ct-primary);flex:1">Espace de partage</span>
       <span id="share-panel-badge" style="display:none;font-size:10px;padding:2px 8px;border-radius:99px;background:var(--cb-info);color:var(--ct-info);border:0.5px solid var(--cbr-info)">Prof</span>
-
       <button id="share-panel-interactions" onclick="openInteractionsModal()" style="display:none" class="btn btn-sm">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Interactions
       </button>
     </div>
-    <!-- Colonnes -->
     <div style="flex:1;overflow-x:auto;overflow-y:hidden;padding:16px">
       <div id="share-panel-cols" style="display:flex;gap:16px;align-items:flex-start;height:100%;min-width:max-content;padding-bottom:8px"></div>
-    </div>
-  </div>
-
-  <!-- Volet Playlist Spotify (slide depuis le bas) -->
-  <div id="spotify-panel" style="position:absolute;bottom:0;left:0;right:0;z-index:31;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);background:var(--cb-primary);border-top:0.5px solid var(--cbr-secondary);border-radius:18px 18px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,0.45);max-height:90vh;overflow-y:auto">
-    <div style="padding:12px 20px 0;text-align:center">
-      <div style="width:36px;height:4px;background:var(--cbr-tertiary);border-radius:99px;margin:0 auto 14px"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-          <span style="font-size:15px;font-weight:600;color:var(--ct-primary)">Playlist du cours</span>
-        </div>
-        <button onclick="toggleSpotifyPanel()" style="background:none;border:none;cursor:pointer;color:var(--ct-tertiary);font-size:18px;padding:4px 6px;line-height:1">✕</button>
-      </div>
-    </div>
-    <div style="padding:0 16px 28px">
-      <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/playlist/5xBFp4hSf9Nc3NkbmASlRe?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
     </div>
   </div>
 
@@ -1364,11 +1355,23 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     <h3 id="exam-modal-title" style="text-align:center;margin-bottom:8px">Valider l'examen de passage</h3>
     <p id="exam-modal-sub"></p>
     <div class="field-label" style="text-align:left">Note obtenue (sur 20)</div>
-    <input type="number" id="exam-note" min="10" max="20" step="0.5" placeholder="ex: 14.5" style="text-align:center;font-size:18px;letter-spacing:1px">
-    <div class="err" id="exam-err">La note doit être supérieure ou égale à 10 pour valider</div>
+    <input type="number" id="exam-note" min="0" max="20" step="0.5" placeholder="ex: 14.5" style="text-align:center;font-size:18px;letter-spacing:1px" oninput="onExamNoteInput()">
+    <div id="exam-mention-row" style="display:none;margin-bottom:10px">
+      <div class="field-label" style="text-align:left">Mention <span style="font-weight:400;opacity:.6">(optionnel)</span></div>
+      <select id="exam-mention" style="margin-bottom:0">
+        <option value="">— Sans mention —</option>
+        <option value="Passable">Passable (10–11)</option>
+        <option value="Assez bien">Assez bien (12–13)</option>
+        <option value="Bien">Bien (14–15)</option>
+        <option value="Très bien">Très bien (16–17)</option>
+        <option value="Excellent">Excellent (18–20)</option>
+      </select>
+    </div>
+    <div class="err" id="exam-err"></div>
+    <div id="exam-warn" style="font-size:11px;color:var(--ct-warning);margin-bottom:8px;display:none;padding:6px 10px;background:var(--cb-warning);border-radius:var(--br-sm);border:0.5px solid var(--cbr-warning)"></div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-exam')">Annuler</button>
-      <button class="btn btn-success" onclick="confirmExam()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Valider l'examen</button>
+      <button class="btn btn-success" id="exam-confirm-btn" onclick="confirmExam()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Valider l'examen</button>
     </div>
   </div>
 </div>
@@ -2007,32 +2010,77 @@ function renderHome(){
 }
 
 /* ── EXAM ── */
+
+function onExamNoteInput(){
+  const v=parseFloat(document.getElementById('exam-note').value);
+  const err=document.getElementById('exam-err');
+  const warn=document.getElementById('exam-warn');
+  const mentionRow=document.getElementById('exam-mention-row');
+  const btn=document.getElementById('exam-confirm-btn');
+  err.style.display='none';warn.style.display='none';
+  if(isNaN(v)){mentionRow.style.display='none';return;}
+  if(v>20){err.textContent='La note ne peut pas dépasser 20';err.style.display='block';mentionRow.style.display='none';return;}
+  if(v<10){
+    warn.textContent='Note < 10 — l\'examen ne sera pas validé, mais la note sera enregistrée.';
+    warn.style.display='block';mentionRow.style.display='none';
+    btn.textContent='Enregistrer sans valider';
+    btn.className='btn btn-warn';
+  } else {
+    btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Valider l\'examen';
+    btn.className='btn btn-success';
+    mentionRow.style.display='block';
+    // Auto-remplir la mention selon la note
+    const sel=document.getElementById('exam-mention');
+    if(v>=18)sel.value='Excellent';
+    else if(v>=16)sel.value='Très bien';
+    else if(v>=14)sel.value='Bien';
+    else if(v>=12)sel.value='Assez bien';
+    else if(v>=10)sel.value='Passable';
+    else sel.value='';
+  }
+}
 function openExamModal(studentId){
   const s=students.find(x=>x.id===studentId);if(!s)return;
   currentStudent=s;
-  document.getElementById('exam-modal-title').textContent=`Valider l'examen — ${s.name}`;
-  document.getElementById('exam-modal-sub').textContent=`Entrez la note obtenue par ${s.name} à l'examen de fin de Cycle ${s.cycle}. La note doit être ≥ 10 pour valider le passage au Cycle ${s.cycle+1}.`;
-  document.getElementById('exam-note').value='';document.getElementById('exam-err').style.display='none';
+  document.getElementById('exam-modal-title').textContent='Valider l\'examen — '+s.name;
+  document.getElementById('exam-modal-sub').textContent='Entrez la note obtenue par '+s.name+' à l\'examen de fin de Cycle '+s.cycle+'. La note doit être ≥ 10 pour valider le passage au Cycle '+(s.cycle+1)+'.';
+  document.getElementById('exam-note').value='';
+  document.getElementById('exam-err').style.display='none';
+  document.getElementById('exam-warn').style.display='none';
+  document.getElementById('exam-mention-row').style.display='none';
+  var btn=document.getElementById('exam-confirm-btn');
+  btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Valider l\'examen';
+  btn.className='btn btn-success';
   openModal('modal-exam');
 }
 function confirmExam(){
   const noteVal=parseFloat(document.getElementById('exam-note').value);
   const err=document.getElementById('exam-err');err.style.display='none';
-  if(isNaN(noteVal)||noteVal<10){err.textContent='La note doit être ≥ 10 pour valider';err.style.display='block';return}
-  if(noteVal>20){err.textContent='La note ne peut pas dépasser 20';err.style.display='block';return}
+  if(isNaN(noteVal)){err.textContent='Entrez une note';err.style.display='block';return;}
+  if(noteVal<0||noteVal>20){err.textContent='La note doit être entre 0 et 20';err.style.display='block';return;}
   if(!currentStudent)return;
-  const noteVal20=Math.min(20,noteVal);
+  const noteVal20=Math.min(20,Math.max(0,noteVal));
+  const mention=document.getElementById('exam-mention').value||'';
   const c=currentStudent.cycle;
   if(!currentStudent.examPassed)currentStudent.examPassed={};
   if(!currentStudent.examData)currentStudent.examData={};
   const today=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
-  currentStudent.examPassed[c]=true;
-  currentStudent.examData[c]={note:noteVal20,date:today};
-  currentStudent.cycle=Math.min(3,c+1);
-  saveLocal();closeModal('modal-exam');
-  showCongrats(currentStudent,c,noteVal20,today);
+  if(noteVal20>=10){
+    currentStudent.examPassed[c]=true;
+    currentStudent.examData[c]={note:noteVal20,date:today,mention:mention};
+    currentStudent.cycle=Math.min(3,c+1);
+    saveLocal();closeModal('modal-exam');
+    showCongrats(currentStudent,c,noteVal20,today,mention);
+  } else {
+    // Enregistrer sans valider
+    if(!currentStudent.examData[c])currentStudent.examData[c]={};
+    currentStudent.examData[c]={note:noteVal20,date:today,mention:'',failed:true};
+    saveLocal();closeModal('modal-exam');
+    alert('Note enregistrée ('+noteVal20+'/20). L\'examen n\'est pas validé — '+currentStudent.name+' reste en Cycle '+c+'.');
+    renderHome();
+  }
 }
-function showCongrats(student,cycle,note,date){
+function showCongrats(student,cycle,note,date,mention){
   pendingCongratsStudent=student;
   if(profMode){
     /* Mode prof : message sobre, pas de "Tu as réussi" */
@@ -2045,7 +2093,8 @@ function showCongrats(student,cycle,note,date){
     document.getElementById('congrats-sub').textContent=`Tu as réussi l'examen de passage du Cycle ${cycle} avec une belle maîtrise de toutes tes compétences !`;
     document.getElementById('congrats-next').textContent=cycle<3?`Bienvenue dans le Cycle ${cycle+1} !`:`Félicitations pour l'obtention du Cycle 3 !`;
   }
-  document.getElementById('congrats-note').innerHTML='<div style="display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:99px;background:linear-gradient(135deg,rgba(96,165,250,0.15),rgba(167,139,250,0.15));border:1px solid rgba(96,165,250,0.4)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span style="font-size:20px;font-weight:700;color:#60a5fa">'+note+' / 20</span></div>';
+  var mentionHtml=mention?'<div style="margin-top:6px;font-size:12px;padding:3px 12px;border-radius:99px;background:rgba(167,139,250,0.15);color:#a78bfa;border:0.5px solid rgba(167,139,250,0.4);display:inline-block">'+mention+'</div>':'';
+  document.getElementById('congrats-note').innerHTML='<div style="display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:99px;background:linear-gradient(135deg,rgba(96,165,250,0.15),rgba(167,139,250,0.15));border:1px solid rgba(96,165,250,0.4)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span style="font-size:20px;font-weight:700;color:#60a5fa">'+note+' / 20</span></div>'+mentionHtml;
   document.getElementById('congrats-date').textContent=`Obtenu le ${date}`;
   document.getElementById('congrats-overlay').classList.add('active');
   spawnCongratsStars();
@@ -2220,14 +2269,14 @@ function openProfileDrawer(){
   ['profile-pwd-current','profile-pwd-new','profile-pwd-confirm'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
   const errEl=document.getElementById('profile-pwd-err');if(errEl)errEl.style.display='none';
   const okEl=document.getElementById('profile-pwd-ok');if(okEl)okEl.style.display='none';
-  const rows=[];for(let c=1;c<=3;c++){if(passed[c]&&data[c])rows.push({c,note:data[c].note,date:data[c].date})}
+  const rows=[];for(let c=1;c<=3;c++){if(passed[c]&&data[c])rows.push({c,note:data[c].note,date:data[c].date,mention:data[c].mention||''})}
   let histHtml='';
   if(rows.length){
     histHtml='<div style="font-size:11px;font-weight:500;color:var(--ct-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Historique des examens</div>';
-    for(const r of rows){const col=r.note>=16?'#34d399':r.note>=13?'#60a5fa':r.note>=10?'#fbbf24':'#f87171';
+    for(const r of rows){const col=r.note>=16?'#34d399':r.note>=13?'#60a5fa':r.note>=10?'#fbbf24':'#f87171';r.mention=r.mention||'';
       histHtml+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--cb-secondary);border-radius:var(--br-md);margin-bottom:6px">
         <div style="font-size:12px;flex:1;color:var(--ct-primary)">Cycle ${r.c}</div>
-        <div style="font-size:14px;font-weight:600;color:${col}">${r.note} / 20</div>
+        <div><div style="font-size:14px;font-weight:600;color:${col}">${r.note} / 20</div>${r.mention?'<div style="font-size:10px;color:var(--ct-tertiary);">'+r.mention+'</div>':''}</div>
         <div style="font-size:11px;color:var(--ct-tertiary);font-family:var(--font-mono)">${r.date}</div></div>`}
   }
   document.getElementById('profile-exam-history').innerHTML=histHtml;
@@ -2267,85 +2316,60 @@ function getNodes(){return _nodesCache||calcNodes()}
 function calcNodes(){
   const cv=document.getElementById('cv');
   const W=cv.width||window.innerWidth,H=cv.height||window.innerHeight;
-  const cx=W/2,cy=H/2;
+  const cx=W/2,cy=H/2,RBR=Math.min(W,H)*0.19;
   const R=Math.min(W,H);
-  const RBR=R*0.19,RSK_BASE=R*0.52;
   const toRad=d=>d*Math.PI/180;
   const skList=skillsData[currentCycle]||[];
   const brSk={};for(const br of BRANCHES)brSk[br.id]=skList.filter(s=>s.b===br.id);
   const nm={};
-
-  // Calcul du demi-secteur angulaire exclusif par branche
-  // 4 branches → 90° chacune ; <4 branches → plus large
-  const nBr=BRANCHES.length||4;
-  const halfSector=toRad((360/nBr)*0.44); // légèrement < demi-secteur pour laisser une marge
-
+  // Rayon de départ : compact, sera étalé par répulsion si nécessaire
+  const RSK_START=R*0.30;
   for(const br of BRANCHES){
-    const brAngle=toRad(BRANCH_ANGLES[br.id]);
-    nm[br.id]={x:cx+Math.cos(brAngle)*RBR,y:cy+Math.sin(brAngle)*RBR};
+    const a=toRad(BRANCH_ANGLES[br.id]);
+    nm[br.id]={x:cx+Math.cos(a)*RBR,y:cy+Math.sin(a)*RBR};
     const bs=brSk[br.id]||[],n=bs.length;if(!n)continue;
-
-    // Distribution initiale : grille polaire dans le secteur de la branche
-    // Plusieurs "couronnes" concentriques si besoin
-    const COLS=Math.ceil(Math.sqrt(n*1.6)); // nb de colonnes angulaires
-    const ROWS=Math.ceil(n/COLS);           // nb de couronnes radiales
-    const angStep=n>1?(halfSector*2)/(COLS-1||1):0;
-    const rStep=(RSK_BASE*0.38)/(ROWS||1);
+    // Placement initial en éventail serré — la répulsion les écartera si besoin
+    const maxSpread=toRad(Math.min(75,n*13));
     for(let i=0;i<n;i++){
-      const col=i%COLS, row=Math.floor(i/COLS);
-      const ang=brAngle - halfSector + col*angStep;
-      // Rayon décalé par rangée + léger zigzag colonne pour éviter alignements
-      const r=RSK_BASE + row*rStep + (col%2)*rStep*0.45;
-      nm[bs[i].id]={x:cx+Math.cos(ang)*r, y:cy+Math.sin(ang)*r, _br:br.id};
+      const off=n>1?(i/(n-1)-0.5)*2*maxSpread:0;
+      nm[bs[i].id]={x:cx+Math.cos(a+off)*RSK_START,y:cy+Math.sin(a+off)*RSK_START,_br:br.id};
     }
   }
-
-  // Répulsion contrainte au secteur de chaque branche
-  // Les nœuds de branches différentes ne se repoussent pas
-  const MIN=R*0.105;
-  const ids=skList.map(s=>s.id);
-  // Construire un index branche par id
+  // Répulsion intra-branche uniquement, sans rayon max imposé
+  const nBr=BRANCHES.length||4;
+  const halfSector=toRad((360/nBr)*0.46);
   const idBr={};for(const br of BRANCHES){for(const sk of(brSk[br.id]||[]))idBr[sk.id]=br.id;}
-
-  for(let iter=0;iter<280;iter++){
+  const MIN=R*0.10,ids=skList.map(s=>s.id);
+  for(let iter=0;iter<300;iter++){
     let moved=false;
     for(let i=0;i<ids.length;i++){for(let j=i+1;j<ids.length;j++){
-      if(idBr[ids[i]]!==idBr[ids[j]])continue; // ne repousser que dans la même branche
+      if(idBr[ids[i]]!==idBr[ids[j]])continue;
       const a=nm[ids[i]],b=nm[ids[j]];if(!a||!b)continue;
       const dx=b.x-a.x,dy=b.y-a.y,dist=Math.sqrt(dx*dx+dy*dy)||0.001;
-      if(dist<MIN){
-        const p=(MIN-dist)/2+0.5,nx=dx/dist,ny=dy/dist;
-        a.x-=nx*p;a.y-=ny*p;b.x+=nx*p;b.y+=ny*p;
-        moved=true;
-      }
+      if(dist<MIN){const p=(MIN-dist)/2+0.5,nx=dx/dist,ny=dy/dist;a.x-=nx*p;a.y-=ny*p;b.x+=nx*p;b.y+=ny*p;moved=true}
     }}
-    // Contrainte sectorielle : ramener les nœuds dans leur demi-secteur
+    // Contrainte sectorielle uniquement (pas de rayon min/max)
     for(const br of BRANCHES){
       const brAngle=toRad(BRANCH_ANGLES[br.id]);
       for(const sk of(brSk[br.id]||[])){
         const nd=nm[sk.id];if(!nd)continue;
         const dx=nd.x-cx,dy=nd.y-cy;
-        let angle=Math.atan2(dy,dx);
-        // Normaliser angle relatif à la branche → [-π,π]
-        let rel=angle-brAngle;
+        let rel=Math.atan2(dy,dx)-brAngle;
         while(rel>Math.PI)rel-=Math.PI*2;while(rel<-Math.PI)rel+=Math.PI*2;
-        // Clamp dans le demi-secteur
         if(Math.abs(rel)>halfSector){
-          const clamped=Math.max(-halfSector,Math.min(halfSector,rel));
-          const finalAngle=brAngle+clamped;
-          const r=Math.sqrt(dx*dx+dy*dy)||RSK_BASE;
-          nd.x=cx+Math.cos(finalAngle)*r;
-          nd.y=cy+Math.sin(finalAngle)*r;
-          moved=true;
+          const cl=Math.max(-halfSector,Math.min(halfSector,rel));
+          const r2=Math.sqrt(dx*dx+dy*dy)||RSK_START;
+          nd.x=cx+Math.cos(brAngle+cl)*r2;nd.y=cy+Math.sin(brAngle+cl)*r2;moved=true;
         }
-        // Rayon minimum (ne pas coller au centre)
-        const r2=Math.sqrt((nd.x-cx)**2+(nd.y-cy)**2);
-        if(r2<RBR*1.5){const a2=Math.atan2(nd.y-cy,nd.x-cx);nd.x=cx+Math.cos(a2)*RBR*1.5;nd.y=cy+Math.sin(a2)*RBR*1.5;}
+        // Distance minimale au centre uniquement
+        const r3=Math.sqrt((nd.x-cx)**2+(nd.y-cy)**2);
+        if(r3<RBR*1.15){const a2=Math.atan2(nd.y-cy,nd.x-cx);nd.x=cx+Math.cos(a2)*RBR*1.15;nd.y=cy+Math.sin(a2)*RBR*1.15;}
       }
     }
     if(!moved)break;
   }
-  return{nm,brSk,cx,cy,W,H,RBR,RSK:RSK_BASE};
+  const RSK=RSK_START;
+  return{nm,brSk,cx,cy,W,H,RBR,RSK};
 }
 
 function drawSegArc(ctx,cx,cy,r,n,states,col,lw,gap){
@@ -2894,9 +2918,11 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
     if(tile.type==='image'&&(tile.imgData||tile.url)){
       const imgSrc=tile.imgData||tile.url;
       if(_isPdfTile){
-        previewHtml=`<div class="tile-preview-placeholder" style="cursor:pointer;flex-direction:column;gap:4px" onclick="event.stopPropagation();openPdfViewerById('${tile.id}','${(tile.title||'Document').replace(/'/g,"\\'")}');trackInteraction('${tile.id}')">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ct-info)" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          <span style="font-size:10px;color:var(--ct-info)">PDF</span></div>`;
+        previewHtml=`<div style="position:relative;overflow:hidden;height:110px;cursor:pointer;border-bottom:0.5px solid var(--cbr-tertiary)" onclick="event.stopPropagation();openPdfViewerById('${tile.id}','${(tile.title||'Document').replace(/'/g,"\\'")}');trackInteraction('${tile.id}')">
+          <iframe src="${imgSrc}#toolbar=0&navpanes=0&scrollbar=0&view=FitH" style="width:100%;height:350px;border:none;pointer-events:none;transform-origin:top left;transform:scale(0.4);width:250%;height:900px;" loading="lazy"></iframe>
+          <div style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-end;padding:6px;background:linear-gradient(to top,rgba(0,0,0,0.5) 0%,transparent 60%)">
+            <span style="font-size:9px;padding:2px 6px;border-radius:99px;background:rgba(96,165,250,0.9);color:#fff;font-weight:500">PDF · Cliquer pour ouvrir</span>
+          </div></div>`;
       } else {
         previewHtml=`<img class="tile-preview" src="${imgSrc}" draggable="false" style="cursor:zoom-in" onclick="event.stopPropagation();openTilePreview(this.src,'${(tile.title||'image').replace(/'/g,"\\'")}','image');trackInteraction('${tile.id}')" onerror="this.style.display='none'">`;
       }
@@ -2927,7 +2953,7 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
   }
 
   let bodyClick='';
-  if(tile.type==='link')bodyClick=`onclick="trackInteraction('${tile.id}');window.open(${JSON.stringify(tile.url)},'_blank')" style="cursor:pointer"`;
+  if(tile.type==='link')bodyClick=`onclick="trackInteraction('${tile.id}');_openTileLink(${JSON.stringify(tile.url)})" style="cursor:pointer"`;
   else if(tile.type==='text')bodyClick=`onclick="event.stopPropagation();openTilePreview('${tile.id}','${(tile.title||'').replace(/'/g,"\\'")}','text')" style="cursor:pointer"`;
   else if(tile.type==='download')bodyClick=`onclick="event.stopPropagation();downloadTileFile('${tile.id}');trackInteraction('${tile.id}')" style="cursor:pointer"`;
 
@@ -3161,6 +3187,15 @@ function closeTilePreview(){
   if(_tilePreviewWin){_tilePreviewWin.remove();_tilePreviewWin=null;}
 }
 
+function _openTileLink(url){
+  if(!url)return;
+  var a=document.createElement('a');
+  a.href=url;a.target='_blank';a.rel='noopener noreferrer';
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){a.remove();},100);
+}
 function escHtml(s){
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -3367,10 +3402,9 @@ function openToolboxScreen(){
     show('sc-home'); showProfTab('outils'); return;
   }
   // Élève depuis l'arbre (ou prof depuis l'arbre) → garder sc-toolbox
-  _metroPanelOpen=false;_sharePanelOpen=false;_spotifyPanelOpen=false;
-  var mp=document.getElementById('metro-panel');if(mp)mp.style.transform='translateY(100%)';
+  _metroPanelOpen=false;_sharePanelOpen=false;
+  var mp=document.getElementById('metro-panel');if(mp)mp.style.display='none';
   var sp=document.getElementById('share-panel');if(sp)sp.style.transform='translateY(100%)';
-  var spp=document.getElementById('spotify-panel');if(spp)spp.style.transform='translateY(100%)';
   show('sc-toolbox');
 }
 function closeToolboxScreen(){
@@ -4073,35 +4107,21 @@ function openMetroPopup(){
 /* ══ VOLETS TOOLBOX ══ */
 var _metroPanelOpen = false;
 var _sharePanelOpen = false;
-var _spotifyPanelOpen = false;
-
-function toggleSpotifyPanel(){
-  _spotifyPanelOpen=!_spotifyPanelOpen;
-  var p=document.getElementById('spotify-panel');
-  if(p) p.style.transform=_spotifyPanelOpen?'translateY(0)':'translateY(100%)';
-  if(_spotifyPanelOpen){
-    _metroPanelOpen=false;
-    var mp=document.getElementById('metro-panel');if(mp)mp.style.transform='translateY(100%)';
-    _stopMetro();
-    var sp=document.getElementById('share-panel');if(sp)sp.style.transform='translateY(100%)';
-    _sharePanelOpen=false;
-  }
-}
 
 function toggleMetroPanel(){
   _metroPanelOpen = !_metroPanelOpen;
   var p = document.getElementById('metro-panel');
   if(!p) return;
-  p.style.transform = _metroPanelOpen ? 'translateY(0)' : 'translateY(100%)';
+  p.style.display = _metroPanelOpen ? 'block' : 'none';
   var card = document.getElementById('card-metro');
   if(card) card.classList.toggle('active', _metroPanelOpen);
-  if(_metroPanelOpen) _buildBeats();
+  if(_metroPanelOpen){_buildBeats();setTimeout(function(){p.scrollIntoView({behavior:'smooth',block:'nearest'});},80);}
   else _stopMetro();
 }
 function closeMetroPanel(){
   _metroPanelOpen = false;
   var p = document.getElementById('metro-panel');
-  if(p) p.style.transform = 'translateY(100%)';
+  if(p) p.style.display = 'none';
   var card = document.getElementById('card-metro');
   if(card) card.classList.remove('active');
   _stopMetro();
