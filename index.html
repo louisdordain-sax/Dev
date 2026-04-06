@@ -640,11 +640,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
 <div class="prof-shell">
   <!-- Navigation permanente -->
   <nav class="prof-nav">
-    <button class="prof-tab active" id="ptab-accueil" onclick="showProfTab('accueil')">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Accueil
-    </button>
-    <button class="prof-tab" id="ptab-eleves" onclick="showProfTab('eleves')">
+    <button class="prof-tab active" id="ptab-eleves" onclick="showProfTab('eleves')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Élèves
     </button>
@@ -1163,7 +1159,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
 </div>
 
 <!-- Modal ajout / édition de tuile -->
-<div class="modal-overlay" id="modal-tile">
+<div class="modal-overlay" id="modal-tile" onclick="if(event.target===this)closeModal('modal-tile')">
   <div class="modal-box">
     <h3 id="tile-modal-title">Ajouter une ressource</h3>
     <div class="tile-type-picker" id="tile-type-picker">
@@ -1290,7 +1286,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
 </div>
 
 <!-- MODALS -->
-<div class="modal-overlay" id="modal-add">
+<div class="modal-overlay" id="modal-add" onclick="if(event.target===this)closeModal('modal-add')">
   <div class="modal-box" style="max-width:440px">
     <h3>Ajouter un élève</h3>
     <p>La connexion se fait avec le prénom et nom. Le mot de passe par défaut est généré automatiquement.</p>
@@ -1310,7 +1306,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     </div>
   </div>
 </div>
-<div class="modal-overlay" id="modal-edit-student">
+<div class="modal-overlay" id="modal-edit-student" onclick="if(event.target===this)closeModal('modal-edit-student')">
   <div class="modal-box" style="max-width:440px">
     <h3>Modifier l'élève</h3>
     <div class="field-label">Prénom Nom</div><input type="text" id="e-name">
@@ -1328,7 +1324,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     </div>
   </div>
 </div>
-<div class="modal-overlay" id="modal-skill">
+<div class="modal-overlay" id="modal-skill" onclick="if(event.target===this)closeModal('modal-skill')">
   <div class="modal-box">
     <h3 id="sk-modal-title">Ajouter une compétence</h3>
     <p id="sk-modal-sub"></p>
@@ -1354,7 +1350,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     </div>
   </div>
 </div>
-<div class="modal-overlay" id="modal-exam">
+<div class="modal-overlay" id="modal-exam" onclick="if(event.target===this)closeModal('modal-exam')">
   <div class="modal-box" style="text-align:center">
     <div style="margin-bottom:8px"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
     <h3 id="exam-modal-title" style="text-align:center;margin-bottom:8px">Valider l'examen de passage</h3>
@@ -1760,7 +1756,7 @@ function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if(id==='sc-settings'){show('sc-home');showProfTab('parametres');return;}
-  if(id==='sc-home'){showProfTab(_currentProfTab||'accueil');}
+  if(id==='sc-home'){showProfTab(_currentProfTab||'eleves');}
 }
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
@@ -1839,7 +1835,7 @@ function doLoginProf(){
   document.getElementById('login-err-prof').style.display='none';
   if(v===profCode){
     profMode=true;
-    try{sessionStorage.setItem('sax_session',JSON.stringify({role:'prof',tab:'accueil'}));}catch(e){}
+    try{sessionStorage.setItem('sax_session',JSON.stringify({role:'prof',tab:'eleves'}));}catch(e){}
     show('sc-home');renderHome();return;
   }
   document.getElementById('login-err-prof').style.display='block';
@@ -2334,8 +2330,8 @@ function calcNodes(){
   const skList=skillsData[currentCycle]||[];
   const brSk={};for(const br of BRANCHES)brSk[br.id]=skList.filter(s=>s.b===br.id);
   const nm={};
-  // Rayon de départ : compact, sera étalé par répulsion si nécessaire
-  const RSK_START=R*0.30;
+  // Rayon de départ : étalé, laisse de l'air entre nœuds et familles
+  const RSK_START=R*0.44;
   for(const br of BRANCHES){
     const a=toRad(BRANCH_ANGLES[br.id]);
     nm[br.id]={x:cx+Math.cos(a)*RBR,y:cy+Math.sin(a)*RBR};
@@ -2349,9 +2345,9 @@ function calcNodes(){
   }
   // Répulsion intra-branche uniquement, sans rayon max imposé
   const nBr=BRANCHES.length||4;
-  const halfSector=toRad((360/nBr)*0.46);
+  const halfSector=toRad((360/nBr)*0.48);
   const idBr={};for(const br of BRANCHES){for(const sk of(brSk[br.id]||[]))idBr[sk.id]=br.id;}
-  const MIN=R*0.10,ids=skList.map(s=>s.id);
+  const MIN=R*0.14,ids=skList.map(s=>s.id);
   for(let iter=0;iter<300;iter++){
     let moved=false;
     for(let i=0;i<ids.length;i++){for(let j=i+1;j<ids.length;j++){
@@ -2373,9 +2369,9 @@ function calcNodes(){
           const r2=Math.sqrt(dx*dx+dy*dy)||RSK_START;
           nd.x=cx+Math.cos(brAngle+cl)*r2;nd.y=cy+Math.sin(brAngle+cl)*r2;moved=true;
         }
-        // Distance minimale au centre uniquement
+        // Distance minimale au centre (évite chevauchement cycle) ET aux nœuds famille
         const r3=Math.sqrt((nd.x-cx)**2+(nd.y-cy)**2);
-        if(r3<RBR*1.15){const a2=Math.atan2(nd.y-cy,nd.x-cx);nd.x=cx+Math.cos(a2)*RBR*1.15;nd.y=cy+Math.sin(a2)*RBR*1.15;}
+        if(r3<RBR*1.45){const a2=Math.atan2(nd.y-cy,nd.x-cx);nd.x=cx+Math.cos(a2)*RBR*1.45;nd.y=cy+Math.sin(a2)*RBR*1.45;}
       }
     }
     if(!moved)break;
@@ -2412,7 +2408,22 @@ function drawRadial(){
     ctx.translate(cx+_treeOffX,cy+_treeOffY);
     ctx.scale(_treeZoom,_treeZoom);
     ctx.translate(-cx,-cy);
-    const RC=Math.min(W,H)*0.075,RBN=Math.min(W,H)*0.044,RSN=Math.min(W,H)*0.040;
+    const RC=Math.min(W,H)*0.075,RBN=Math.min(W,H)*0.044;
+    const RSN_BASE=Math.min(W,H)*0.042;
+    // Pré-calcul du rayon par nœud (adapté à la longueur du texte)
+    const _nRad={};
+    (function(){
+      for(const _br of BRANCHES){for(const _sk of brSk[_br.id]||[]){
+        const _words=_sk.l.split(' ');
+        let _lines;
+        if(_words.length===1)_lines=[_sk.l];
+        else{const _mid=Math.ceil(_words.length/2);_lines=[_words.slice(0,_mid).join(' '),_words.slice(_mid).join(' ')];}
+        const _maxCh=Math.max(..._lines.map(l=>l.length));
+        const _estW=_maxCh*5.9; // ~5.9px/char à 9px
+        _nRad[_sk.id]=Math.max(RSN_BASE,_estW/1.55);
+      }}
+    })();
+    const RSN=RSN_BASE; // conservé pour les hit-tests (utilisé ailleurs)
     const st=currentStudent.skillStates||{};const stOf=id=>st[id]||'locked';
 
     /* ── Fond radial lisse — aucune ligne visible ── */
@@ -2482,29 +2493,30 @@ function drawRadial(){
     /* Noeuds compétences */
     for(const br of BRANCHES){for(const skill of brSk[br.id]||[]){
       const{x:sx,y:sy}=nm[skill.id]||{};if(!sx)continue;
+      const RSN_n=_nRad[skill.id]||RSN_BASE;
       const s=stOf(skill.id);const isH=hovSkill===skill.id,isS=selSkill?.id===skill.id;
       ctx.save();
       if(isH||isS){ctx.translate(sx,sy);ctx.scale(isH?1.55:1.22,isH?1.55:1.22);ctx.translate(-sx,-sy)}
       const glA=s==='locked'?(_light?0.02:0.055):(_light?0.08:0.25)+0.07*Math.sin(t3d+sx*0.007);
-      const gr=ctx.createRadialGradient(sx,sy,0,sx,sy,RSN*2.8);gr.addColorStop(0,hexA(br.color,glA));gr.addColorStop(1,'rgba(0,0,0,0)');ctx.beginPath();ctx.arc(sx,sy,RSN*2.8,0,Math.PI*2);ctx.fillStyle=gr;ctx.fill();
-      if(isS||isH){ctx.beginPath();ctx.arc(sx,sy,RSN+RSN*0.4,0,Math.PI*2);ctx.strokeStyle=br.color;ctx.globalAlpha=.38;ctx.lineWidth=1.5;ctx.shadowColor=br.color;ctx.shadowBlur=18;ctx.stroke()}
-      ctx.globalAlpha=1;ctx.beginPath();ctx.arc(sx,sy,RSN,0,Math.PI*2);
-      const fg=ctx.createRadialGradient(sx-RSN*.3,sy-RSN*.3,RSN*.1,sx,sy,RSN);
+      const gr=ctx.createRadialGradient(sx,sy,0,sx,sy,RSN_n*2.8);gr.addColorStop(0,hexA(br.color,glA));gr.addColorStop(1,'rgba(0,0,0,0)');ctx.beginPath();ctx.arc(sx,sy,RSN_n*2.8,0,Math.PI*2);ctx.fillStyle=gr;ctx.fill();
+      if(isS||isH){ctx.beginPath();ctx.arc(sx,sy,RSN_n+RSN_n*0.4,0,Math.PI*2);ctx.strokeStyle=br.color;ctx.globalAlpha=.38;ctx.lineWidth=1.5;ctx.shadowColor=br.color;ctx.shadowBlur=18;ctx.stroke()}
+      ctx.globalAlpha=1;ctx.beginPath();ctx.arc(sx,sy,RSN_n,0,Math.PI*2);
+      const fg=ctx.createRadialGradient(sx-RSN_n*.3,sy-RSN_n*.3,RSN_n*.1,sx,sy,RSN_n);
       if(s==='done'){fg.addColorStop(0,_light?'#c8e0ff':'#1e4a72');fg.addColorStop(1,_light?'#a0c8f8':'#0a1e38')}
       else if(s==='progress'){fg.addColorStop(0,_light?'#fff0c0':'#4a3000');fg.addColorStop(1,_light?'#ffe090':'#1e1200')}
       else{fg.addColorStop(0,_light?'#e8ecf8':'#101828');fg.addColorStop(1,_light?'#d8e0f0':'#060c16')}
       ctx.fillStyle=fg;ctx.fill();
-      ctx.beginPath();ctx.arc(sx,sy,RSN,0,Math.PI*2);ctx.strokeStyle=br.color;ctx.lineWidth=s==='locked'?.7:1.8;ctx.globalAlpha=s==='locked'?.18:.82;if(!_light){ctx.shadowColor=br.color;ctx.shadowBlur=s==='locked'?0:9;}ctx.stroke();
-      if(s!=='locked'){ctx.beginPath();ctx.arc(sx-RSN*.3,sy-RSN*.3,RSN*.22,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.07)';ctx.globalAlpha=1;ctx.fill()}
+      ctx.beginPath();ctx.arc(sx,sy,RSN_n,0,Math.PI*2);ctx.strokeStyle=br.color;ctx.lineWidth=s==='locked'?.7:1.8;ctx.globalAlpha=s==='locked'?.18:.82;if(!_light){ctx.shadowColor=br.color;ctx.shadowBlur=s==='locked'?0:9;}ctx.stroke();
+      if(s!=='locked'){ctx.beginPath();ctx.arc(sx-RSN_n*.3,sy-RSN_n*.3,RSN_n*.22,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.07)';ctx.globalAlpha=1;ctx.fill()}
       // Taille de police adaptée pour rentrer dans le nœud — max 2 lignes
-      const maxW=RSN*1.7;
-      let fs2=Math.round(RSN*0.36);
+      const maxW=RSN_n*1.7;
+      let fs2=Math.round(RSN_n*0.38);
       ctx.globalAlpha=s==='locked'?.22:1;ctx.fillStyle=br.color;ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor=br.color;ctx.shadowBlur=s==='locked'?0:4;
       const words=skill.l.split(' ');
       // Trouver la taille de police qui fait tenir le texte
       function autoSize(lines){
-        let fs=Math.round(RSN*0.38);
-        while(fs>8){
+        let fs=Math.round(RSN_n*0.38);
+        while(fs>7){
           ctx.font=`500 ${fs}px sans-serif`;
           const fits=lines.every(function(l){return ctx.measureText(l).width<=maxW;});
           if(fits)return fs;
@@ -2814,7 +2826,34 @@ function previewMedia(){
 
 function youtubeEmbedHtml(info,sizeClass){
   const h=sizeClass==='sm'?'120px':sizeClass==='lg'?'200px':'155px';
-  return `<iframe style="width:100%;height:${h};border:none;display:block" src="${info.embedUrl}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox" loading="lazy"></iframe>`;
+  const embedUrl=info.embedUrl;
+  return `<div style="position:relative;border-radius:6px;overflow:hidden;margin-bottom:0">
+    <iframe style="width:100%;height:${h};border:none;display:block" src="${embedUrl}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox" loading="lazy"></iframe>
+    <button onclick="event.stopPropagation();openYoutubeExpand('${embedUrl.replace(/'/g,"\\'")}','${(info.id||'').replace(/'/g,"\\'")}');" title="Agrandir" style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.65);border:none;border-radius:6px;cursor:pointer;padding:4px 7px;display:flex;align-items:center;gap:4px;color:#fff;font-size:10px;font-family:var(--font-sans);backdrop-filter:blur(4px);z-index:2"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Agrandir</button>
+  </div>`;
+}
+
+function openYoutubeExpand(embedUrl){
+  var ov=document.getElementById('yt-expand-overlay');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='yt-expand-overlay';
+    ov.style.cssText='position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px';
+    ov.innerHTML='<div style="width:100%;max-width:860px;position:relative">'
+      +'<button id="yt-expand-close" style="position:absolute;top:-36px;right:0;background:none;border:none;color:#fff;font-size:22px;cursor:pointer;opacity:.8;padding:4px 8px;line-height:1">✕</button>'
+      +'<div id="yt-expand-frame-wrap" style="position:relative;padding-bottom:56.25%;height:0;border-radius:10px;overflow:hidden;background:#000">'
+      +'<iframe id="yt-expand-frame" style="position:absolute;inset:0;width:100%;height:100%;border:none" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox"></iframe>'
+      +'</div></div>';
+    document.body.appendChild(ov);
+    document.getElementById('yt-expand-close').onclick=function(){closeYoutubeExpand();};
+    ov.addEventListener('click',function(e){if(e.target===ov)closeYoutubeExpand();});
+  }
+  document.getElementById('yt-expand-frame').src=embedUrl+'&autoplay=1';
+  ov.style.display='flex';
+}
+function closeYoutubeExpand(){
+  var ov=document.getElementById('yt-expand-overlay');
+  if(ov){ov.style.display='none';document.getElementById('yt-expand-frame').src='';}
 }
 
 function spotifyOpenBtn(info,title,tileId){
@@ -3170,6 +3209,15 @@ function openTilePreview(tileIdOrSrc, title, kind){
   win.appendChild(body);
   document.body.appendChild(win);
   _tilePreviewWin=win;
+  // Fermer si clic en dehors
+  setTimeout(function(){
+    document.addEventListener('click', function _tpvOuter(e){
+      if(_tilePreviewWin && !_tilePreviewWin.contains(e.target)){
+        closeTilePreview();
+        document.removeEventListener('click', _tpvOuter, true);
+      }
+    }, true);
+  }, 200);
 
   // Drag
   var dragging=false,ox=0,oy=0,startL=0,startT=0;
@@ -3707,7 +3755,7 @@ function hidePwd(id){
 }
 
 /* ══ NAVIGATION PROF ══ */
-var _currentProfTab='accueil';
+var _currentProfTab='eleves';
 
 /* ═══════════════════════════════════════════════════════
    §11 — ONGLETS & COMPÉTENCES (interface prof)
@@ -3720,7 +3768,7 @@ function showProfTab(tab){
     if(raw){var sess=JSON.parse(raw);sess.tab=tab;sessionStorage.setItem('sax_session',JSON.stringify(sess));}
   }catch(e){}
   // Onglets nav
-  ['accueil','eleves','competences','outils','parametres'].forEach(function(t){
+  ['eleves','competences','outils','parametres'].forEach(function(t){
     var btn=document.getElementById('ptab-'+t);
     var panel=document.getElementById('ptab-content-'+t);
     if(btn) btn.classList.toggle('active', t===tab);
@@ -4316,14 +4364,22 @@ function buildShareTile(tile, colIdx, tileIdx, colId){
   } else if(tile.type==='media'){
     var info=parseMediaUrl(tile.mediaUrl);
     if(info&&info.platform==='youtube'){
+      var ytWrap=document.createElement('div');
+      ytWrap.style.cssText='position:relative;border-radius:6px;overflow:hidden;margin-bottom:6px';
       var iframe=document.createElement('iframe');
       iframe.src=info.embedUrl;
-      iframe.style.cssText='width:100%;height:120px;border:none;display:block;border-radius:6px;margin-bottom:6px';
+      iframe.style.cssText='width:100%;height:120px;border:none;display:block';
       iframe.setAttribute('allow','autoplay;fullscreen');
-      // fullscreen déjà dans allow=
       iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox');
       iframe.loading='lazy';
-      wrap.appendChild(iframe);
+      var ytExpandBtn=document.createElement('button');
+      ytExpandBtn.title='Agrandir';
+      ytExpandBtn.style.cssText='position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.65);border:none;border-radius:6px;cursor:pointer;padding:4px 7px;display:flex;align-items:center;gap:4px;color:#fff;font-size:10px;font-family:var(--font-sans);backdrop-filter:blur(4px);z-index:2';
+      ytExpandBtn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Agrandir';
+      (function(_eu){ytExpandBtn.onclick=function(e){e.stopPropagation();openYoutubeExpand(_eu);};})(info.embedUrl);
+      ytWrap.appendChild(iframe);
+      ytWrap.appendChild(ytExpandBtn);
+      wrap.appendChild(ytWrap);
     } else if(info&&info.platform==='spotify'){
       var sdiv=document.createElement('div');
       sdiv.style.cssText='cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px;background:#111827;border-radius:8px;margin-bottom:6px';
@@ -4609,7 +4665,7 @@ function _restoreSession(){
 </script>
 
 <!-- Modal Familles de compétences -->
-<div class="modal-overlay" id="modal-families">
+<div class="modal-overlay" id="modal-families" onclick="if(event.target===this)closeModal('modal-families')">
   <div class="modal-box" style="max-width:440px">
     <h3>Gérer les familles de compétences</h3>
     <div id="family-list" style="margin-bottom:14px"></div>
@@ -4638,7 +4694,7 @@ function _restoreSession(){
     </div>
   </div>
 </div>
-<div class="modal-overlay" id="modal-interactions">
+<div class="modal-overlay" id="modal-interactions" onclick="if(event.target===this)closeModal('modal-interactions')">
   <div class="modal-box" style="max-width:520px;max-height:88vh;overflow-y:auto">
     <h3>Interactions élèves</h3>
     <p style="margin-bottom:12px">Consultations des ressources par élève.</p>
@@ -6075,6 +6131,7 @@ function openSuggestionsPanel(){
     modal = document.createElement('div');
     modal.id = 'modal-suggestions';
     modal.className = 'modal-overlay';
+    modal.setAttribute('onclick',"if(event.target===this)closeModal('modal-suggestions')");
     modal.innerHTML = '<div class="modal-box" style="max-width:500px;max-height:85vh;overflow-y:auto">'
       +'<h3>Suggestions des élèves</h3>'
       +'<div id="suggestions-list" style="margin-top:12px"></div>'
@@ -6101,7 +6158,23 @@ function _renderSuggestionsList(){
         +'<span style="font-size:10px;padding:2px 6px;border-radius:99px;background:var(--cb-info);color:var(--ct-info)">'+s.type+'</span>'
         +'</div>'
         +'<div style="font-size:11px;color:var(--ct-tertiary);margin-bottom:8px">De '+s.studentName+' · '+s.date+'</div>'
-        +(s.url?'<div style="font-size:11px;color:var(--ct-secondary);margin-bottom:8px;word-break:break-all">'+s.url+'</div>':'')
+        +(s.url?'<div style="font-size:11px;color:var(--ct-secondary);margin-bottom:6px;word-break:break-all"><a href="'+s.url+'" target="_blank" rel="noopener" style="color:var(--ct-info);text-decoration:none">'+s.url+'</a></div>'+(function(){
+          var _info=typeof parseMediaUrl==='function'?parseMediaUrl(s.url):null;
+          if(_info&&_info.platform==='youtube'){
+            return '<div style="position:relative;border-radius:6px;overflow:hidden;margin-bottom:8px">'
+              +'<iframe src="'+_info.embedUrl+'" style="width:100%;height:130px;border:none;display:block" allow="autoplay;fullscreen" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox" loading="lazy"></iframe>'
+              +'<button onclick="event.stopPropagation();openYoutubeExpand(\''+_info.embedUrl.replace(/'/g,"\\'")+'\')" title="Agrandir" style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.65);border:none;border-radius:6px;cursor:pointer;padding:4px 7px;display:flex;align-items:center;gap:4px;color:#fff;font-size:10px;font-family:var(--font-sans);backdrop-filter:blur(4px)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Agrandir</button>'
+              +'</div>';
+          }
+          try{var _dom=new URL(s.url).hostname.replace('www.','');
+            return '<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--cb-primary);border-radius:6px;margin-bottom:8px">'
+              +'<img src="https://www.google.com/s2/favicons?domain='+_dom+'&sz=32" width="14" height="14" style="border-radius:2px;flex-shrink:0" onerror="this.style.display=\'none\'">'
+              +'<span style="font-size:11px;color:var(--ct-tertiary)">'+_dom+'</span>'
+              +'<a href="'+s.url+'" target="_blank" rel="noopener" style="margin-left:auto;display:flex;align-items:center;color:var(--ct-info);font-size:10px;gap:3px;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> Ouvrir</a>'
+              +'</div>';
+          }catch(e){return '';}
+        }()):'')
+        +(s.mediaUrl&&(function(){var _mi=typeof parseMediaUrl==='function'?parseMediaUrl(s.mediaUrl):null;if(_mi&&_mi.platform==='youtube')return '<div style="position:relative;border-radius:6px;overflow:hidden;margin-bottom:8px"><iframe src="'+_mi.embedUrl+'" style="width:100%;height:130px;border:none;display:block" allow="autoplay;fullscreen" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox" loading="lazy"></iframe><button onclick="event.stopPropagation();openYoutubeExpand(\''+_mi.embedUrl.replace(/'/g,"\\'")+'\');" title="Agrandir" style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.65);border:none;border-radius:6px;cursor:pointer;padding:4px 7px;display:flex;align-items:center;gap:4px;color:#fff;font-size:10px;font-family:var(--font-sans);backdrop-filter:blur(4px)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Agrandir</button></div>';return '';}()))
         +'<div style="display:flex;gap:6px">'
         +'<button class="btn btn-success btn-sm" onclick="approveSuggestion(\''+s.id+'\')">✓ Ajouter au partage</button>'
         +'<button class="btn btn-danger btn-sm" onclick="rejectSuggestion(\''+s.id+'\')">Refuser</button>'
@@ -6188,6 +6261,14 @@ window.show = function(id){
 // Alias pour rétrocompatibilité
 window._showOrig = _sfabOrigShow;
 setTimeout(_updateStudentFab, 1500);
+
+// Fermer la popup de compétence si on clique en dehors (hors canvas)
+document.addEventListener('click', function(e){
+  const popup=document.getElementById('popup');
+  if(popup && popup.classList.contains('visible') && !popup.contains(e.target) && e.target.id!=='cv'){
+    closePopup();
+  }
+});
 
 // Fermer le menu si on clique ailleurs
 document.addEventListener('click', function(e){
