@@ -1336,7 +1336,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     <h3 id="exam-modal-title" style="text-align:center;margin-bottom:8px">Valider l'examen de passage</h3>
     <p id="exam-modal-sub"></p>
     <div class="field-label" style="text-align:left">Note obtenue (sur 20)</div>
-    <input type="number" id="exam-note" min="0" max="20" step="0.5" placeholder="ex: 14.5" style="text-align:center;font-size:18px;letter-spacing:1px">
+    <input type="number" id="exam-note" min="10" max="20" step="0.5" placeholder="ex: 14.5" style="text-align:center;font-size:18px;letter-spacing:1px">
     <div class="err" id="exam-err">La note doit être supérieure ou égale à 10 pour valider</div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-exam')">Annuler</button>
@@ -1990,17 +1990,19 @@ function openExamModal(studentId){
 function confirmExam(){
   const noteVal=parseFloat(document.getElementById('exam-note').value);
   const err=document.getElementById('exam-err');err.style.display='none';
-  if(isNaN(noteVal)||noteVal<10){err.style.display='block';return}
+  if(isNaN(noteVal)||noteVal<10){err.textContent='La note doit être ≥ 10 pour valider';err.style.display='block';return}
+  if(noteVal>20){err.textContent='La note ne peut pas dépasser 20';err.style.display='block';return}
   if(!currentStudent)return;
+  const noteVal20=Math.min(20,noteVal);
   const c=currentStudent.cycle;
   if(!currentStudent.examPassed)currentStudent.examPassed={};
   if(!currentStudent.examData)currentStudent.examData={};
   const today=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
   currentStudent.examPassed[c]=true;
-  currentStudent.examData[c]={note:noteVal,date:today};
+  currentStudent.examData[c]={note:noteVal20,date:today};
   currentStudent.cycle=Math.min(3,c+1);
   saveLocal();closeModal('modal-exam');
-  showCongrats(currentStudent,c,noteVal,today);
+  showCongrats(currentStudent,c,noteVal20,today);
 }
 function showCongrats(student,cycle,note,date){
   pendingCongratsStudent=student;
@@ -2062,7 +2064,7 @@ const AVATAR_EMOJIS=['🎷','🎵','🎶','🎸','🎹','🎺','🎻','🥁','�
 function openTree(id){
   currentStudent=students.find(s=>s.id===id);if(!currentStudent)return;
   currentCycle=currentStudent.cycle;selSkill=null;hovSkill=null;editMode=false;
-  _nodesCache=null;
+  _nodesCache=null;_treeResetView();
   closePopup();cancelAnim();
   document.getElementById('btn-edit-mode').style.display=profMode?'block':'none';
   // Bouton retour et badge : visibles seulement en mode prof
@@ -2227,12 +2229,17 @@ function hexA(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,
 
 /* Cache des positions calculées — mis à jour une fois par frame */
 let _nodesCache=null;
+// Zoom / pan de l'arbre
+let _treeZoom=1,_treeOffX=0,_treeOffY=0;
+let _treePanning=false,_treePanSX=0,_treePanSY=0,_treePanOX=0,_treePanOY=0;
+let _treePinchDist=0;
+function _treeResetView(){_treeZoom=1;_treeOffX=0;_treeOffY=0;}
 function getNodes(){return _nodesCache||calcNodes()}
 
 function calcNodes(){
   const cv=document.getElementById('cv');
   const W=cv.width||window.innerWidth,H=cv.height||window.innerHeight;
-  const cx=W/2,cy=H/2,RBR=Math.min(W,H)*0.19,RSK=Math.min(W,H)*0.36;
+  const cx=W/2,cy=H/2,RBR=Math.min(W,H)*0.19,RSK=Math.min(W,H)*0.54;
   const toRad=d=>d*Math.PI/180;
   const skList=skillsData[currentCycle]||[];
   const brSk={};for(const br of BRANCHES)brSk[br.id]=skList.filter(s=>s.b===br.id);
@@ -2241,19 +2248,25 @@ function calcNodes(){
     const a=toRad(BRANCH_ANGLES[br.id]);
     nm[br.id]={x:cx+Math.cos(a)*RBR,y:cy+Math.sin(a)*RBR};
     const bs=brSk[br.id]||[],n=bs.length;if(!n)continue;
-    const maxSpread=toRad(Math.min(46,n*12));
-    for(let i=0;i<n;i++){const off=n>1?(i/(n-1)-0.5)*2*maxSpread:0;nm[bs[i].id]={x:cx+Math.cos(a+off)*RSK,y:cy+Math.sin(a+off)*RSK}}
+    // Étalement angulaire libre — nœuds non contraints en rayon
+    const maxSpread=toRad(Math.min(88,n*16));
+    for(let i=0;i<n;i++){
+      const off=n>1?(i/(n-1)-0.5)*2*maxSpread:0;
+      // Rayon variable : alterne interne/externe pour mieux répartir les nœuds denses
+      const rVar = n>8 ? RSK*(1 + 0.18*((i%2)*2-1)) : RSK;
+      nm[bs[i].id]={x:cx+Math.cos(a+off)*rVar,y:cy+Math.sin(a+off)*rVar};
+    }
   }
-  const MIN=Math.min(W,H)*0.096,ids=skList.map(s=>s.id);
-  for(let iter=0;iter<160;iter++){
+  // Répulsion entre nœuds — sans contrainte de cercle
+  const MIN=Math.min(W,H)*0.115,ids=skList.map(s=>s.id);
+  for(let iter=0;iter<220;iter++){
     let moved=false;
     for(let i=0;i<ids.length;i++){for(let j=i+1;j<ids.length;j++){
       const a=nm[ids[i]],b=nm[ids[j]];if(!a||!b)continue;
       const dx=b.x-a.x,dy=b.y-a.y,dist=Math.sqrt(dx*dx+dy*dy)||0.001;
       if(dist<MIN){const p=(MIN-dist)/2+0.5,nx=dx/dist,ny=dy/dist;a.x-=nx*p;a.y-=ny*p;b.x+=nx*p;b.y+=ny*p;moved=true}
     }}
-    const lo=RSK-RSK*0.18,hi=RSK+RSK*0.18;
-    for(const id of ids){const n2=nm[id];if(!n2)continue;const dx=n2.x-cx,dy=n2.y-cy,d=Math.sqrt(dx*dx+dy*dy)||1;const c2=Math.max(lo,Math.min(hi,d));n2.x=cx+dx/d*c2;n2.y=cy+dy/d*c2}
+    // Pas de contrainte de rayon — les nœuds peuvent s'étaler librement
     if(!moved)break;
   }
   return{nm,brSk,cx,cy,W,H,RBR,RSK};
@@ -2282,6 +2295,11 @@ function drawRadial(){
     const _light=document.documentElement.classList.contains('light');
     _nodesCache=calcNodes(); // mise à jour du cache une seule fois par frame
     const{nm,brSk,cx,cy,RSK}=_nodesCache;
+    // Appliquer le zoom / pan
+    ctx.save();
+    ctx.translate(cx+_treeOffX,cy+_treeOffY);
+    ctx.scale(_treeZoom,_treeZoom);
+    ctx.translate(-cx,-cy);
     const RC=Math.min(W,H)*0.075,RBN=Math.min(W,H)*0.044,RSN=Math.min(W,H)*0.040;
     const st=currentStudent.skillStates||{};const stOf=id=>st[id]||'locked';
 
@@ -2394,6 +2412,7 @@ function drawRadial(){
       else{ctx.fillText(lines[0],sx,sy-fs2*0.62);ctx.fillText(lines[1],sx,sy+fs2*0.62);}
       ctx.restore();
     }}
+    ctx.restore(); // zoom/pan
     animFrame=requestAnimationFrame(frame);
   }
   frame();
@@ -2401,23 +2420,94 @@ function drawRadial(){
 
 /* Events canvas — coordonnées directes (canvas = plein écran) */
 const cv2=document.getElementById('cv');
+// Convertir coordonnées écran → monde (pour zoom/pan)
+function _cvToWorld(ex,ey){
+  const W=cv2.width,H=cv2.height,cx=W/2,cy=H/2;
+  return{x:(ex-cx-_treeOffX)/_treeZoom+cx,y:(ey-cy-_treeOffY)/_treeZoom+cy};
+}
+// Convertir monde → écran (pour positionner la popup)
+function _worldToScreen(wx,wy){
+  const W=cv2.width,H=cv2.height,cx=W/2,cy=H/2;
+  return{x:(wx-cx)*_treeZoom+cx+_treeOffX,y:(wy-cy)*_treeZoom+cy+_treeOffY};
+}
 cv2.onclick=e=>{
+  if(_treePanning)return;
   if(!currentStudent)return;
-  const nodes=getNodes();
-  const{nm}=nodes;
+  const{nm}=getNodes();
   const RSN=Math.min(cv2.width,cv2.height)*0.034;
   const skList=skillsData[currentCycle]||[];
-  for(const skill of skList){const p=nm[skill.id];if(p&&Math.hypot(e.clientX-p.x,e.clientY-p.y)<=RSN*1.5){selSkill=skill;lastPopupX=p.x;lastPopupY=p.y;showPopup(skill,p.x,p.y,e.clientX,e.clientY);return}}
+  const w=_cvToWorld(e.clientX,e.clientY);
+  for(const skill of skList){const p=nm[skill.id];if(p&&Math.hypot(w.x-p.x,w.y-p.y)<=RSN*1.5/_treeZoom){
+    selSkill=skill;
+    const sc=_worldToScreen(p.x,p.y);
+    lastPopupX=sc.x;lastPopupY=sc.y;
+    showPopup(skill,sc.x,sc.y,e.clientX,e.clientY);return}}
   closePopup();
 };
 cv2.onmousemove=e=>{
   if(!currentStudent)return;
+  // Drag to pan
+  if(_treePanning){
+    _treeOffX=_treePanOX+(e.clientX-_treePanSX);
+    _treeOffY=_treePanOY+(e.clientY-_treePanSY);
+    return;
+  }
   const{nm}=getNodes();const RSN=Math.min(cv2.width,cv2.height)*0.034;
   const skList=skillsData[currentCycle]||[];
-  let found=null;for(const skill of skList){const p=nm[skill.id];if(p&&Math.hypot(e.clientX-p.x,e.clientY-p.y)<=RSN*1.5){found=skill.id;break}}
-  hovSkill=found;cv2.style.cursor=found?'pointer':'default';
+  const w=_cvToWorld(e.clientX,e.clientY);
+  let found=null;for(const skill of skList){const p=nm[skill.id];if(p&&Math.hypot(w.x-p.x,w.y-p.y)<=RSN*1.5/_treeZoom){found=skill.id;break}}
+  hovSkill=found;cv2.style.cursor=found?'pointer':(_treeZoom>1.05?'grab':'default');
 };
-cv2.onmouseleave=()=>{hovSkill=null;cv2.style.cursor='default'};
+cv2.onmousedown=e=>{
+  if(e.button!==0)return;
+  const{nm}=getNodes();const RSN=Math.min(cv2.width,cv2.height)*0.034;
+  const skList=skillsData[currentCycle]||[];
+  const w=_cvToWorld(e.clientX,e.clientY);
+  const onNode=skList.some(sk=>{const p=nm[sk.id];return p&&Math.hypot(w.x-p.x,w.y-p.y)<=RSN*1.5/_treeZoom;});
+  if(!onNode){_treePanning=true;_treePanSX=e.clientX;_treePanSY=e.clientY;_treePanOX=_treeOffX;_treePanOY=_treeOffY;cv2.style.cursor='grabbing';}
+};
+cv2.onmouseup=()=>{
+  if(_treePanning){_treePanning=false;cv2.style.cursor=_treeZoom>1.05?'grab':'default';}
+};
+cv2.onmouseleave=()=>{hovSkill=null;_treePanning=false;cv2.style.cursor='default'};
+
+// Zoom molette
+cv2.addEventListener('wheel',function(e){
+  e.preventDefault();
+  const factor=e.deltaY<0?1.12:1/1.12;
+  const newZ=Math.max(0.4,Math.min(4,_treeZoom*factor));
+  // Zoomer autour du pointeur
+  const W=cv2.width,H=cv2.height,cx=W/2,cy=H/2;
+  const mx=e.clientX,my=e.clientY;
+  _treeOffX=(mx-cx-(_treeOffX-(mx-cx-_treeOffX)*(newZ/_treeZoom-1)))-((mx-cx));
+  // Formule simplifiée : zoom autour du curseur
+  const ratio=newZ/_treeZoom;
+  _treeOffX=_treeOffX*ratio+(mx-cx)*(1-ratio);
+  _treeOffY=_treeOffY*ratio+(my-cy)*(1-ratio);
+  _treeZoom=newZ;
+},{passive:false});
+
+// Touch : pinch zoom + pan
+cv2.addEventListener('touchstart',function(e){
+  if(e.touches.length===2){
+    _treePinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    _treePanning=false;
+  } else if(e.touches.length===1){
+    _treePanning=true;_treePanSX=e.touches[0].clientX;_treePanSY=e.touches[0].clientY;_treePanOX=_treeOffX;_treePanOY=_treeOffY;
+  }
+},{passive:true});
+cv2.addEventListener('touchmove',function(e){
+  if(e.touches.length===2){
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    const ratio=d/(_treePinchDist||d);
+    _treePinchDist=d;
+    _treeZoom=Math.max(0.4,Math.min(4,_treeZoom*ratio));
+  } else if(e.touches.length===1&&_treePanning){
+    _treeOffX=_treePanOX+(e.touches[0].clientX-_treePanSX);
+    _treeOffY=_treePanOY+(e.touches[0].clientY-_treePanSY);
+  }
+},{passive:true});
+cv2.addEventListener('touchend',function(){_treePanning=false;},{passive:true});
 
 /* Popup */
 function showPopup(skill,nodeX,nodeY,clientX,clientY){
@@ -2449,6 +2539,10 @@ function showPopup(skill,nodeX,nodeY,clientX,clientY){
 function closePopup(){document.getElementById('popup').classList.remove('visible');selSkill=null}
 function setSkFromPopup(id,state){
   if(!profMode)return;if(!currentStudent.skillStates)currentStudent.skillStates={};
+  const prev=currentStudent.skillStates[id]||'locked';
+  if(prev==='done'&&state!=='done'){
+    if(!_checkExamCancellation(currentCycle))return;
+  }
   if(state==='locked')delete currentStudent.skillStates[id];else currentStudent.skillStates[id]=state;
   saveLocal();const skill=skillsData[currentCycle].find(s=>s.id===id);if(skill)showPopup(skill,lastPopupX,lastPopupY);
   updateProfileBar();if(cycleStatus(currentStudent,currentCycle)==='awaiting_exam'){closePopup();renderTreeScreen()}
@@ -2471,7 +2565,28 @@ function renderEditPanel(){
 function toggleBranch(t,c){document.getElementById(t).classList.toggle('open');document.getElementById(c).classList.toggle('open')}
 function setBranchDone(bId){if(!currentStudent.skillStates)currentStudent.skillStates={};skillsData[currentCycle].filter(s=>s.b===bId).forEach(s=>currentStudent.skillStates[s.id]='done');saveLocal();renderEditPanel();updateProfileBar();if(cycleStatus(currentStudent,currentCycle)==='awaiting_exam'){saveAndBack();renderTreeScreen()}}
 function setAllDone(){if(!currentStudent.skillStates)currentStudent.skillStates={};skillsData[currentCycle].forEach(s=>currentStudent.skillStates[s.id]='done');saveLocal();renderEditPanel();updateProfileBar();if(cycleStatus(currentStudent,currentCycle)==='awaiting_exam'){saveAndBack();renderTreeScreen()}}
-function setSkEdit(id,state){if(!currentStudent.skillStates)currentStudent.skillStates={};if(state==='locked')delete currentStudent.skillStates[id];else currentStudent.skillStates[id]=state;saveLocal();renderEditPanel();updateProfileBar()}
+// Vérifie si invalider une compétence doit annuler l'examen du cycle
+function _checkExamCancellation(cycle){
+  if(!currentStudent.examPassed||!currentStudent.examPassed[cycle])return true;// pas d'examen validé, on continue
+  const ok=confirm('Ce cycle a déjà un examen validé (Cycle '+cycle+').\nInvalider cette compétence annulera l\'examen et remettra l\'élève au Cycle '+cycle+'.\n\nConfirmer ?');
+  if(!ok)return false;
+  // Annuler l'examen
+  delete currentStudent.examPassed[cycle];
+  if(currentStudent.examData)delete currentStudent.examData[cycle];
+  // Remettre le cycle si l'élève était passé au suivant
+  if(currentStudent.cycle>cycle)currentStudent.cycle=cycle;
+  return true;
+}
+function setSkEdit(id,state){
+  if(!currentStudent.skillStates)currentStudent.skillStates={};
+  const prev=currentStudent.skillStates[id]||'locked';
+  // Si on rétrograde une compétence 'done' → vérifier examen
+  if(prev==='done'&&state!=='done'){
+    if(!_checkExamCancellation(currentCycle))return;
+  }
+  if(state==='locked')delete currentStudent.skillStates[id];else currentStudent.skillStates[id]=state;
+  saveLocal();renderEditPanel();updateProfileBar();
+}
 
 /* ── COMPÉTENCES ── */
 function showCompetencesEditor(){ceCycle=1;if(profMode){show('sc-home');showProfTab('competences');}else{renderCEScreen();show('sc-competences');}}
@@ -3586,6 +3701,28 @@ renderHome=function(){
 
 
 
+function initDefaultSkillsToFirebase(){
+  if(!confirm('Initialiser Firebase avec les compétences par défaut ?\nCela remplacera les compétences actuelles des 3 cycles.')) return;
+  for(let c=1;c<=3;c++) skillsData[c] = JSON.parse(JSON.stringify(DEFAULT_SKILLS[c]));
+  BRANCHES = [
+    {id:'identite',label:'Identité du musicien',color:'#7F77DD'},
+    {id:'percevoir',label:'Percevoir & produire',color:'#378ADD'},
+    {id:'autonomie',label:'Autonomie',color:'#1D9E75'},
+    {id:'corps',label:'Corps & musique',color:'#EF9F27'},
+  ];
+  saveLocal();
+  renderCEHome();
+  _showSyncIndicator('✓ Compétences initialisées', '#34d399');
+}
+
+function resetSkillsCycleToDefault(cycle){
+  if(!confirm('Réinitialiser le Cycle '+cycle+' avec les compétences par défaut ?\nLes modifications seront perdues.')) return;
+  skillsData[cycle] = JSON.parse(JSON.stringify(DEFAULT_SKILLS[cycle]));
+  saveLocal();
+  renderCEHome();
+  _showSyncIndicator('✓ Cycle '+cycle+' réinitialisé', '#34d399');
+}
+
 function renderCEHome(){
   var ctabsEl=document.getElementById('ce-ctabs-home');
   var contentEl=document.getElementById('ce-content-home');
@@ -3600,11 +3737,17 @@ function renderCEHome(){
     t.onclick=function(){ceCycle=cc;renderCEHome();};
     ctabsEl.appendChild(t);
   });
-  // Bouton familles
-  var html='<div style="margin-bottom:12px">'
+  // Barre d'outils : familles + init Firebase
+  var total1=(skillsData[1]||[]).length,total2=(skillsData[2]||[]).length,total3=(skillsData[3]||[]).length;
+  var noSkills = !total1 && !total2 && !total3;
+  var html='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">'
     +'<button class="btn btn-sm" onclick="openFamilyModal()" style="display:flex;align-items:center;gap:5px">'
-    +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33A1.65 1.65 0 0 0 15 19.4V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15A1.65 1.65 0 0 0 3 14.09V13a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68A1.65 1.65 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
-    +' Gérer les familles</button></div>';
+    +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33A1.65 1.65 0 0 0 15 19.4V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l-.06-.06A1.65 1.65 0 0 0 4.68 15A1.65 1.65 0 0 0 3 14.09V13a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68A1.65 1.65 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
+    +' Gérer les familles</button>'
+    +(noSkills
+      ? '<button class="btn btn-success btn-sm" onclick="initDefaultSkillsToFirebase()" style="display:flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg> Initialiser Firebase</button>'
+      : '<button class="btn btn-sm" onclick="initDefaultSkillsToFirebase()" style="display:flex;align-items:center;gap:5px;opacity:.6"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.69"/></svg> Réinitialiser</button>')
+    +'</div>';
   BRANCHES.forEach(function(br){
     var bs=(skillsData[ceCycle]||[]).filter(function(s){return s.b===br.id;});
     html+='<div class="ce-section"><div class="ce-section-header">';
@@ -3620,8 +3763,8 @@ function renderCEHome(){
       html+='<div style="font-size:11px;color:var(--ct-secondary)">'+sk.d+'</div>';
       if(sk.todo) html+='<div style="font-size:11px;color:var(--ct-tertiary);margin-top:2px;font-style:italic">'+sk.todo+'</div>';
       html+='</div>';
-      html+='<button class="icon-btn" data-cycle="'+ceCycle+'" data-id="'+sk.id+'" onclick="openEditSkModal(+this.dataset.cycle,this.dataset.id)">✏</button>';
-      html+='<button class="icon-btn del" data-cycle="'+ceCycle+'" data-id="'+sk.id+'" onclick="askDeleteSkill(+this.dataset.cycle,this.dataset.id)">✕</button>';
+      html+='<button class="icon-btn" data-cycle="'+ceCycle+'" data-id="'+sk.id+'" onclick="openEditSkModal(+this.dataset.cycle,this.dataset.id)" title="Modifier"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>';
+      html+='<button class="icon-btn del" data-cycle="'+ceCycle+'" data-id="'+sk.id+'" onclick="askDeleteSkill(+this.dataset.cycle,this.dataset.id)" title="Supprimer"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>';
       html+='</div>';
     });
     html+='</div>';
@@ -4019,11 +4162,22 @@ function buildShareTile(tile, colIdx, tileIdx, colId){
     _lpA.appendChild(_fimg);_lpA.appendChild(_dspan);_lpA.appendChild(_extIcon);_lpDiv.appendChild(_lpA);
     wrap.appendChild(_lpDiv);
   } else if(tile.type==='image'&&(tile.imgData||tile.url)){
-    var img=document.createElement('img');
-    img.src=tile.imgData||tile.url;
-    img.style.cssText='width:100%;height:80px;object-fit:cover;border-radius:6px;display:block;margin-bottom:6px';
-    img.onerror=function(){this.style.display='none';};
-    wrap.appendChild(img);
+    var _src=tile.imgData||tile.url;
+    var _isPdfSrc=_src.startsWith('data:application/pdf')||(tile.url||'').toLowerCase().endsWith('.pdf');
+    if(_isPdfSrc){
+      // Aperçu PDF : icône cliquable pour ouvrir la visionneuse
+      var pdfPrev=document.createElement('div');
+      pdfPrev.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:80px;background:var(--cb-info);border-radius:6px;margin-bottom:6px;cursor:pointer;border:0.5px solid var(--cbr-info)';
+      pdfPrev.innerHTML='<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ct-info)" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span style="font-size:10px;color:var(--ct-info);font-weight:500">Ouvrir le PDF</span>';
+      (function(_tid,_s,_t){pdfPrev.onclick=function(){trackInteraction(_tid);openPdfViewer(_t,_s);};})(tile.id,_src,tile.title||'Document');
+      wrap.appendChild(pdfPrev);
+    } else {
+      var img=document.createElement('img');
+      img.src=_src;
+      img.style.cssText='width:100%;height:80px;object-fit:cover;border-radius:6px;display:block;margin-bottom:6px';
+      img.onerror=function(){this.style.display='none';};
+      wrap.appendChild(img);
+    }
   } else if(tile.type==='media'){
     var info=parseMediaUrl(tile.mediaUrl);
     if(info&&info.platform==='youtube'){
