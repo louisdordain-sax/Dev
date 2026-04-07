@@ -135,7 +135,7 @@ input,select,textarea{width:100%;font-size:13px;padding:8px 10px;border:0.5px so
 textarea{resize:vertical;min-height:64px;line-height:1.5}
 .err{font-size:11px;color:var(--ct-danger);margin-bottom:8px;display:none}
 .badge{font-size:11px;padding:3px 10px;border-radius:99px;border:0.5px solid}
-.badge-prof{background:var(--cb-warning);color:var(--ct-warning);border-color:var(--cbr-warning)}
+.badge-prof{background:var(--cb-secondary);color:var(--ct-secondary);border-color:var(--cbr-tertiary)}
 .badge-eleve{background:var(--cb-secondary);color:var(--ct-secondary);border-color:var(--cbr-tertiary)}
 .top-bar{display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
 .p-row{display:flex;align-items:center;gap:12px;padding:12px;background:var(--cb-secondary);border-radius:var(--br-lg);margin-bottom:1rem}
@@ -577,6 +577,89 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
   .home-cards { grid-template-columns: repeat(2, 1fr) !important; }
   /* Grille toolbox : toujours 3 colonnes */
   #toolbox-scroll .home-card { padding: 12px 6px !important; }
+
+  /* ── NAV PROF MOBILE : barre basse fixe ── */
+  .prof-shell { padding-bottom: 56px; }
+  .prof-nav {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 0; left: 0; right: 0;
+    padding: 0 !important;
+    gap: 0 !important;
+    z-index: 50;
+    border-top: 0.5px solid var(--cbr-tertiary);
+    border-bottom: none !important;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.18);
+    height: 56px;
+  }
+  .prof-tab {
+    flex: 1;
+    flex-direction: column;
+    gap: 2px !important;
+    padding: 6px 4px !important;
+    font-size: 9px !important;
+    min-height: unset !important;
+    border-bottom: none !important;
+    border-top: 2px solid transparent;
+    justify-content: center;
+  }
+  .prof-tab.active { border-top-color: var(--ct-info); border-bottom: none !important; }
+  .prof-tab svg { opacity: 1 !important; }
+  .prof-nav-end {
+    flex-direction: column;
+    gap: 2px !important;
+    padding: 4px 6px !important;
+    margin-left: 0 !important;
+    justify-content: center;
+    border-left: 0.5px solid var(--cbr-tertiary);
+  }
+  .prof-nav-end .btn { padding: 4px 6px !important; }
+  .prof-content { padding: 0.8rem 0.75rem !important; }
+
+  /* ── CARTES ÉLÈVES compactes mobile ── */
+  .std-row {
+    padding: 8px 10px !important;
+    gap: 8px !important;
+    position: relative;
+  }
+  .std-row .avatar { width: 32px !important; height: 32px !important; font-size: 11px !important; flex-shrink: 0; }
+  /* Masquer les boutons secondaires, garder seulement Arbre + Éditer dans un menu compact */
+  .std-row-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+
+  /* Masquer les labels textuels des boutons d'action élève sur mobile */
+  .btn-label-hide { display: none; }
+  /* Boutons actions élèves : icônes seulement */
+  .std-row-actions .btn { padding: 5px 7px !important; }
+
+  /* ── ARBRE mobile : nœuds plus petits, HUD fixe ── */
+  /* Le canvas reste en position absolute inset:0, le HUD est déjà fixed */
+  /* On réduit les rayons via CSS custom property */
+  #sc-tree { overflow: hidden; }
+  /* La topbar HUD reste sticky en haut */
+  .hud-topbar { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; }
+  .hud-tabs { position: fixed !important; top: 48px !important; right: 8px !important; }
+  .hud-profile { position: fixed !important; bottom: 30px !important; left: 8px !important; }
+  .hud-botbar { position: fixed !important; }
+
+  /* ── AGENDA : colonnes à largeur fixe (ne bougent pas avec le contenu) ── */
+  .ag-month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    table-layout: fixed;
+    width: 100%;
+  }
+  .ag-month-cell {
+    min-height: 54px !important;
+    overflow: hidden;
+    word-break: break-all;
+  }
+  .ag-month-chip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+  .ag-week-wrap {
+    grid-template-columns: 32px repeat(7, minmax(0, 1fr)) !important;
+    width: 100%;
+  }
+  .ag-week-daylabel { font-size: 9px !important; padding: 4px 1px !important; }
+  .ag-week-daylabel .ag-week-daynum { font-size: 13px !important; }
 }
 
 </style>
@@ -648,9 +731,13 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3 8-8"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       Compétences
     </button>
-    <button class="prof-tab" id="ptab-outils" onclick="showProfTab('outils')">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.77 3.77z"/></svg>
-      Outils
+    <button class="prof-tab" id="ptab-partage" onclick="openBoard(true)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Partage
+    </button>
+    <button class="prof-tab" id="ptab-agenda" onclick="openAgenda()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Agenda
     </button>
 
     <div class="prof-nav-end">
@@ -677,27 +764,8 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
       <button class="btn btn-sm" style="border-color:rgba(239,159,39,.45);color:#EF9F27;flex-shrink:0" onclick="exitPreviewMode()">Quitter</button>
     </div>
 
-    <!-- Onglet Accueil -->
-    <div id="ptab-content-accueil">
-      <div class="home-welcome">
-        <div class="home-welcome-title">Bonjour !</div>
-        <div class="home-welcome-sub">Que souhaitez-vous faire ?</div>
-        <div class="home-cards" style="grid-template-columns:repeat(3,1fr);max-width:480px">
-          <div class="home-card" onclick="showProfTab('eleves')">
-            <div class="home-card-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-            <div class="home-card-title">Élèves</div>
-          </div>
-          <div class="home-card" onclick="showProfTab('competences')">
-            <div class="home-card-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11l3 3 8-8"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-            <div class="home-card-title">Compétences</div>
-          </div>
-          <div class="home-card" onclick="openToolboxScreen()">
-            <div class="home-card-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.77 3.77z"/></svg></div>
-            <div class="home-card-title">Outils</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Onglet Accueil (vide, non affiché) -->
+    <div id="ptab-content-accueil" style="display:none"></div>
 
     <!-- Onglet Élèves -->
     <div id="ptab-content-eleves" style="display:none">
@@ -719,31 +787,8 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
       <div id="ce-content-home"></div>
     </div>
 
-    <!-- Onglet Outils -->
-    <div id="ptab-content-outils" style="display:none">
-      <div class="home-cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
-
-        <!-- Métronome : visible pour les élèves uniquement (pas dans la vue prof) -->
-        <div class="home-card" id="card-metro-home" onclick="toggleMetroDrawer()" style="display:none">
-          <div class="home-card-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
-          <div class="home-card-title">Métronome</div>
-        </div>
-
-        <!-- Partage -->
-        <div class="home-card" onclick="openBoard(true)">
-          <div class="home-card-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-          <div class="home-card-title">Partage</div>
-        </div>
-
-        <!-- Agenda -->
-        <div class="home-card" id="card-agenda" onclick="openAgenda()">
-          <div class="home-card-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-          <div class="home-card-title">Agenda</div>
-        </div>
-
-      </div>
-
-    </div>
+    <!-- Onglet Outils (vide - Partage et Agenda sont dans la nav) -->
+    <div id="ptab-content-outils" style="display:none"></div>
 
 
       <!-- Tiroir Métronome (réservé aux élèves, masqué ici) -->
@@ -1111,7 +1156,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
       <div style="background:var(--cb-secondary);border:0.5px solid var(--cbr-tertiary);border-radius:14px;padding:14px 14px 10px;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-          <span style="font-size:13px;font-weight:600;color:var(--ct-primary)">Playlist partagée</span>
+          <span style="font-size:13px;font-weight:600;color:var(--ct-primary)">Playlist du cours</span>
         </div>
         <iframe style="border-radius:10px;display:block" src="https://open.spotify.com/embed/playlist/5xBFp4hSf9Nc3NkbmASlRe?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
       </div>
@@ -1145,7 +1190,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
         <div class="board-header-title" id="board-main-title">Espace de partage</div>
         <div class="board-header-sub" id="board-subtitle">Documents, liens, enregistrements</div>
       </div>
-      <span id="board-mode-badge" class="badge badge-prof" style="display:none">Mode prof</span>
+      <span id="board-mode-badge" class="badge" style="display:none;background:var(--cb-secondary);color:var(--ct-secondary);border-color:var(--cbr-tertiary)">Mode édition</span>
       <button class="btn btn-sm" onclick="openSuggestionsPanel()" id="btn-suggestions" style="display:none">
         <span id="suggestions-badge" style="display:none;background:#f87171;color:#fff;border-radius:99px;padding:0 5px;font-size:9px;margin-right:3px;font-weight:700"></span>
         💡 Suggestions</button>
@@ -1998,17 +2043,19 @@ function renderHome(){
         ? '<div style="margin-top:3px"><span style="font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(239,159,39,.12);color:#EF9F27;border:0.5px solid rgba(239,159,39,.4);font-weight:600;white-space:nowrap;font-family:var(--font-mono)">' + _cycleYear + '</span><span style="font-size:10px;color:var(--ct-tertiary);margin-left:5px">— examen</span></div>'
         : '<div style="margin-top:3px;display:flex;align-items:center;gap:6px"><span style="font-size:10px;padding:1px 7px;border-radius:99px;background:' + s.color + '22;color:' + s.color + ';border:0.5px solid ' + s.color + '66;font-weight:700;font-family:var(--font-mono)">' + _cycleYear + '</span><span style="font-size:10px;color:var(--ct-secondary)">' + done + '/' + total + ' (' + pct + '%)</span></div><div style="height:3px;background:var(--cb-secondary);border-radius:99px;overflow:hidden;margin-top:4px"><div style="height:100%;border-radius:99px;width:' + pct + '%;background:' + s.color + '"></div></div>';
       row.innerHTML=`
-        <div class="avatar" style="background:${s.color}22;color:${s.color};width:36px;height:36px;font-size:12px">${initials(s.name)}</div>
+        <div class="avatar" style="background:${s.color}22;color:${s.color};width:36px;height:36px;font-size:12px;flex-shrink:0">${initials(s.name)}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:500;color:var(--ct-primary)">${s.name}</div>
+          <div style="font-size:13px;font-weight:500;color:var(--ct-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div>
           ${_examHtml}
         </div>
-        ${_validerBtn}
-        <button class="btn btn-sm" onclick="openTree('${s.id}')">Arbre</button>
-        <button class="btn btn-warn btn-sm" onclick="openTreeEdit('${s.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Éditer</button>
-        <button class="btn btn-sm" onclick="openEditStudentModal('${s.id}')">Profil</button>
-        <button class="btn btn-sm" title="Réinitialiser le mot de passe" onclick="resetStudentPassword('${s.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/><polyline points="16 16 18 18 22 14" transform="translate(-6,-3) scale(0.7)"/></svg> </button>
-        <button class="btn btn-danger btn-sm" title="Supprimer l'élève" onclick="deleteStudent('${s.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
+        <div class="std-row-actions" style="display:flex;gap:4px;flex-shrink:0;flex-wrap:nowrap">
+          ${_validerBtn}
+          <button class="btn btn-sm" onclick="openTree('${s.id}')" title="Voir l'arbre"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> <span class="btn-label-hide">Arbre</span></button>
+          <button class="btn btn-sm" onclick="openTreeEdit('${s.id}')" title="Éditer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> <span class="btn-label-hide">Éditer</span></button>
+          <button class="btn btn-sm" onclick="openEditStudentModal('${s.id}')" title="Profil"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span class="btn-label-hide">Profil</span></button>
+          <button class="btn btn-sm" title="Réinitialiser le mot de passe" onclick="resetStudentPassword('${s.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></button>
+          <button class="btn btn-danger btn-sm" title="Supprimer" onclick="deleteStudent('${s.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+        </div>
       `;
       grp.appendChild(row);
     }
@@ -2181,7 +2228,10 @@ function saveAndBack(){saveLocal();toggleEditMode();updateProfileBar()}
 
 function renderTreeScreen(){
   updateProfileBar();
-  const mb=document.getElementById('mode-badge');mb.textContent=profMode?'Mode prof':'Lecture seule';mb.className='badge '+(profMode?'badge-prof':'badge-eleve');
+  const mb=document.getElementById('mode-badge');
+  mb.textContent=profMode?'':'Lecture seule';
+  mb.className='badge '+(profMode?'badge-prof':'badge-eleve');
+  mb.style.display=profMode?'none':'inline-block';
   const cs=cycleStatus(currentStudent,currentCycle);
   const isExam=cs==='awaiting_exam';
 
@@ -2324,8 +2374,10 @@ function getNodes(){return _nodesCache||calcNodes()}
 function calcNodes(){
   const cv=document.getElementById('cv');
   const W=cv.width||window.innerWidth,H=cv.height||window.innerHeight;
-  const cx=W/2,cy=H/2,RBR=Math.min(W,H)*0.19;
-  const R=Math.min(W,H);
+  const isMobile=W<600;
+  const mobileScale=isMobile?0.72:1;
+  const cx=W/2,cy=H/2,RBR=Math.min(W,H)*0.19*mobileScale;
+  const R=Math.min(W,H)*mobileScale;
   const toRad=d=>d*Math.PI/180;
   const skList=skillsData[currentCycle]||[];
   const brSk={};for(const br of BRANCHES)brSk[br.id]=skList.filter(s=>s.b===br.id);
@@ -2408,8 +2460,10 @@ function drawRadial(){
     ctx.translate(cx+_treeOffX,cy+_treeOffY);
     ctx.scale(_treeZoom,_treeZoom);
     ctx.translate(-cx,-cy);
-    const RC=Math.min(W,H)*0.075,RBN=Math.min(W,H)*0.044;
-    const RSN_BASE=Math.min(W,H)*0.042;
+    const isMobile2=W<600;
+    const mS=isMobile2?0.72:1;
+    const RC=Math.min(W,H)*0.075*mS,RBN=Math.min(W,H)*0.044*mS;
+    const RSN_BASE=Math.min(W,H)*0.042*mS;
     // Pré-calcul du rayon par nœud (adapté à la longueur du texte)
     const _nRad={};
     (function(){
@@ -2824,12 +2878,14 @@ function previewMedia(){
   }
 }
 
-function youtubeEmbedHtml(info,sizeClass){
+function youtubeEmbedHtml(info,sizeClass,tileId){
   const h=sizeClass==='sm'?'120px':sizeClass==='lg'?'200px':'155px';
   const embedUrl=info.embedUrl;
+  const trackJs=tileId&&!boardIsProfMode?`trackInteraction('${tileId}');`:'';
   return `<div style="position:relative;border-radius:6px;overflow:hidden;margin-bottom:0">
     <iframe style="width:100%;height:${h};border:none;display:block" src="${embedUrl}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox" loading="lazy"></iframe>
-    <button onclick="event.stopPropagation();openYoutubeExpand('${embedUrl.replace(/'/g,"\\'")}','${(info.id||'').replace(/'/g,"\\'")}');" title="Agrandir" style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.65);border:none;border-radius:6px;cursor:pointer;padding:4px 7px;display:flex;align-items:center;gap:4px;color:#fff;font-size:10px;font-family:var(--font-sans);backdrop-filter:blur(4px);z-index:2"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Agrandir</button>
+    <div style="position:absolute;inset:0;cursor:pointer;z-index:1" onclick="this.style.display='none';${trackJs}" title="Lancer la vidéo"></div>
+    <button onclick="event.stopPropagation();openYoutubeExpand('${embedUrl.replace(/'/g,"\\'")}');" title="Agrandir" style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.65);border:none;border-radius:6px;cursor:pointer;padding:4px 7px;display:flex;align-items:center;gap:4px;color:#fff;font-size:10px;font-family:var(--font-sans);backdrop-filter:blur(4px);z-index:2"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Agrandir</button>
   </div>`;
 }
 
@@ -2984,7 +3040,7 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
     } else if(tile.type==='media'){
       const info=parseMediaUrl(tile.mediaUrl);
       if(info){
-        if(info.platform==='youtube')previewHtml=youtubeEmbedHtml(info,sizeClass);
+        if(info.platform==='youtube')previewHtml=youtubeEmbedHtml(info,sizeClass,tile.id);
         else previewHtml=spotifyOpenBtn(info,tile.title,tile.id);
       }
     } else if(tile.type==='audio'){
@@ -3768,7 +3824,7 @@ function showProfTab(tab){
     if(raw){var sess=JSON.parse(raw);sess.tab=tab;sessionStorage.setItem('sax_session',JSON.stringify(sess));}
   }catch(e){}
   // Onglets nav
-  ['eleves','competences','outils','parametres'].forEach(function(t){
+  ['eleves','competences','parametres'].forEach(function(t){
     var btn=document.getElementById('ptab-'+t);
     var panel=document.getElementById('ptab-content-'+t);
     if(btn) btn.classList.toggle('active', t===tab);
@@ -4726,9 +4782,9 @@ function _restoreSession(){
 /* ── Corps scrollable ── */
 .ag-body{flex:1;overflow-y:auto;overflow-x:hidden}
 /* ── Vue MOIS ── */
-.ag-month-grid{display:grid;grid-template-columns:repeat(7,1fr);border-left:0.5px solid var(--cbr-tertiary);border-top:0.5px solid var(--cbr-tertiary)}
+.ag-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-left:0.5px solid var(--cbr-tertiary);border-top:0.5px solid var(--cbr-tertiary);width:100%}
 .ag-month-daylabel{text-align:center;font-size:10px;color:var(--ct-tertiary);padding:5px 0;font-weight:600;border-right:0.5px solid var(--cbr-tertiary);border-bottom:0.5px solid var(--cbr-tertiary);background:var(--cb-primary)}
-.ag-month-cell{min-height:72px;border-right:0.5px solid var(--cbr-tertiary);border-bottom:0.5px solid var(--cbr-tertiary);padding:4px;cursor:pointer;transition:background .1s;position:relative}
+.ag-month-cell{min-height:72px;border-right:0.5px solid var(--cbr-tertiary);border-bottom:0.5px solid var(--cbr-tertiary);padding:4px;cursor:pointer;transition:background .1s;position:relative;overflow:hidden;min-width:0}
 .ag-month-cell:hover{background:var(--cb-secondary)}
 .ag-month-cell.today{background:var(--cb-info)}
 .ag-month-cell.other-month .ag-month-num{opacity:.3}
@@ -4737,7 +4793,7 @@ function _restoreSession(){
 .ag-month-chip{font-size:9px;padding:1px 5px;border-radius:3px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;margin-bottom:1px;line-height:1.4}
 .ag-month-more{font-size:9px;color:var(--ct-tertiary);padding-left:2px}
 /* ── Vue SEMAINE ── */
-.ag-week-wrap{display:grid;grid-template-columns:44px repeat(7,1fr);border-left:0.5px solid var(--cbr-tertiary);border-top:0.5px solid var(--cbr-tertiary)}
+.ag-week-wrap{display:grid;grid-template-columns:44px repeat(7,minmax(0,1fr));border-left:0.5px solid var(--cbr-tertiary);border-top:0.5px solid var(--cbr-tertiary);width:100%}
 .ag-week-daylabel{text-align:center;padding:5px 2px;border-right:0.5px solid var(--cbr-tertiary);border-bottom:0.5px solid var(--cbr-tertiary);font-size:10px;color:var(--ct-tertiary);font-weight:600;background:var(--cb-primary);cursor:pointer;transition:background .1s}
 .ag-week-daylabel:hover{background:var(--cb-secondary)}
 .ag-week-daylabel.today{background:var(--cb-info);color:var(--ct-info)}
@@ -5809,7 +5865,7 @@ function openAgSync(){
           S'abonner dans Google Agenda
         </button>
         <div style="font-size:10px;color:var(--ct-tertiary)">
-          ⚠️ Nécessite d'avoir déployé le fichier <code>generate-ics.js</code> sur GitHub. Se met à jour toutes les 6h.
+          ⚠️ Nécessite d'avoir déployé le fichier <code>generate-ics.js</code> sur GitHub. Se met à jour toutes les <strong style="color:var(--ct-warning)">6h</strong> pour les abonnés — délai natif de Google Agenda.
         </div>
       </div>
 
