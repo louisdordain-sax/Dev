@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Classes de Louis Dordain — Saxophone 🎷 (En ligne)</title>
 <!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -594,10 +594,13 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     height: calc(56px + env(safe-area-inset-bottom, 0px));
   }
   .prof-nav { overflow: hidden; }
-  /* Onglets : icône + titre réduit */
-  .prof-tab { font-size: 10px !important; padding: 0 8px !important; gap: 4px !important; flex-direction: column !important; min-height: 52px !important; }
-  .prof-tab svg { opacity: 1 !important; width: 18px !important; height: 18px !important; }
-  .prof-nav-end { padding: 0 6px !important; gap: 6px !important; }
+  /* Onglets : icône + titre réduit, répartis sur toute la largeur */
+  .prof-tab { font-size: 10px !important; padding: 0 4px !important; gap: 3px !important; flex-direction: column !important; min-height: 52px !important; flex: 1 !important; }
+  .prof-tab svg { opacity: 1 !important; width: 20px !important; height: 20px !important; }
+  /* Fin de nav : icônes plus petites, moins d'espace */
+  .prof-nav-end { padding: 0 4px !important; gap: 4px !important; flex-shrink: 0; }
+  .prof-nav-end .btn { padding: 5px 6px !important; min-width: 32px; }
+  .prof-nav-end .btn svg { width: 14px !important; height: 14px !important; }
   .prof-content { padding: 0.8rem 0.75rem !important; }
 
   /* ── CARTES ÉLÈVES compactes mobile ── */
@@ -639,6 +642,16 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
   .hud-topbar > div[style*="flex:1"] { display: flex !important; }
   /* Bouton retour : toujours en premier à gauche */
   #btn-back-tree { order: -1; }
+
+  /* ── BOARD PARTAGE mobile : header aligné en haut ── */
+  .board-inner { padding: 0 !important; }
+  .board-header {
+    padding: 10px 12px !important;
+    margin-bottom: 0.6rem !important;
+  }
+  .board-columns-wrap { padding-bottom: 12px !important; padding-left: 12px !important; }
+  .board-header-title { font-size: 16px !important; }
+  .board-header-sub { font-size: 11px !important; }
 
   /* ── AGENDA ── */
   .ag-topbar { padding: 8px 10px !important; gap: 6px !important; }
@@ -2466,7 +2479,7 @@ function calcNodes(){
   const idBr={};for(const br of BRANCHES){for(const sk of(brSk[br.id]||[]))idBr[sk.id]=br.id;}
   // MIN : distance entre centres = 2 × rayon max (1.5×RSN_BASE) + marge
   const RSN_BASE_C=BASE*0.042*mS;
-  const MIN=RSN_BASE_C*3.4; // 2×1.5×RSN_BASE + marge
+  const MIN=RSN_BASE_C*4.4; // 2×2×RSN_BASE + marge
   const ids=skList.map(s=>s.id);
   for(let iter=0;iter<300;iter++){
     let moved=false;
@@ -2554,9 +2567,9 @@ function drawRadial(){
         const _fs=Math.round(RSN_BASE*0.38);
         _tmpCtx.font=`500 ${_fs}px sans-serif`;
         const _maxW=Math.max(..._lines.map(l=>_tmpCtx.measureText(l).width));
-        // Rayon nécessaire pour faire tenir le texte, plafonné à 1.5× RSN_BASE
+        // Rayon nécessaire pour faire tenir le texte, plafonné à 2× RSN_BASE
         const _needed=_maxW/1.7;
-        _nRad[_sk.id]=Math.min(RSN_BASE*1.5, Math.max(RSN_BASE, _needed));
+        _nRad[_sk.id]=Math.min(RSN_BASE*2, Math.max(RSN_BASE, _needed));
       }}
     })();
     const RSN=RSN_BASE; // conservé pour les hit-tests (utilisé ailleurs)
@@ -2649,7 +2662,7 @@ function drawRadial(){
       let fs2=Math.round(RSN_n*0.38);
       ctx.globalAlpha=s==='locked'?.22:1;ctx.fillStyle=br.color;ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor=br.color;ctx.shadowBlur=s==='locked'?0:4;
       const words=skill.l.split(' ');
-      // Trouver la taille de police qui fait tenir le texte
+      // Trouver la taille de police qui fait tenir le texte (min 7px)
       function autoSize(lines){
         let fs=Math.round(RSN_n*0.38);
         while(fs>7){
@@ -2660,19 +2673,20 @@ function drawRadial(){
         }
         return fs;
       }
-      let lines=words.length===1?[skill.l]:[words[0],words.slice(1).join(' ')];
-      // Si 2 lignes trop larges, essayer découpage différent
-      if(words.length>2){
-        const mid=Math.ceil(words.length/2);
-        lines=[words.slice(0,mid).join(' '),words.slice(mid).join(' ')];
+      // Tronquer avec ellipse si trop long même à fs minimum
+      function fitLine(txt,maxPx){
+        if(ctx.measureText(txt).width<=maxPx)return txt;
+        while(txt.length>1&&ctx.measureText(txt+'…').width>maxPx)txt=txt.slice(0,-1);
+        return txt+'…';
       }
+      let lines=words.length===1?[skill.l]:[words[0],words.slice(1).join(' ')];
+      if(words.length>2){const mid=Math.ceil(words.length/2);lines=[words.slice(0,mid).join(' '),words.slice(mid).join(' ')];}
       fs2=autoSize(lines);
       ctx.font=`500 ${fs2}px sans-serif`;
-      // Clip dans la bulle pour que le texte ne dépasse jamais
-      ctx.save();ctx.beginPath();ctx.arc(sx,sy,RSN_n*0.93,0,Math.PI*2);ctx.clip();
+      // S'assurer que chaque ligne tient (troncature de sécurité)
+      lines=lines.map(function(l){return fitLine(l,maxW);});
       if(lines.length===1){ctx.fillText(lines[0],sx,sy);}
       else{ctx.fillText(lines[0],sx,sy-fs2*0.62);ctx.fillText(lines[1],sx,sy+fs2*0.62);}
-      ctx.restore();
       ctx.restore();
     }}
     ctx.restore(); // zoom/pan
