@@ -593,28 +593,11 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     box-shadow: 0 -2px 12px rgba(0,0,0,0.18);
     height: calc(56px + env(safe-area-inset-bottom, 0px));
   }
-  .prof-tab {
-    flex: 1;
-    flex-direction: column;
-    gap: 2px !important;
-    padding: 6px 4px !important;
-    font-size: 9px !important;
-    min-height: unset !important;
-    border-bottom: none !important;
-    border-top: 2px solid transparent;
-    justify-content: center;
-  }
-  .prof-tab.active { border-top-color: var(--ct-info); border-bottom: none !important; }
-  .prof-tab svg { opacity: 1 !important; }
-  .prof-nav-end {
-    flex-direction: column;
-    gap: 2px !important;
-    padding: 4px 6px !important;
-    margin-left: 0 !important;
-    justify-content: center;
-    border-left: 0.5px solid var(--cbr-tertiary);
-  }
-  .prof-nav-end .btn { padding: 4px 6px !important; }
+  .prof-nav { overflow: hidden; }
+  /* Onglets : icône seule, texte caché */
+  .prof-tab { font-size: 0 !important; padding: 0 10px !important; gap: 0 !important; }
+  .prof-tab svg { opacity: 1 !important; width: 20px !important; height: 20px !important; }
+  .prof-nav-end { padding: 0 6px !important; gap: 6px !important; }
   .prof-content { padding: 0.8rem 0.75rem !important; }
 
   /* ── CARTES ÉLÈVES compactes mobile ── */
@@ -632,20 +615,10 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
   /* Boutons actions élèves : icônes seulement */
   .std-row-actions .btn { padding: 5px 7px !important; }
 
-  /* ── ARBRE mobile : nœuds plus petits, HUD fixe ── */
-  /* Le canvas reste en position absolute inset:0, le HUD est déjà fixed */
-  /* On réduit les rayons via CSS custom property */
+  /* ── ARBRE mobile ── */
   #sc-tree { overflow: hidden; }
-  /* Forcer la topbar HUD en fixed sur mobile */
-  .hud-topbar { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; }
-  .hud-tabs { position: fixed !important; top: 52px !important; right: 8px !important; left: auto !important; }
-  .hud-profile { position: fixed !important; bottom: 24px !important; left: 8px !important; bottom: env(safe-area-inset-bottom, 24px) !important; }
-  .hud-botbar { position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; padding-bottom: env(safe-area-inset-bottom, 10px) !important; }
-  /* Popup compétence : largeur maximale sur mobile */
   .popup { width: min(88vw, 220px) !important; font-size: 12px !important; }
-  /* Réduire la topbar arbre sur mobile */
   .hud-topbar .btn { font-size: 11px !important; padding: 5px 10px !important; }
-  /* Bouton recentrer plus petit */
   #btn-recenter-tree { font-size: 11px !important; padding: 5px 14px !important; }
 
   /* ── AGENDA ── */
@@ -970,54 +943,6 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     <div id="pop-btns" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"></div>
   </div>
 
-  <!-- HUD coins -->
-  <div class="hud-layer">
-    <div class="hud-corner tl" id="hud-corner-tl"></div><div class="hud-corner tr"></div>
-    <div class="hud-corner bl"></div><div class="hud-corner br"></div>
-    <div class="hud-label top" id="hud-top">cycle — élève</div>
-    <div class="hud-label bot" id="hud-bot">saxophone · progression</div>
-  </div>
-
-  <!-- HUD barre haut : retour + badge + partage + éditer -->
-  <div class="hud-topbar" id="hud-topbar">
-    <button class="btn btn-sm btn-back-tree" id="btn-back-tree" onclick="goBack()" style="backdrop-filter:blur(4px);display:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Retour</button>
-    <span class="badge" id="mode-badge" style="backdrop-filter:blur(4px);display:none"></span>
-    <div style="flex:1"></div>
-    <button class="btn btn-sm" onclick="openToolboxScreen()" title="Boîte à outils" style="backdrop-filter:blur(4px);background:rgba(15,20,32,0.7);margin-right:4px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.77 3.77z"/></svg> Outils</button>
-    <button class="btn btn-sm" id="btn-edit-mode" onclick="toggleEditMode()" style="display:none;backdrop-filter:blur(4px);background:rgba(15,20,32,0.75)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Éditer</button>
-  </div>
-
-  <!-- HUD tabs cycles (haut droit) -->
-  <div class="hud-tabs" id="hud-ctabs"></div>
-
-  <!-- HUD profil bas-gauche -->
-  <div class="hud-profile" id="hud-profile">
-    <div style="display:flex;align-items:flex-end;gap:10px">
-      <div class="hud-avatar" id="p-av" onclick="openProfileDrawer()" title="Mon profil"></div>
-      <div>
-        <div class="hud-name" id="p-name2"></div>
-        <div class="hud-sub" id="p-sub"></div>
-        <div class="hud-xp-row">
-          <div class="hud-xp-track"><div class="hud-xp-fill" id="xp-fill"></div></div>
-          <div class="hud-xp-txt" id="xp-txt"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- HUD bas : bouton recentrer + légende -->
-  <div class="hud-botbar" style="flex-direction:column;gap:8px;padding-bottom:14px">
-    <button id="btn-recenter-tree" onclick="_treeResetView()" style="pointer-events:auto;display:flex;align-items:center;gap:7px;padding:7px 20px;border-radius:99px;border:0.5px solid rgba(55,138,221,0.55);background:rgba(6,9,20,0.82);color:rgba(138,154,184,0.9);font-size:12px;font-family:var(--font-sans);cursor:pointer;backdrop-filter:blur(6px);transition:all .15s;letter-spacing:.3px">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-      Recentrer
-    </button>
-    <div class="leg">
-      <div class="li"><div class="ld" style="background:#378ADD;border:1px solid #378ADD"></div>Maîtrisée</div>
-      <div class="li"><div class="ld" style="background:#EF9F27;border:1px solid #EF9F27"></div>En cours</div>
-      <div class="li"><div class="ld" style="background:var(--cbr-tertiary);border:1px solid var(--cbr-secondary)"></div>Verrouillée</div>
-    </div>
-  </div>
-
   <!-- Vue édition (panel flottant) -->
   <div id="view-edit" style="display:none">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
@@ -1045,6 +970,55 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
 </div>
 
 <!-- DRAWER PROFIL ÉLÈVE -->
+
+<!-- HUD ARBRE — éléments position:fixed au niveau body (jamais affectés par le canvas) -->
+<div class="hud-layer" id="hud-layer-global" style="display:none;pointer-events:none;position:fixed;inset:0;z-index:25">
+  <div class="hud-corner tl" id="hud-corner-tl"></div><div class="hud-corner tr"></div>
+  <div class="hud-corner bl"></div><div class="hud-corner br"></div>
+  <div class="hud-label top" id="hud-top">cycle — élève</div>
+  <div class="hud-label bot" id="hud-bot">saxophone · progression</div>
+</div>
+
+<!-- HUD barre haut : position:fixed toujours -->
+<div class="hud-topbar" id="hud-topbar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:26">
+  <button class="btn btn-sm btn-back-tree" id="btn-back-tree" onclick="goBack()" style="backdrop-filter:blur(4px);display:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Retour</button>
+  <span class="badge" id="mode-badge" style="backdrop-filter:blur(4px);display:none"></span>
+  <div style="flex:1"></div>
+  <button class="btn btn-sm" onclick="openToolboxScreen()" title="Boîte à outils" style="backdrop-filter:blur(4px);background:rgba(15,20,32,0.7);margin-right:4px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.77 3.77z"/></svg> Outils</button>
+  <button class="btn btn-sm" id="btn-edit-mode" onclick="toggleEditMode()" style="display:none;backdrop-filter:blur(4px);background:rgba(15,20,32,0.75)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Éditer</button>
+</div>
+
+<!-- HUD tabs cycles — position:fixed -->
+<div class="hud-tabs" id="hud-ctabs" style="display:none;position:fixed;top:48px;right:14px;z-index:26"></div>
+
+<!-- HUD profil bas-gauche — position:fixed -->
+<div class="hud-profile" id="hud-profile" style="display:none;position:fixed;bottom:36px;left:14px;z-index:26">
+  <div style="display:flex;align-items:flex-end;gap:10px">
+    <div class="hud-avatar" id="p-av" onclick="openProfileDrawer()" title="Mon profil"></div>
+    <div>
+      <div class="hud-name" id="p-name2"></div>
+      <div class="hud-sub" id="p-sub"></div>
+      <div class="hud-xp-row">
+        <div class="hud-xp-track"><div class="hud-xp-fill" id="xp-fill"></div></div>
+        <div class="hud-xp-txt" id="xp-txt"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HUD bas : bouton recentrer + légende — position:fixed -->
+<div class="hud-botbar" id="hud-botbar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:26;flex-direction:column;gap:8px;padding-bottom:14px">
+  <button id="btn-recenter-tree" onclick="_treeResetView()" style="pointer-events:auto;display:flex;align-items:center;gap:7px;padding:7px 20px;border-radius:99px;border:0.5px solid rgba(55,138,221,0.55);background:rgba(6,9,20,0.82);color:rgba(138,154,184,0.9);font-size:12px;font-family:var(--font-sans);cursor:pointer;backdrop-filter:blur(6px);transition:all .15s;letter-spacing:.3px">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+    Recentrer
+  </button>
+  <div class="leg">
+    <div class="li"><div class="ld" style="background:#378ADD;border:1px solid #378ADD"></div>Maîtrisée</div>
+    <div class="li"><div class="ld" style="background:#EF9F27;border:1px solid #EF9F27"></div>En cours</div>
+    <div class="li"><div class="ld" style="background:var(--cbr-tertiary);border:1px solid var(--cbr-secondary)"></div>Verrouillée</div>
+  </div>
+</div>
+
 <div class="profile-drawer hidden" id="profile-drawer">
   <div class="profile-drawer-bg" onclick="closeProfileDrawer()"></div>
   <div class="profile-drawer-box">
@@ -1917,10 +1891,15 @@ function doLogout(){
   backToStep1();
   show('sc-login');
 }
+function _hideTreeHud(){
+  ['hud-topbar','hud-ctabs','hud-profile','hud-botbar','hud-layer-global'].forEach(function(id){
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
+}
 function goBack(){
   selSkill=null;hovSkill=null;editMode=false;
   document.getElementById('view-edit').style.display='none';
-  closePopup();cancelAnim();
+  closePopup();cancelAnim();_hideTreeHud();
   if(profMode){show('sc-home');showProfTab('eleves');}
   else doLogout();
 }
@@ -2264,10 +2243,12 @@ function renderTreeScreen(){
   // Masquer le canvas, HUD et légende quand l'écran exam est actif
   document.getElementById('cv').style.display=isExam?'none':'block';
   document.getElementById('hud-topbar').style.display=isExam?'none':'flex';
-  document.querySelector('.hud-layer').style.visibility=isExam?'hidden':'visible';
-  document.querySelector('.hud-botbar').style.display=isExam?'none':'flex';
+  const hudLayer=document.getElementById('hud-layer-global');
+  if(hudLayer)hudLayer.style.display=isExam?'none':'block';
+  const hudBotbar=document.getElementById('hud-botbar');
+  if(hudBotbar)hudBotbar.style.display=isExam?'none':'flex';
   document.getElementById('hud-ctabs').style.display=isExam?'none':'flex';
-  document.getElementById('hud-profile').style.visibility=isExam?'hidden':'visible';
+  document.getElementById('hud-profile').style.display=isExam?'none':'flex';
 
   if(isExam){
     cancelAnim();
@@ -2282,6 +2263,9 @@ function renderTreeScreen(){
   // Réafficher le canvas si on revient de l'exam
   document.getElementById('cv').style.display='block';
   document.getElementById('hud-topbar').style.display='flex';
+  const _hl=document.getElementById('hud-layer-global');if(_hl)_hl.style.display='block';
+  const _hb=document.getElementById('hud-botbar');if(_hb)_hb.style.display='flex';
+  document.getElementById('hud-profile').style.display='flex';
 
   const tabs=document.getElementById('hud-ctabs');tabs.innerHTML='';
   for(let c=1;c<=3;c++){
@@ -2421,9 +2405,9 @@ function calcNodes(){
   const nBr=BRANCHES.length||4;
   const halfSector=toRad((360/nBr)*0.48);
   const idBr={};for(const br of BRANCHES){for(const sk of(brSk[br.id]||[]))idBr[sk.id]=br.id;}
-  // MIN : distance minimale entre centres de nœuds = 2.5× le rayon de base d'un nœud
+  // MIN : distance entre centres = 2 × rayon max (1.5×RSN_BASE) + marge
   const RSN_BASE_C=BASE*0.042*mS;
-  const MIN=RSN_BASE_C*2.6;
+  const MIN=RSN_BASE_C*3.4; // 2×1.5×RSN_BASE + marge
   const ids=skList.map(s=>s.id);
   for(let iter=0;iter<300;iter++){
     let moved=false;
@@ -2485,17 +2469,23 @@ function drawRadial(){
     const BASE=Math.min(W,H);
     const RC=BASE*0.075*mS,RBN=BASE*0.044*mS;
     const RSN_BASE=BASE*0.042*mS;
-    // Pré-calcul du rayon par nœud (adapté à la longueur du texte)
+    // Pré-calcul du rayon par nœud — toujours proportionnel à l'écran
+    // On estime la largeur du texte mais on plafonne à 1.5× RSN_BASE
     const _nRad={};
     (function(){
+      const _tmpCtx=ctx; // même contexte pour mesurer
       for(const _br of BRANCHES){for(const _sk of brSk[_br.id]||[]){
         const _words=_sk.l.split(' ');
         let _lines;
         if(_words.length===1)_lines=[_sk.l];
         else{const _mid=Math.ceil(_words.length/2);_lines=[_words.slice(0,_mid).join(' '),_words.slice(_mid).join(' ')];}
-        const _maxCh=Math.max(..._lines.map(l=>l.length));
-        const _estW=_maxCh*5.9; // ~5.9px/char à 9px
-        _nRad[_sk.id]=Math.max(RSN_BASE,_estW/1.55);
+        // Taille de police cible : RSN_BASE * 0.38 (même que autoSize)
+        const _fs=Math.round(RSN_BASE*0.38);
+        _tmpCtx.font=`500 ${_fs}px sans-serif`;
+        const _maxW=Math.max(..._lines.map(l=>_tmpCtx.measureText(l).width));
+        // Rayon nécessaire pour faire tenir le texte, plafonné à 1.5× RSN_BASE
+        const _needed=_maxW/1.7;
+        _nRad[_sk.id]=Math.min(RSN_BASE*1.5, Math.max(RSN_BASE, _needed));
       }}
     })();
     const RSN=RSN_BASE; // conservé pour les hit-tests (utilisé ailleurs)
