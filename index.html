@@ -153,7 +153,7 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 
 /* Canvas plein écran */
 .tree-fullscreen{position:absolute;inset:0;width:100%;height:100%}
-canvas{display:block;width:100%;height:100%;cursor:default;position:absolute;inset:0;z-index:1}
+canvas{display:block;cursor:default;position:absolute;inset:0;z-index:1;image-rendering:auto}
 
 /* Fond dégradé radial lisse — pas de grille */
 .tree-bg{position:absolute;inset:0;
@@ -166,8 +166,8 @@ canvas{display:block;width:100%;height:100%;cursor:default;position:absolute;ins
   background-size:400% 100%;animation:sheenmove 16s ease-in-out infinite}
 @keyframes sheenmove{0%,100%{background-position:-100% 0}50%{background-position:200% 0}}
 
-/* ── HUD superposé ── */
-.hud-layer{position:absolute;inset:0;pointer-events:none;z-index:5}
+/* ── HUD superposé — TOUJOURS position:fixed au niveau viewport ── */
+.hud-layer{position:fixed;inset:0;pointer-events:none;z-index:25}
 .hud-corner{position:absolute;width:20px;height:20px}
 .hud-corner.tl{top:10px;left:10px;border-top:1.5px solid rgba(55,138,221,0.5);border-left:1.5px solid rgba(55,138,221,0.5)}
 .hud-corner.tl.hidden{opacity:0}
@@ -178,20 +178,20 @@ canvas{display:block;width:100%;height:100%;cursor:default;position:absolute;ins
 .hud-label.top{top:8px;left:50%;transform:translateX(-50%)}
 .hud-label.bot{bottom:8px;right:14px}
 
-/* HUD barre haut : retour + badges + éditer */
-.hud-topbar{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:8px;padding:10px 14px;
+/* HUD barre haut */
+.hud-topbar{position:fixed;top:0;left:0;right:0;z-index:26;display:flex;align-items:center;gap:8px;padding:10px 14px;
   background:transparent;
   pointer-events:none}
 .hud-topbar.has-controls{background:linear-gradient(to bottom,rgba(6,9,20,0.85) 0%,transparent 100%)}
 .hud-topbar>*{pointer-events:auto}
 
-/* HUD barre bas : légende */
-.hud-botbar{position:absolute;bottom:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:center;gap:16px;padding:10px 14px;
+/* HUD barre bas */
+.hud-botbar{position:fixed;bottom:0;left:0;right:0;z-index:26;display:flex;align-items:center;justify-content:center;gap:16px;padding:10px 14px;
   background:linear-gradient(to top,rgba(6,9,20,0.7) 0%,transparent 100%);
   pointer-events:none}
 
 /* HUD profil gauche (bas-gauche) */
-.hud-profile{position:absolute;bottom:36px;left:14px;z-index:20;display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:200px}
+.hud-profile{position:fixed;bottom:36px;left:14px;z-index:26;display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:200px}
 .hud-profile>*{pointer-events:auto}
 .hud-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;border:1.5px solid rgba(255,255,255,0.2);cursor:pointer;transition:border-color .2s;overflow:hidden;flex-shrink:0;background-size:cover;background-position:center}
 .hud-avatar:hover{border-color:rgba(55,138,221,0.8)}
@@ -203,9 +203,12 @@ canvas{display:block;width:100%;height:100%;cursor:default;position:absolute;ins
 .hud-xp-txt{font-size:10px;color:rgba(138,154,184,0.7);font-family:var(--font-mono);white-space:nowrap}
 
 /* HUD tabs cycles (haut droit) */
-.hud-tabs{position:absolute;top:48px;right:14px;z-index:20;display:flex;flex-direction:column;gap:5px}
+.hud-tabs{position:fixed;top:48px;right:14px;z-index:26;display:flex;flex-direction:column;gap:5px}
 .hud-tab{font-size:11px;padding:5px 12px;border-radius:99px;border:0.5px solid var(--cbr-tertiary);cursor:pointer;color:var(--ct-secondary);background:rgba(15,20,32,0.75);transition:all .15s;font-family:var(--font-sans);backdrop-filter:blur(4px)}
 .hud-tab.active{background:rgba(30,58,95,0.85);color:var(--ct-info);border-color:var(--cbr-info)}
+
+/* Garantie absolue — IDs toujours fixed, même si une règle tente de les réécrire */
+#hud-topbar,#hud-botbar,#hud-ctabs,#hud-profile,#hud-layer-global{position:fixed!important}
 
 /* Popup compétence */
 .popup{position:fixed;background:rgba(6,9,20,0.97);border:0.5px solid rgba(55,138,221,0.4);border-radius:var(--br-lg);padding:12px 14px;width:220px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:30;
@@ -2448,13 +2451,13 @@ function calcNodes(){
 function drawSegArc(ctx,cx,cy,r,n,states,col,lw,gap){
   if(!n)return;const TAU=Math.PI*2,gA=gap/r,sA=(TAU-n*gA)/n,s0=-Math.PI/2;
   for(let i=0;i<n;i++){const a0=s0+i*(sA+gA),a1=a0+sA,st=states[i]||'locked';const c2=st==='done'?col:st==='progress'?'#EF9F27':'#1e2540';
-    ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,a0,a1);ctx.strokeStyle=c2;ctx.lineWidth=lw;ctx.lineCap='round';ctx.globalAlpha=st==='locked'?.4:1;if(st!=='locked'){ctx.shadowColor=c2;ctx.shadowBlur=6}ctx.stroke();ctx.restore()}
+    ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,a0,a1);ctx.strokeStyle=c2;ctx.lineWidth=lw;ctx.lineCap='round';ctx.globalAlpha=st==='locked'?.4:1;if(st!=='locked'){ctx.shadowColor=c2;ctx.shadowBlur=6*_shadowScale}ctx.stroke();ctx.restore()}
 }
 
 function drawRadial(){
   cancelAnimationFrame(animFrame);
   const cv=document.getElementById('cv');
-  const dpr=window.devicePixelRatio||1;
+  const dpr=Math.min(window.devicePixelRatio||1, 3); // cap à 3× (suffisant, évite la surcharge)
   function resize(){
     const W=window.innerWidth,H=window.innerHeight;
     cv.width=Math.round(W*dpr);
@@ -2470,11 +2473,16 @@ function drawRadial(){
   function frame(){
     t3d+=0.007;
     if(!cv||!currentStudent){animFrame=requestAnimationFrame(frame);return}
-    const dpr2=window.devicePixelRatio||1;
+    const dpr2=Math.min(window.devicePixelRatio||1, 3);
     const W=cv.width/dpr2,H=cv.height/dpr2;
     const ctx=cv.getContext('2d');
-    ctx.setTransform(dpr2,0,0,dpr2,0,0); // reset + scale DPR
+    ctx.setTransform(dpr2,0,0,dpr2,0,0);
+    ctx.imageSmoothingEnabled=true;
+    ctx.imageSmoothingQuality='high';
     ctx.clearRect(0,0,W,H);
+    // shadowBlur est en px logiques — sur DPR élevé les ombres deviennent floues
+    // On compense en réduisant le shadowBlur sur mobile haute résolution
+    const _shadowScale=dpr2>1.5?0.55:1.0;
     const _light=document.documentElement.classList.contains('light');
     _nodesCache=calcNodes(); // mise à jour du cache une seule fois par frame
     const{nm,brSk,cx,cy,RSK,mS}=_nodesCache;
@@ -2531,14 +2539,14 @@ function drawRadial(){
       // Ligne centre→branche : offset de RC côté centre, RBN côté branche
       const [x1c,y1c,x2c,y2c]=lineOffset(cx,cy,bx,by,RC*1.05,RBN*1.05);
       ctx.save();ctx.beginPath();ctx.moveTo(x1c,y1c);ctx.lineTo(x2c,y2c);
-      if(aa){ctx.strokeStyle=br.color;ctx.globalAlpha=0.42;ctx.lineWidth=1.5;ctx.shadowColor=br.color;ctx.shadowBlur=8}
+      if(aa){ctx.strokeStyle=br.color;ctx.globalAlpha=0.42;ctx.lineWidth=1.5;ctx.shadowColor=br.color;ctx.shadowBlur=8*_shadowScale}
       else{ctx.strokeStyle=_light?'#8aabce':'#1a2240';ctx.globalAlpha=_light?0.45:0.32;ctx.lineWidth=0.7;ctx.setLineDash([4,7])}
       ctx.stroke();ctx.setLineDash([]);ctx.restore();
       for(const sk2 of bs){const{x:sx,y:sy}=nm[sk2.id]||{};if(!sx)continue;const active=stOf(sk2.id)!=='locked';
         // Ligne branche→compétence : offset de RBN côté branche, RSN côté compétence
         const [x1s,y1s,x2s,y2s]=lineOffset(bx,by,sx,sy,RBN*1.05,RSN*1.05);
         ctx.save();ctx.beginPath();ctx.moveTo(x1s,y1s);ctx.lineTo(x2s,y2s);
-        if(active){ctx.strokeStyle=br.color;ctx.globalAlpha=0.28;ctx.lineWidth=1;ctx.shadowColor=br.color;ctx.shadowBlur=4}
+        if(active){ctx.strokeStyle=br.color;ctx.globalAlpha=0.28;ctx.lineWidth=1;ctx.shadowColor=br.color;ctx.shadowBlur=4*_shadowScale}
         else{ctx.strokeStyle=_light?'#8aabce':'#141c2e';ctx.globalAlpha=_light?0.35:0.18;ctx.lineWidth=0.5;ctx.setLineDash([3,7])}
         ctx.stroke();ctx.setLineDash([]);ctx.restore()}
     }
@@ -2549,12 +2557,12 @@ function drawRadial(){
     grC.addColorStop(0,`rgba(55,138,221,${0.2+0.05*Math.sin(t3d*0.8)})`);grC.addColorStop(1,'rgba(0,0,0,0)');
     ctx.beginPath();ctx.arc(cx,cy,RC*2.2,0,Math.PI*2);ctx.fillStyle=grC;ctx.fill();
     ctx.beginPath();ctx.arc(cx,cy,RC,0,Math.PI*2);ctx.fillStyle=_light?'#e8f0ff':'#060b14';ctx.fill();
-    ctx.strokeStyle=`rgba(55,138,221,${0.48+0.14*Math.sin(t3d*0.65)})`;ctx.lineWidth=1.5;ctx.shadowColor='#378ADD';ctx.shadowBlur=14;ctx.stroke();
+    ctx.strokeStyle=`rgba(55,138,221,${0.48+0.14*Math.sin(t3d*0.65)})`;ctx.lineWidth=1.5;ctx.shadowColor='#378ADD';ctx.shadowBlur=14*_shadowScale;ctx.stroke();
     ctx.save();ctx.translate(cx,cy);ctx.rotate(t3d*0.2);
-    for(let i=0;i<8;i++){const a=i/8*Math.PI*2,rr=RC+RC*0.18;ctx.beginPath();ctx.arc(Math.cos(a)*rr,Math.sin(a)*rr,RC*0.045,0,Math.PI*2);ctx.fillStyle=`rgba(55,138,221,${0.32+0.18*Math.sin(t3d+i)})`;ctx.shadowColor='#378ADD';ctx.shadowBlur=6;ctx.fill()}
+    for(let i=0;i<8;i++){const a=i/8*Math.PI*2,rr=RC+RC*0.18;ctx.beginPath();ctx.arc(Math.cos(a)*rr,Math.sin(a)*rr,RC*0.045,0,Math.PI*2);ctx.fillStyle=`rgba(55,138,221,${0.32+0.18*Math.sin(t3d+i)})`;ctx.shadowColor='#378ADD';ctx.shadowBlur=6*_shadowScale;ctx.fill()}
     ctx.restore();
     const fs=Math.round(RC*0.22);
-    ctx.font=`600 ${fs}px monospace`;ctx.fillStyle=_light?'rgba(21,88,168,0.9)':'rgba(55,138,221,0.82)';ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor='#378ADD';ctx.shadowBlur=_light?0:10;
+    ctx.font=`600 ${fs}px monospace`;ctx.fillStyle=_light?'rgba(21,88,168,0.9)':'rgba(55,138,221,0.82)';ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor='#378ADD';ctx.shadowBlur=(_light?0:10)*_shadowScale;
     ctx.fillText('CYCLE',cx,cy-RC*0.22);ctx.fillText(String(currentCycle),cx,cy+RC*0.22);ctx.restore();
     drawCycleArc(cv.getContext('2d'),cx,cy,currentStudent,t3d,_light);
 
@@ -2564,9 +2572,9 @@ function drawRadial(){
       const glA=(_light?0.04:0.16)+0.06*Math.sin(t3d*0.6+BRANCH_ANGLES[br.id]*0.04);
       ctx.save();const gr=ctx.createRadialGradient(bx,by,0,bx,by,RBN*3);gr.addColorStop(0,hexA(br.color,glA));gr.addColorStop(1,'rgba(0,0,0,0)');ctx.beginPath();ctx.arc(bx,by,RBN*3,0,Math.PI*2);ctx.fillStyle=gr;ctx.fill();
       ctx.beginPath();ctx.arc(bx,by,RBN,0,Math.PI*2);const fg=ctx.createRadialGradient(bx,by-RBN*.3,RBN*.1,bx,by,RBN);fg.addColorStop(0,hexA(br.color,_light?0.18:0.2));fg.addColorStop(1,hexA(br.color,_light?0.06:0.05));ctx.fillStyle=fg;ctx.fill();
-      ctx.strokeStyle=br.color;ctx.lineWidth=1;ctx.globalAlpha=0.52;if(!_light){ctx.shadowColor=br.color;ctx.shadowBlur=8;}ctx.stroke();ctx.restore();
+      ctx.strokeStyle=br.color;ctx.lineWidth=1;ctx.globalAlpha=0.52;if(!_light){ctx.shadowColor=br.color;ctx.shadowBlur=8*_shadowScale;}ctx.stroke();ctx.restore();
       drawSegArc(ctx,bx,by,RBN+RBN*0.26,bs.length,bs.map(s=>stOf(s.id)),br.color,3,4);
-      ctx.save();const bfs=Math.round(RBN*0.30);ctx.font=`500 ${bfs}px sans-serif`;ctx.fillStyle=br.color;ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor=br.color;ctx.shadowBlur=5;
+      ctx.save();const bfs=Math.round(RBN*0.30);ctx.font=`500 ${bfs}px sans-serif`;ctx.fillStyle=br.color;ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor=br.color;ctx.shadowBlur=5*_shadowScale;
       const bmaxW=RBN*1.55;
       function bfitText(txt){if(ctx.measureText(txt).width<=bmaxW)return txt;while(txt.length>1&&ctx.measureText(txt+'…').width>bmaxW)txt=txt.slice(0,-1);return txt+'…';}
       const bwds=br.label.split(' ');if(bwds.length===1){ctx.fillText(bfitText(br.label),bx,by);}else{ctx.fillText(bfitText(bwds[0]),bx,by-bfs*0.58);ctx.fillText(bfitText(bwds.slice(1).join(' ')),bx,by+bfs*0.58);}
@@ -2582,19 +2590,19 @@ function drawRadial(){
       if(isH||isS){ctx.translate(sx,sy);ctx.scale(isH?1.55:1.22,isH?1.55:1.22);ctx.translate(-sx,-sy)}
       const glA=s==='locked'?(_light?0.02:0.055):(_light?0.08:0.25)+0.07*Math.sin(t3d+sx*0.007);
       const gr=ctx.createRadialGradient(sx,sy,0,sx,sy,RSN_n*2.8);gr.addColorStop(0,hexA(br.color,glA));gr.addColorStop(1,'rgba(0,0,0,0)');ctx.beginPath();ctx.arc(sx,sy,RSN_n*2.8,0,Math.PI*2);ctx.fillStyle=gr;ctx.fill();
-      if(isS||isH){ctx.beginPath();ctx.arc(sx,sy,RSN_n+RSN_n*0.4,0,Math.PI*2);ctx.strokeStyle=br.color;ctx.globalAlpha=.38;ctx.lineWidth=1.5;ctx.shadowColor=br.color;ctx.shadowBlur=18;ctx.stroke()}
+      if(isS||isH){ctx.beginPath();ctx.arc(sx,sy,RSN_n+RSN_n*0.4,0,Math.PI*2);ctx.strokeStyle=br.color;ctx.globalAlpha=.38;ctx.lineWidth=1.5;ctx.shadowColor=br.color;ctx.shadowBlur=18*_shadowScale;ctx.stroke()}
       ctx.globalAlpha=1;ctx.beginPath();ctx.arc(sx,sy,RSN_n,0,Math.PI*2);
       const fg=ctx.createRadialGradient(sx-RSN_n*.3,sy-RSN_n*.3,RSN_n*.1,sx,sy,RSN_n);
       if(s==='done'){fg.addColorStop(0,_light?'#c8e0ff':'#1e4a72');fg.addColorStop(1,_light?'#a0c8f8':'#0a1e38')}
       else if(s==='progress'){fg.addColorStop(0,_light?'#fff0c0':'#4a3000');fg.addColorStop(1,_light?'#ffe090':'#1e1200')}
       else{fg.addColorStop(0,_light?'#e8ecf8':'#101828');fg.addColorStop(1,_light?'#d8e0f0':'#060c16')}
       ctx.fillStyle=fg;ctx.fill();
-      ctx.beginPath();ctx.arc(sx,sy,RSN_n,0,Math.PI*2);ctx.strokeStyle=br.color;ctx.lineWidth=s==='locked'?.7:1.8;ctx.globalAlpha=s==='locked'?.18:.82;if(!_light){ctx.shadowColor=br.color;ctx.shadowBlur=s==='locked'?0:9;}ctx.stroke();
+      ctx.beginPath();ctx.arc(sx,sy,RSN_n,0,Math.PI*2);ctx.strokeStyle=br.color;ctx.lineWidth=s==='locked'?.7:1.8;ctx.globalAlpha=s==='locked'?.18:.82;if(!_light){ctx.shadowColor=br.color;ctx.shadowBlur=(s==='locked'?0:9)*_shadowScale;}ctx.stroke();
       if(s!=='locked'){ctx.beginPath();ctx.arc(sx-RSN_n*.3,sy-RSN_n*.3,RSN_n*.22,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.07)';ctx.globalAlpha=1;ctx.fill()}
       // Taille de police adaptée pour rentrer dans le nœud — max 2 lignes
       const maxW=RSN_n*1.7;
       let fs2=Math.round(RSN_n*0.38);
-      ctx.globalAlpha=s==='locked'?.22:1;ctx.fillStyle=br.color;ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor=br.color;ctx.shadowBlur=s==='locked'?0:4;
+      ctx.globalAlpha=s==='locked'?.22:1;ctx.fillStyle=br.color;ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor=br.color;ctx.shadowBlur=(s==='locked'?0:4)*_shadowScale;
       const words=skill.l.split(' ');
       // Trouver la taille de police qui fait tenir le texte
       function autoSize(lines){
