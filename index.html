@@ -1794,6 +1794,9 @@ function initials(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().sli
    §5 — NAVIGATION (écrans & modals)
    ═══════════════════════════════════════════════════════ */
 function show(id){
+  // Si on quitte l'arbre, cacher le HUD
+  const treeActive=document.getElementById('sc-tree')&&document.getElementById('sc-tree').classList.contains('active');
+  if(treeActive && id!=='sc-tree') _hideTreeHud();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if(id==='sc-settings'){show('sc-home');showProfTab('parametres');return;}
@@ -1895,6 +1898,9 @@ function _hideTreeHud(){
   ['hud-topbar','hud-ctabs','hud-profile','hud-botbar','hud-layer-global'].forEach(function(id){
     const el=document.getElementById(id);if(el)el.style.display='none';
   });
+}
+function _showTreeHud(){
+  // Appelé uniquement depuis renderTreeScreen quand l'arbre est actif
 }
 function goBack(){
   selSkill=null;hovSkill=null;editMode=false;
@@ -2379,7 +2385,9 @@ function getNodes(){return _nodesCache||calcNodes()}
 
 function calcNodes(){
   const cv=document.getElementById('cv');
-  const W=cv.width||window.innerWidth,H=cv.height||window.innerHeight;
+  const dpr=window.devicePixelRatio||1;
+  const W=(cv.width?cv.width/dpr:window.innerWidth);
+  const H=(cv.height?cv.height/dpr:window.innerHeight);
   // Facteur de scale basé sur la taille réelle de l'écran (pas juste mobile/desktop)
   // On vise qu'avec 8 branches et ~8 nœuds par branche tout tienne sans zoom
   const BASE=Math.min(W,H);
@@ -2446,7 +2454,14 @@ function drawSegArc(ctx,cx,cy,r,n,states,col,lw,gap){
 function drawRadial(){
   cancelAnimationFrame(animFrame);
   const cv=document.getElementById('cv');
-  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight}
+  const dpr=window.devicePixelRatio||1;
+  function resize(){
+    const W=window.innerWidth,H=window.innerHeight;
+    cv.width=Math.round(W*dpr);
+    cv.height=Math.round(H*dpr);
+    cv.style.width=W+'px';
+    cv.style.height=H+'px';
+  }
   resize();
   // Utiliser un listener nommé pour pouvoir le retirer proprement
   if(window._treeResizeHandler) window.removeEventListener('resize',window._treeResizeHandler);
@@ -2455,8 +2470,11 @@ function drawRadial(){
   function frame(){
     t3d+=0.007;
     if(!cv||!currentStudent){animFrame=requestAnimationFrame(frame);return}
-    const W=cv.width,H=cv.height;
-    const ctx=cv.getContext('2d');ctx.clearRect(0,0,W,H);
+    const dpr2=window.devicePixelRatio||1;
+    const W=cv.width/dpr2,H=cv.height/dpr2;
+    const ctx=cv.getContext('2d');
+    ctx.setTransform(dpr2,0,0,dpr2,0,0); // reset + scale DPR
+    ctx.clearRect(0,0,W,H);
     const _light=document.documentElement.classList.contains('light');
     _nodesCache=calcNodes(); // mise à jour du cache une seule fois par frame
     const{nm,brSk,cx,cy,RSK,mS}=_nodesCache;
@@ -2624,7 +2642,7 @@ cv2.onclick=e=>{
   if(!currentStudent)return;
   const cache=getNodes();
   const{nm,mS}=cache;
-  const RSN=Math.min(cv2.width,cv2.height)*0.042*(mS||1);
+  const _dpr3=window.devicePixelRatio||1;const RSN=Math.min(cv2.width/(_dpr3),cv2.height/(_dpr3))*0.042*(mS||1);
   const skList=skillsData[currentCycle]||[];
   const w=_cvToWorld(e.clientX,e.clientY);
   for(const skill of skList){const p=nm[skill.id];if(p&&Math.hypot(w.x-p.x,w.y-p.y)<=RSN*1.5/_treeZoom){
@@ -2641,7 +2659,7 @@ cv2.onmousemove=e=>{
     _treeOffY=_treePanOY+(e.clientY-_treePanSY);
     return;
   }
-  const{nm,mS}=getNodes();const RSN=Math.min(cv2.width,cv2.height)*0.042*(mS||1);
+  const{nm,mS}=getNodes();const _dpr3=window.devicePixelRatio||1;const RSN=Math.min(cv2.width/(_dpr3),cv2.height/(_dpr3))*0.042*(mS||1);
   const skList=skillsData[currentCycle]||[];
   const w=_cvToWorld(e.clientX,e.clientY);
   let found=null;for(const skill of skList){const p=nm[skill.id];if(p&&Math.hypot(w.x-p.x,w.y-p.y)<=RSN*1.5/_treeZoom){found=skill.id;break}}
@@ -2649,7 +2667,7 @@ cv2.onmousemove=e=>{
 };
 cv2.onmousedown=e=>{
   if(e.button!==0)return;
-  const{nm,mS}=getNodes();const RSN=Math.min(cv2.width,cv2.height)*0.042*(mS||1);
+  const{nm,mS}=getNodes();const _dpr3=window.devicePixelRatio||1;const RSN=Math.min(cv2.width/(_dpr3),cv2.height/(_dpr3))*0.042*(mS||1);
   const skList=skillsData[currentCycle]||[];
   const w=_cvToWorld(e.clientX,e.clientY);
   const onNode=skList.some(sk=>{const p=nm[sk.id];return p&&Math.hypot(w.x-p.x,w.y-p.y)<=RSN*1.5/_treeZoom;});
@@ -2666,7 +2684,8 @@ cv2.addEventListener('wheel',function(e){
   const factor=e.deltaY<0?1.12:1/1.12;
   const newZ=Math.max(0.4,Math.min(4,_treeZoom*factor));
   // Zoomer autour du pointeur
-  const W=cv2.width,H=cv2.height,cx=W/2,cy=H/2;
+  const _dpr4=window.devicePixelRatio||1;
+  const W=cv2.width/_dpr4,H=cv2.height/_dpr4,cx=W/2,cy=H/2;
   const mx=e.clientX,my=e.clientY;
   _treeOffX=(mx-cx-(_treeOffX-(mx-cx-_treeOffX)*(newZ/_treeZoom-1)))-((mx-cx));
   // Formule simplifiée : zoom autour du curseur
