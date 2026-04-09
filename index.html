@@ -2351,12 +2351,31 @@ function openTree(id){
   document.getElementById('cv').style.display='block';
   show('sc-tree');renderTreeScreen();
 }
-function openTreeEdit(id){openTree(id);if(cycleStatus(currentStudent,currentCycle)==='awaiting_exam')return;editMode=true;document.getElementById('view-edit').style.display='block';renderEditPanel()}
+function openTreeEdit(id){
+  openTree(id);
+  if(cycleStatus(currentStudent,currentCycle)==='awaiting_exam')return;
+  editMode=true;
+  document.getElementById('view-edit').style.display='block';
+  // Masquer le HUD en mode édition
+  _hideTreeHud();
+  renderEditPanel();
+}
 function toggleEditMode(){
   if(!editMode&&cycleStatus(currentStudent,currentCycle)==='awaiting_exam')return;
   editMode=!editMode;closePopup();
   document.getElementById('view-edit').style.display=editMode?'block':'none';
-  if(editMode)renderEditPanel();
+  if(editMode){
+    _hideTreeHud();
+    renderEditPanel();
+  } else {
+    // Réafficher le HUD quand on quitte le mode édition
+    document.getElementById('hud-topbar').style.display='flex';
+    const hl=document.getElementById('hud-layer-global');if(hl)hl.style.display='block';
+    const hb=document.getElementById('hud-botbar');if(hb)hb.style.display='flex';
+    const rb=document.getElementById('btn-recenter-tree');if(rb)rb.style.display='flex';
+    document.getElementById('hud-ctabs').style.display='flex';
+    document.getElementById('hud-profile').style.display='flex';
+  }
 }
 function saveAndBack(){saveLocal();toggleEditMode();updateProfileBar()}
 
@@ -2512,6 +2531,9 @@ let _treePinchDist=0;
 function _treeResetView(){_treeZoom=1;_treeOffX=0;_treeOffY=0;}
 function getNodes(){return _nodesCache||calcNodes()}
 
+// Canvas de mesure de texte — créé une seule fois, réutilisé
+var _measureCtx=(function(){var c=document.createElement('canvas');return c.getContext('2d');}());
+
 function calcNodes(){
   const cv=document.getElementById('cv');
   const dpr=window.devicePixelRatio||1;
@@ -2530,31 +2552,25 @@ function calcNodes(){
   const nm={};
   const RSK_START=R*0.44;
 
-  // ── Pré-calcul des rayons réels par nœud ──
-  // On mesure le texte dans un canvas temporaire pour adapter la bulle au contenu
+  // ── Pré-calcul des rayons réels par nœud (canvas global réutilisé) ──
   const _nRad={};
-  (function(){
-    const tmp=document.createElement('canvas').getContext('2d');
-    for(const br of BRANCHES){for(const sk of brSk[br.id]||[]){
-      const words=sk.l.split(' ');
-      let lines;
-      if(words.length===1)lines=[sk.l];
-      else{const mid=Math.ceil(words.length/2);lines=[words.slice(0,mid).join(' '),words.slice(mid).join(' ')];}
-      // Police identique à celle utilisée dans drawRadial
-      let fs=Math.round(RSN_BASE_C*0.38);
-      // Réduire la taille jusqu'à ce que le texte rentre dans 1.85×RSN_BASE_C de large
-      const maxAllowedW=RSN_BASE_C*1.85;
-      tmp.font=`500 ${fs}px sans-serif`;
-      let maxW=Math.max(...lines.map(l=>tmp.measureText(l).width));
-      while(fs>7&&maxW>maxAllowedW){
-        fs--;tmp.font=`500 ${fs}px sans-serif`;
-        maxW=Math.max(...lines.map(l=>tmp.measureText(l).width));
-      }
-      // Rayon = moitié de la largeur max + marge, sans plafond artificiel
-      const needed=maxW/1.72+RSN_BASE_C*0.12;
-      _nRad[sk.id]=Math.max(RSN_BASE_C, needed);
-    }}
-  })();
+  const tmp=_measureCtx;
+  for(const br of BRANCHES){for(const sk of brSk[br.id]||[]){
+    const words=sk.l.split(' ');
+    let lines;
+    if(words.length===1)lines=[sk.l];
+    else{const mid=Math.ceil(words.length/2);lines=[words.slice(0,mid).join(' '),words.slice(mid).join(' ')];}
+    let fs=Math.round(RSN_BASE_C*0.38);
+    const maxAllowedW=RSN_BASE_C*1.85;
+    tmp.font=`500 ${fs}px sans-serif`;
+    let maxW=Math.max(...lines.map(l=>tmp.measureText(l).width));
+    while(fs>7&&maxW>maxAllowedW){
+      fs--;tmp.font=`500 ${fs}px sans-serif`;
+      maxW=Math.max(...lines.map(l=>tmp.measureText(l).width));
+    }
+    const needed=maxW/1.72+RSN_BASE_C*0.12;
+    _nRad[sk.id]=Math.max(RSN_BASE_C, needed);
+  }}
 
   // ── Placement initial des nœuds ──
   for(const br of BRANCHES){
@@ -2803,15 +2819,18 @@ cv2.onclick=e=>{
   if(_treePanning)return;
   if(!currentStudent)return;
   const cache=getNodes();
-  const{nm,mS}=cache;
-  const _dpr3=window.devicePixelRatio||1;const RSN=Math.min(cv2.width/(_dpr3),cv2.height/(_dpr3))*0.042*(mS||1);
+  const{nm,mS,_nRad,RSN_BASE_C}=cache;
   const skList=skillsData[currentCycle]||[];
   const w=_cvToWorld(e.clientX,e.clientY);
-  for(const skill of skList){const p=nm[skill.id];if(p&&Math.hypot(w.x-p.x,w.y-p.y)<=RSN*1.5/_treeZoom){
-    selSkill=skill;
-    const sc=_worldToScreen(p.x,p.y);
-    lastPopupX=sc.x;lastPopupY=sc.y;
-    showPopup(skill,sc.x,sc.y,e.clientX,e.clientY);return}}
+  for(const skill of skList){
+    const p=nm[skill.id];if(!p)continue;
+    const r=(_nRad&&_nRad[skill.id])||RSN_BASE_C||(Math.min(cv2.width,cv2.height)/(window.devicePixelRatio||1)*0.042*(mS||1));
+    if(Math.hypot(w.x-p.x,w.y-p.y)<=r*1.1/_treeZoom){
+      selSkill=skill;
+      const sc=_worldToScreen(p.x,p.y);
+      lastPopupX=sc.x;lastPopupY=sc.y;
+      showPopup(skill,sc.x,sc.y,e.clientX,e.clientY);return}
+  }
   closePopup();
 };
 cv2.onmousemove=e=>{
@@ -2821,10 +2840,15 @@ cv2.onmousemove=e=>{
     _treeOffY=_treePanOY+(e.clientY-_treePanSY);
     return;
   }
-  const{nm,mS}=getNodes();const _dpr3=window.devicePixelRatio||1;const RSN=Math.min(cv2.width/(_dpr3),cv2.height/(_dpr3))*0.042*(mS||1);
+  const cache=getNodes();const{nm,mS,_nRad,RSN_BASE_C}=cache;
   const skList=skillsData[currentCycle]||[];
   const w=_cvToWorld(e.clientX,e.clientY);
-  let found=null;for(const skill of skList){const p=nm[skill.id];if(p&&Math.hypot(w.x-p.x,w.y-p.y)<=RSN*1.5/_treeZoom){found=skill.id;break}}
+  let found=null;
+  for(const skill of skList){
+    const p=nm[skill.id];if(!p)continue;
+    const r=(_nRad&&_nRad[skill.id])||RSN_BASE_C||(Math.min(cv2.width,cv2.height)/(window.devicePixelRatio||1)*0.042*(mS||1));
+    if(Math.hypot(w.x-p.x,w.y-p.y)<=r*1.1/_treeZoom){found=skill.id;break}
+  }
   hovSkill=found;cv2.style.cursor=found?'pointer':(_treeZoom>1.05?'grab':'default');
 };
 cv2.onmousedown=e=>{
@@ -5856,20 +5880,4 @@ function confirmClock(){
   var btn = document.getElementById('btn-time-'+_clockTarget);
   if(btn) btn.classList.add('has-value');
   if(_clockTarget==='start'){
-    var endVal = document.getElementById('evt-time-end').value;
-    if(!endVal){
-      var eh = Math.min(_clockH+1, 23);
-      var autoEnd = pad(eh)+':'+pad(_clockM);
-      document.getElementById('evt-time-end').value = autoEnd;
-      var endLbl = document.getElementById('lbl-time-end');
-      if(endLbl) endLbl.textContent = autoEnd;
-      var endBtn = document.getElementById('btn-time-end');
-      if(endBtn) endBtn.classList.add('has-value');
-    }
-  }
-  closeClock();
-}
-
-function switchClockMode(mode){
-  _clockMode = mode;
-  var bh=document.getElementById('c
+    var endVal = 
