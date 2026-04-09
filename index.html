@@ -2427,7 +2427,7 @@ function renderTreeScreen(){
     if(!passed&&!isCurrent)continue;
     const t=document.createElement('div');t.className='hud-tab'+(c===currentCycle?' active':'');
     t.textContent='Cycle '+c+(passed&&c!==currentStudent.cycle?' ✓':'');
-    const cc=c;t.onclick=()=>{currentCycle=cc;selSkill=null;closePopup();renderTreeScreen()};
+    const cc=c;t.onclick=()=>{currentCycle=cc;selSkill=null;closePopup();_nodesCache=null;renderTreeScreen()};
     tabs.appendChild(t);
   }
   document.getElementById('hud-top').textContent=`Cycle ${currentCycle} \u00b7 ${currentStudent.name}`;
@@ -2677,7 +2677,12 @@ function drawRadial(){
     ctx.imageSmoothingQuality='high';
     ctx.clearRect(0,0,W,H);
     const _light=document.documentElement.classList.contains('light');
-    _nodesCache=calcNodes(); // mise à jour du cache une seule fois par frame
+    // Recalcul uniquement si la taille ou le cycle a changé
+    const _cacheKey=Math.round(W)+'_'+Math.round(H)+'_'+(currentCycle||1)+'_'+(currentStudent?currentStudent.id:'');
+    if(!_nodesCache||_nodesCache._key!==_cacheKey){
+      _nodesCache=calcNodes();
+      _nodesCache._key=_cacheKey;
+    }
     const{nm,brSk,cx,cy,RSK,mS,_nRad,RSN_BASE_C}=_nodesCache;
     // Appliquer le zoom / pan
     ctx.save();
@@ -5880,4 +5885,800 @@ function confirmClock(){
   var btn = document.getElementById('btn-time-'+_clockTarget);
   if(btn) btn.classList.add('has-value');
   if(_clockTarget==='start'){
-    var endVal = 
+    var endVal = document.getElementById('evt-time-end').value;
+    if(!endVal){
+      var eh = Math.min(_clockH+1, 23);
+      var autoEnd = pad(eh)+':'+pad(_clockM);
+      document.getElementById('evt-time-end').value = autoEnd;
+      var endLbl = document.getElementById('lbl-time-end');
+      if(endLbl) endLbl.textContent = autoEnd;
+      var endBtn = document.getElementById('btn-time-end');
+      if(endBtn) endBtn.classList.add('has-value');
+    }
+  }
+  closeClock();
+}
+
+function switchClockMode(mode){
+  _clockMode = mode;
+  var bh=document.getElementById('clock-btn-h'), bm=document.getElementById('clock-btn-m');
+  if(bh){ bh.classList.toggle('active', mode==='h'); }
+  if(bm){ bm.classList.toggle('active', mode==='m'); }
+  var hd=document.getElementById('clock-h-display'), md=document.getElementById('clock-m-display');
+  if(hd){ hd.style.color=mode==='h'?'var(--ct-info)':'var(--ct-secondary)'; hd.style.background=mode==='h'?'var(--cb-info)':'transparent'; }
+  if(md){ md.style.color=mode==='m'?'var(--ct-info)':'var(--ct-secondary)'; md.style.background=mode==='m'?'var(--cb-info)':'transparent'; }
+  _renderClock();
+}
+
+function _renderClock(){
+  var svg = document.getElementById('clock-svg'); if(!svg) return;
+  var ticks = document.getElementById('clock-ticks'); if(!ticks) return;
+  ticks.innerHTML = '';
+  var cx=120, cy=120;
+
+  if(_clockMode === 'h'){
+    // Heures 0-23 : cercle externe (13-23, 0) + cercle interne (1-12)
+    for(var i=0;i<24;i++){
+      var isOuter = i===0 || i>=13; // 13-23 et 0 sur cercle externe
+      var displayVal = i;
+      var R_text = isOuter ? 98 : 65;
+      var angle = (i/12)*2*Math.PI - Math.PI/2; // 12 positions par cercle
+      if(!isOuter) angle = ((i)/12)*2*Math.PI - Math.PI/2; // 1-12 interne
+      var tx = cx + R_text*Math.cos(angle);
+      var ty = cy + R_text*Math.sin(angle);
+      var isSelected = _clockH === i;
+      var t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', tx); t.setAttribute('y', ty+5);
+      t.setAttribute('text-anchor','middle');
+      t.setAttribute('font-size', isOuter?'13':'12');
+      t.setAttribute('font-weight','500');
+      t.setAttribute('fill', isSelected ? '#fff' : isOuter ? 'var(--ct-primary)' : 'var(--ct-tertiary)');
+      t.textContent = i;
+      ticks.appendChild(t);
+    }
+    // Aiguille : cercle externe pour 0,13-23; interne pour 1-12
+    var isOuterSel = _clockH === 0 || _clockH >= 13;
+    var R_hand = isOuterSel ? 98 : 65;
+    var selAngle = (_clockH % 12 === 0 && _clockH !== 12 ? 0 : _clockH % 12) / 12 * 2*Math.PI - Math.PI/2;
+    if(_clockH === 0) selAngle = -Math.PI/2;
+    var sx = cx + R_hand*Math.cos(selAngle), sy = cy + R_hand*Math.sin(selAngle);
+    var hand=document.getElementById('clock-hand');
+    if(hand){hand.setAttribute('x2',sx);hand.setAttribute('y2',sy);}
+    var sel=document.getElementById('clock-selector');
+    if(sel){sel.setAttribute('cx',sx);sel.setAttribute('cy',sy);}
+    var selTxt=document.getElementById('clock-selector-txt');
+    if(selTxt){selTxt.setAttribute('x',sx);selTxt.setAttribute('y',sy+5);selTxt.textContent=_clockH;}
+  } else {
+    // Minutes 0-59 : 12 positions avec labels tous les 5
+    for(var i=0;i<12;i++){
+      var val = i*5;
+      var angle = (i/12)*2*Math.PI - Math.PI/2;
+      var R_text = 98;
+      var tx = cx + R_text*Math.cos(angle);
+      var ty = cy + R_text*Math.sin(angle);
+      var isSelected = _clockM === val;
+      var t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', tx); t.setAttribute('y', ty+5);
+      t.setAttribute('text-anchor','middle');
+      t.setAttribute('font-size','13'); t.setAttribute('font-weight','500');
+      t.setAttribute('fill', isSelected ? '#fff' : 'var(--ct-primary)');
+      t.textContent = pad(val);
+      ticks.appendChild(t);
+    }
+    // Petits points pour les minutes intermédiaires
+    for(var i=0;i<60;i++){
+      if(i%5===0) continue;
+      var angle = (i/60)*2*Math.PI - Math.PI/2;
+      var dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      dot.setAttribute('cx', cx + 108*Math.cos(angle));
+      dot.setAttribute('cy', cy + 108*Math.sin(angle));
+      dot.setAttribute('r','2');
+      dot.setAttribute('fill','var(--cbr-secondary)');
+      ticks.appendChild(dot);
+    }
+    var selAngle = (_clockM/60)*2*Math.PI - Math.PI/2;
+    var sx = cx + 98*Math.cos(selAngle), sy = cy + 98*Math.sin(selAngle);
+    var hand=document.getElementById('clock-hand');
+    if(hand){hand.setAttribute('x2',sx);hand.setAttribute('y2',sy);}
+    var sel=document.getElementById('clock-selector');
+    if(sel){sel.setAttribute('cx',sx);sel.setAttribute('cy',sy);}
+    var selTxt=document.getElementById('clock-selector-txt');
+    if(selTxt){selTxt.setAttribute('x',sx);selTxt.setAttribute('y',sy+5);selTxt.textContent=pad(_clockM);}
+  }
+
+  // Affichage digital
+  var hd=document.getElementById('clock-h-display');
+  var md=document.getElementById('clock-m-display');
+  if(hd) hd.textContent = pad(_clockH);
+  if(md) md.textContent = pad(_clockM);
+  // Highlights
+  if(hd){ hd.style.color=_clockMode==='h'?'var(--ct-info)':'var(--ct-secondary)'; hd.style.background=_clockMode==='h'?'var(--cb-info)':'transparent'; }
+  if(md){ md.style.color=_clockMode==='m'?'var(--ct-info)':'var(--ct-secondary)'; md.style.background=_clockMode==='m'?'var(--cb-info)':'transparent'; }
+}
+
+function _clockAngleToValue(x,y){
+  var cx=120, cy=120;
+  var angle = Math.atan2(y-cy, x-cx) + Math.PI/2;
+  if(angle < 0) angle += 2*Math.PI;
+  if(_clockMode === 'h'){
+    // Déterminer si clic cercle interne ou externe
+    var dist = Math.sqrt((x-cx)*(x-cx)+(y-cy)*(y-cy));
+    var isOuter = dist > 82;
+    var h12 = Math.round(angle/(2*Math.PI)*12) % 12;
+    if(isOuter){
+      // Cercle externe : 13-23 + 0
+      return h12 === 0 ? 0 : h12 + 12;
+    } else {
+      // Cercle interne : 1-12
+      return h12 === 0 ? 12 : h12;
+    }
+  } else {
+    var m = Math.round(angle/(2*Math.PI)*60);
+    return m >= 60 ? 0 : m;
+  }
+}
+
+function _clockEventXY(e){
+  var rect = document.getElementById('clock-svg').getBoundingClientRect();
+  var src = e.touches ? e.touches[0] : e;
+  return { x:(src.clientX-rect.left)*(240/rect.width), y:(src.clientY-rect.top)*(240/rect.height) };
+}
+function clockDragStart(e){ _clockDragging=true; clockDragMove(e); e.preventDefault(); }
+function clockDragMove(e){
+  if(!_clockDragging) return;
+  var p = _clockEventXY(e);
+  var dx=p.x-120, dy=p.y-120, dist=Math.sqrt(dx*dx+dy*dy);
+  if(dist < 15 || dist > 118) return;
+  var val = _clockAngleToValue(p.x, p.y);
+  if(_clockMode==='h') _clockH = val; else _clockM = val;
+  _renderClock();
+  e.preventDefault();
+}
+function clockDragEnd(e){
+  _clockDragging = false;
+  // Auto-passer aux minutes après avoir choisi l'heure
+  if(_clockMode==='h') setTimeout(function(){ switchClockMode('m'); }, 200);
+}
+
+
+/* Mettre à jour les boutons d'heure lors du chargement d'un événement existant */
+function _syncTimeButtons(){
+  ['start','end'].forEach(function(t){
+    var val = document.getElementById('evt-time-'+t).value;
+    var lbl = document.getElementById('lbl-time-'+t);
+    var btn = document.getElementById('btn-time-'+t);
+    if(val){
+      if(lbl) lbl.textContent = val;
+      if(btn) btn.classList.add('has-value');
+    } else {
+      if(lbl) lbl.textContent = 'Choisir';
+      if(btn) btn.classList.remove('has-value');
+    }
+  });
+}
+
+// Écoute temps réel Firebase
+setTimeout(function(){
+  if(typeof _db === 'undefined' || !_db) return;
+  _db.ref('sax_agenda_v1').on('value', function(snap){
+    var d=snap.val();
+    agendaEvents=d?(Array.isArray(d)?d:Object.values(d).filter(Boolean)):[];
+    if(document.getElementById('sc-agenda').classList.contains('active')){ renderAgenda(); _renderEvtPanel(_agSelDate); }
+  });
+}, 2500);
+
+/* ══ SYNC GOOGLE AGENDA ══ */
+
+function openAgSync(){
+  // Générer le fichier ICS avec tous les événements
+  var ics = _buildICS(agendaEvents);
+  var blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+
+  // Construire l'interface du modal
+  var modal = document.getElementById('modal-ag-sync');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'modal-ag-sync';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+    <div class="modal-box" style="max-width:460px">
+      <h3>🔄 Synchroniser avec Google Agenda</h3>
+      <p style="margin-bottom:14px;font-size:12px;color:var(--ct-secondary)">
+        Choisissez comment importer tous les événements dans votre Google Agenda.
+      </p>
+
+      <!-- Option 1 : Télécharger ICS -->
+      <div style="background:var(--cb-secondary);border:0.5px solid var(--cbr-tertiary);border-radius:var(--br-lg);padding:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="font-size:18px">📥</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--ct-primary)">Télécharger le fichier .ics</div>
+            <div style="font-size:11px;color:var(--ct-secondary)">Import unique — à refaire si l'agenda change</div>
+          </div>
+        </div>
+        <button class="btn btn-info" id="btn-dl-ics" style="width:100%">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Télécharger saxophone-agenda.ics
+        </button>
+        <div style="font-size:10px;color:var(--ct-tertiary);margin-top:6px">
+          Puis dans Google Agenda : <b>+</b> → Autres agendas → Importer
+        </div>
+      </div>
+
+      <!-- Option 2 : Ouvrir dans Google Agenda -->
+      <div style="background:var(--cb-secondary);border:0.5px solid var(--cbr-tertiary);border-radius:var(--br-lg);padding:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="font-size:18px">🌐</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--ct-primary)">Ouvrir dans Google Agenda</div>
+            <div style="font-size:11px;color:var(--ct-secondary)">Import rapide via le navigateur</div>
+          </div>
+        </div>
+        <button class="btn btn-info" id="btn-open-gcal" style="width:100%">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle;margin-right:4px"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Ouvrir Google Agenda avec tous les événements
+        </button>
+        <div style="font-size:10px;color:var(--ct-tertiary);margin-top:6px">
+          Chaque événement s'ouvrira pré-rempli pour confirmation
+        </div>
+      </div>
+
+      <!-- Option 3 : Abonnement URL -->
+      <div style="background:var(--cb-secondary);border:0.5px solid var(--cbr-tertiary);border-radius:var(--br-lg);padding:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="font-size:18px">🔔</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--ct-primary)">Abonnement automatique</div>
+            <div style="font-size:11px;color:var(--ct-secondary)">Les familles se synchronisent en temps réel — rien à refaire</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+          <input id="ag-ics-url" readonly value="https://louisdordain-sax.github.io/Saxophone-/calendar.ics"
+            style="font-size:10px;font-family:monospace;background:var(--cb-primary);color:var(--ct-info);border-color:var(--cbr-info);margin:0;flex:1">
+          <button class="btn btn-sm btn-info" onclick="_copyIcsUrl()" id="btn-copy-ics" style="white-space:nowrap;flex-shrink:0">Copier</button>
+        </div>
+        <button class="btn btn-success" style="width:100%;margin-bottom:6px" onclick="window.open('https://calendar.google.com/calendar/r/settings/addbyurl?url='+encodeURIComponent('https://louisdordain-sax.github.io/Saxophone-/calendar.ics'),'_blank')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle;margin-right:4px"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+          S'abonner dans Google Agenda
+        </button>
+        <div style="font-size:10px;color:var(--ct-tertiary)">
+          ⚠️ Nécessite d'avoir déployé le fichier <code>generate-ics.js</code> sur GitHub. Se met à jour toutes les <strong style="color:var(--ct-warning)">6h</strong> pour les abonnés — délai natif de Google Agenda.
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div style="background:var(--cb-info);border:0.5px solid var(--cbr-info);border-radius:var(--br-md);padding:10px;margin-bottom:14px">
+        <div style="font-size:11px;color:var(--ct-info);display:flex;gap:6px;align-items:flex-start">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span><b>Comment ça marche :</b> GitHub génère automatiquement le fichier <code>calendar.ics</code> toutes les 6h. Les familles s'abonnent une seule fois via l'URL ci-dessus et voient les nouveaux événements automatiquement.</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal('modal-ag-sync')">Fermer</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+  }
+
+  // Brancher les boutons avec l'ICS frais
+  var ics2 = _buildICS(agendaEvents);
+  var blob2 = new Blob([ics2], {type:'text/calendar;charset=utf-8'});
+  var dlUrl = URL.createObjectURL(blob2);
+
+  var dlBtn = document.getElementById('btn-dl-ics');
+  var newDl = dlBtn.cloneNode(true);
+  dlBtn.parentNode.replaceChild(newDl, dlBtn);
+  newDl.onclick = function(){
+    var a = document.createElement('a');
+    a.href = dlUrl;
+    a.download = 'saxophone-agenda.ics';
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(dlUrl); }, 2000);
+  };
+
+  var gcalBtn = document.getElementById('btn-open-gcal');
+  var newGcal = gcalBtn.cloneNode(true);
+  gcalBtn.parentNode.replaceChild(newGcal, gcalBtn);
+  newGcal.onclick = function(){
+    // Ouvrir chaque événement dans Google Agenda (max 5 pour ne pas spammer)
+    var evts = agendaEvents.slice(0, 10);
+    evts.forEach(function(evt, i){
+      setTimeout(function(){ window.open(_buildGCalUrl(evt), '_blank'); }, i * 400);
+    });
+    if(agendaEvents.length > 10){
+      alert('Plus de 10 événements — seuls les 10 premiers ont été ouverts. Utilisez le fichier .ics pour importer tous les événements.');
+    }
+  };
+
+  openModal('modal-ag-sync');
+}
+
+function _buildICS(events){
+  var now = new Date();
+  var stamp = now.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+
+  var lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Saxophone Compétences//Agenda//FR',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'X-WR-CALNAME:Saxophone — Agenda',
+    'X-WR-TIMEZONE:Europe/Paris',
+  ];
+
+  events.forEach(function(evt){
+    var d = evt.date.replace(/-/g,'');
+    var dtStart, dtEnd;
+    if(evt.timeStart){
+      dtStart = d + 'T' + evt.timeStart.replace(':','') + '00';
+      var endTime = evt.timeEnd || _addHour(evt.timeStart);
+      dtEnd   = d + 'T' + endTime.replace(':','') + '00';
+    } else {
+      dtStart = d;
+      var nd = new Date(evt.date + 'T12:00:00');
+      nd.setDate(nd.getDate()+1);
+      dtEnd = fmtISO(nd).replace(/-/g,'');
+    }
+    var desc = (evt.note || '');
+    var location = evt.lieu || '';
+    var summary = EVT_EMOJIS[evt.type||'cours'] + ' ' + evt.title;
+
+    lines.push('BEGIN:VEVENT');
+    lines.push('UID:' + (evt.id || ('evt'+Date.now())) + '@saxophone-competences');
+    lines.push('DTSTAMP:' + stamp + 'Z');
+    if(evt.timeStart){
+      lines.push('DTSTART;TZID=Europe/Paris:' + dtStart);
+      lines.push('DTEND;TZID=Europe/Paris:' + dtEnd);
+    } else {
+      lines.push('DTSTART;VALUE=DATE:' + dtStart);
+      lines.push('DTEND;VALUE=DATE:' + dtEnd);
+    }
+    lines.push('SUMMARY:' + _icsEscape(summary));
+    if(location) lines.push('LOCATION:' + _icsEscape(location));
+    if(desc)     lines.push('DESCRIPTION:' + _icsEscape(desc));
+    // Couleur par type (propriété non standard mais supportée par Google)
+    var colorMap = {cours:'1', examen:'5', concert:'9'};
+    if(colorMap[evt.type]) lines.push('COLOR:' + colorMap[evt.type]);
+    lines.push('END:VEVENT');
+  });
+
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+
+function _copyIcsUrl(){
+  var url = 'https://louisdordain-sax.github.io/Saxophone-/calendar.ics';
+  navigator.clipboard.writeText(url).then(function(){
+    var btn = document.getElementById('btn-copy-ics');
+    if(btn){ btn.textContent = '✓ Copié !'; setTimeout(function(){ btn.textContent = 'Copier'; }, 2000); }
+  }).catch(function(){
+    document.getElementById('ag-ics-url').select();
+    document.execCommand('copy');
+  });
+}
+
+function _icsEscape(s){
+  return String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+}
+
+</script>
+
+
+
+<!-- ══ LIGHTBOX PLEIN ÉCRAN ══ -->
+<div id="lightbox">
+  <div id="lightbox-toolbar">
+    <div id="lightbox-title"></div>
+    <div style="display:flex;gap:6px">
+      <button class="lb-btn" id="lb-dl-btn" onclick="_lbDownload()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Télécharger
+      </button>
+      <button class="lb-btn" id="lb-print-btn" onclick="_lbPrint()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimer
+      </button>
+    </div>
+  </div>
+  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
+</div>
+
+<script>
+var _lbSrc = '', _lbName = '';
+
+function openLightbox(src, name){
+  _lbSrc = src; _lbName = name || 'image';
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox-title').textContent = name || '';
+  document.getElementById('lightbox').classList.add('open');
+  document.addEventListener('keydown', _lbKeyHandler);
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightbox-img').src = '';
+  document.removeEventListener('keydown', _lbKeyHandler);
+}
+function _lbKeyHandler(e){ if(e.key==='Escape') closeLightbox(); }
+document.getElementById('lightbox').addEventListener('click', function(e){
+  if(e.target===this) closeLightbox();
+});
+function _lbDownload(){
+  var a = document.createElement('a');
+  a.href = _lbSrc;
+  a.download = _lbName;
+  a.click();
+}
+function _lbPrint(){
+  var w = window.open('');
+  w.document.write('<html><body style="margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="'+_lbSrc+'" style="max-width:100%;max-height:100vh" onload="window.print();window.close()"></body></html>');
+  w.document.close();
+}
+</script>
+
+
+<!-- ══ MENU FLOTTANT ÉLÈVE ══ -->
+<style>
+#student-fab{
+  position:fixed;bottom:18px;right:18px;z-index:9000;
+  display:none;flex-direction:column;align-items:flex-end;gap:8px;
+}
+#student-fab-menu{
+  display:none;flex-direction:column;align-items:flex-end;gap:6px;
+  animation:fadeInUp .15s ease;
+}
+#student-fab-menu.open{display:flex}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.sfab-btn{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 16px;border-radius:99px;
+  border:0.5px solid var(--cbr-secondary);
+  background:rgba(15,20,32,0.88);
+  color:var(--ct-primary);
+  font-size:12px;font-family:var(--font-sans);
+  cursor:pointer;backdrop-filter:blur(10px);
+  transition:all .15s;white-space:nowrap;
+  box-shadow:0 2px 12px rgba(0,0,0,0.4);
+}
+.sfab-btn:hover{border-color:var(--cbr-info);background:rgba(30,42,64,0.95)}
+.sfab-btn.logout{color:var(--ct-danger);border-color:var(--cbr-danger)}
+.sfab-btn.logout:hover{background:var(--cb-danger)}
+html.light .sfab-btn{background:rgba(255,255,255,0.94);box-shadow:0 2px 12px rgba(100,120,160,0.18)}
+#student-fab-toggle{
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(15,20,32,0.88);
+  border:0.5px solid var(--cbr-secondary);
+  color:var(--ct-secondary);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(10px);
+  box-shadow:0 2px 12px rgba(0,0,0,0.35);
+  transition:all .15s;
+}
+#student-fab-toggle:hover{border-color:var(--cbr-info);color:var(--ct-info)}
+#student-fab-toggle.open{background:rgba(30,42,64,0.95);border-color:var(--cbr-info)}
+html.light #student-fab-toggle{background:rgba(255,255,255,0.94)}
+</style>
+
+<div id="student-fab">
+  <div id="student-fab-menu">
+    <!-- Suggérer une ressource (board ouvert uniquement) -->
+    <button class="sfab-btn" id="sfab-suggest-btn" onclick="_sfabSuggest()" style="display:none">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Suggérer une ressource
+    </button>
+    <!-- Thème -->
+    <button class="sfab-btn" onclick="_sfabTheme()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <span id="sfab-theme-label">Mode clair</span>
+    </button>
+    <!-- Déconnexion -->
+    <button class="sfab-btn logout" onclick="_sfabLogout()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Déconnexion
+    </button>
+  </div>
+  <!-- Bouton principal -->
+  <button id="student-fab-toggle" onclick="_sfabToggle()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+</div>
+
+<script>
+
+/* ══ SUGGESTIONS ÉLÈVES (Padlet) ══ */
+var _suggestions = [];
+
+function _loadSuggestions(){
+  if(typeof _db !== 'undefined' && _db){
+    _db.ref('sax_suggestions').once('value').then(function(snap){
+      var d = snap.val();
+      _suggestions = d ? Object.values(d).filter(Boolean) : [];
+      _updateSuggestionsBadge();
+    }).catch(function(){ _suggestions = []; });
+  }
+}
+function _saveSuggestion(sug){
+  if(typeof _db !== 'undefined' && _db){
+    _db.ref('sax_suggestions/'+sug.id).set(sug);
+  }
+}
+function _deleteSuggestion(id){
+  if(typeof _db !== 'undefined' && _db){
+    _db.ref('sax_suggestions/'+id).remove();
+  }
+  _suggestions = _suggestions.filter(function(s){ return s.id !== id; });
+  _updateSuggestionsBadge();
+}
+function _updateSuggestionsBadge(){
+  var badge = document.getElementById('suggestions-badge');
+  if(!badge) return;
+  var pending = _suggestions.filter(function(s){ return !s.approved; });
+  if(pending.length){ badge.textContent = pending.length; badge.style.display='inline'; }
+  else { badge.style.display='none'; }
+}
+
+function openSuggestModal(){
+  // Réutiliser modal-tile en mode suggestion
+  tileTargetColId = null; tileEditingId = null; tileEditingColId = null;
+  document.getElementById('tile-modal-title').textContent = 'Suggérer une ressource au professeur';
+  document.getElementById('tile-modal-confirm-btn').textContent = 'Envoyer la suggestion';
+  // Pré-sélectionner "lien"
+  selectTileType('link');
+  // Changer le handler du bouton confirm
+  var confirmBtn = document.getElementById('tile-modal-confirm-btn');
+  var oldOnclick = confirmBtn.onclick;
+  confirmBtn.onclick = function(){ confirmSuggestTile(); };
+  openModal('modal-tile');
+}
+
+function confirmSuggestTile(){
+  var title = document.getElementById('tile-title').value.trim();
+  if(!title){ document.getElementById('tile-err').style.display='block'; return; }
+  var type = document.querySelector('.tile-type-opt.selected')?.dataset.type || 'link';
+  var sug = {
+    id: 'sug'+Date.now(),
+    title: title, type: type,
+    url: document.getElementById('tile-url').value.trim(),
+    mediaUrl: document.getElementById('tile-media-url').value.trim(),
+    content: document.getElementById('tile-text-content').value.trim(),
+    studentId: currentStudent ? currentStudent.id : '',
+    studentName: currentStudent ? currentStudent.name : '',
+    date: new Date().toLocaleDateString('fr-FR'),
+    approved: false
+  };
+  _saveSuggestion(sug);
+  _suggestions.push(sug);
+  _updateSuggestionsBadge();
+  closeModal('modal-tile');
+  // Restore confirm button
+  document.getElementById('tile-modal-confirm-btn').onclick = function(){ confirmAddTile(); };
+  alert('✓ Suggestion envoyée au professeur !');
+}
+
+function openSuggestionsPanel(){
+  _loadSuggestions();
+  var modal = document.getElementById('modal-suggestions');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'modal-suggestions';
+    modal.className = 'modal-overlay';
+    modal.setAttribute('onclick',"if(event.target===this)closeModal('modal-suggestions')");
+    modal.innerHTML = '<div class="modal-box" style="max-width:500px;max-height:85vh;overflow-y:auto">'
+      +'<h3>Suggestions des élèves</h3>'
+      +'<div id="suggestions-list" style="margin-top:12px"></div>'
+      +'<div class="modal-footer"><button class="btn" onclick="closeModal(\'modal-suggestions\')">Fermer</button></div>'
+      +'</div>';
+    document.body.appendChild(modal);
+  }
+  _renderSuggestionsList();
+  openModal('modal-suggestions');
+}
+
+function _renderSuggestionsList(){
+  var list = document.getElementById('suggestions-list'); if(!list) return;
+  var pending = _suggestions.filter(function(s){ return !s.approved; });
+  var approved = _suggestions.filter(function(s){ return s.approved; });
+  if(!_suggestions.length){ list.innerHTML='<div style="font-size:13px;color:var(--ct-tertiary);text-align:center;padding:1.5rem">Aucune suggestion</div>'; return; }
+  var html = '';
+  if(pending.length){
+    html += '<div style="font-size:11px;font-weight:600;color:var(--ct-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">En attente ('+pending.length+')</div>';
+    pending.forEach(function(s){
+      html += '<div style="background:var(--cb-secondary);border:0.5px solid var(--cbr-info);border-radius:var(--br-md);padding:10px 12px;margin-bottom:8px">'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+        +'<div style="flex:1;font-size:13px;font-weight:500;color:var(--ct-primary)">'+s.title+'</div>'
+        +'<span style="font-size:10px;padding:2px 6px;border-radius:99px;background:var(--cb-info);color:var(--ct-info)">'+s.type+'</span>'
+        +'</div>'
+        +'<div style="font-size:11px;color:var(--ct-tertiary);margin-bottom:8px">De '+s.studentName+' · '+s.date+'</div>'
+        +(s.url?'<div style="font-size:11px;color:var(--ct-secondary);margin-bottom:6px;word-break:break-all"><a href="'+s.url+'" target="_blank" rel="noopener" style="color:var(--ct-info);text-decoration:none">'+s.url+'</a></div>'+(function(){
+          var _info=typeof parseMediaUrl==='function'?parseMediaUrl(s.url):null;
+          if(_info&&_info.platform==='youtube'){
+            return '<div style="position:relative;border-radius:6px;overflow:hidden;margin-bottom:8px">'
+              +'<iframe src="'+_info.embedUrl+'" style="width:100%;height:130px;border:none;display:block" allow="autoplay;fullscreen" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox" loading="lazy"></iframe>'
+              +'<button onclick="event.stopPropagation();openYoutubeExpand(\''+_info.embedUrl.replace(/'/g,"\\'")+'\')" title="Agrandir" style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.65);border:none;border-radius:6px;cursor:pointer;padding:4px 7px;display:flex;align-items:center;gap:4px;color:#fff;font-size:10px;font-family:var(--font-sans);backdrop-filter:blur(4px)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Agrandir</button>'
+              +'</div>';
+          }
+          try{var _dom=new URL(s.url).hostname.replace('www.','');
+            return '<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--cb-primary);border-radius:6px;margin-bottom:8px">'
+              +'<img src="https://www.google.com/s2/favicons?domain='+_dom+'&sz=32" width="14" height="14" style="border-radius:2px;flex-shrink:0" onerror="this.style.display=\'none\'">'
+              +'<span style="font-size:11px;color:var(--ct-tertiary)">'+_dom+'</span>'
+              +'<a href="'+s.url+'" target="_blank" rel="noopener" style="margin-left:auto;display:flex;align-items:center;color:var(--ct-info);font-size:10px;gap:3px;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> Ouvrir</a>'
+              +'</div>';
+          }catch(e){return '';}
+        }()):'')
+        +(s.mediaUrl&&(function(){var _mi=typeof parseMediaUrl==='function'?parseMediaUrl(s.mediaUrl):null;if(_mi&&_mi.platform==='youtube')return '<div style="position:relative;border-radius:6px;overflow:hidden;margin-bottom:8px"><iframe src="'+_mi.embedUrl+'" style="width:100%;height:130px;border:none;display:block" allow="autoplay;fullscreen" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox" loading="lazy"></iframe><button onclick="event.stopPropagation();openYoutubeExpand(\''+_mi.embedUrl.replace(/'/g,"\\'")+'\');" title="Agrandir" style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.65);border:none;border-radius:6px;cursor:pointer;padding:4px 7px;display:flex;align-items:center;gap:4px;color:#fff;font-size:10px;font-family:var(--font-sans);backdrop-filter:blur(4px)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Agrandir</button></div>';return '';}()))
+        +'<div style="display:flex;gap:6px">'
+        +'<button class="btn btn-success btn-sm" onclick="approveSuggestion(\''+s.id+'\')">✓ Ajouter au partage</button>'
+        +'<button class="btn btn-danger btn-sm" onclick="rejectSuggestion(\''+s.id+'\')">Refuser</button>'
+        +'</div></div>';
+    });
+  }
+  list.innerHTML = html || '<div style="font-size:13px;color:var(--ct-success);text-align:center;padding:1rem">✓ Toutes les suggestions ont été traitées</div>';
+}
+
+function approveSuggestion(id){
+  var sug = _suggestions.find(function(s){ return s.id===id; }); if(!sug) return;
+  // Ajouter dans la première colonne (ou créer une colonne "Suggestions")
+  var col = boardColumns[0];
+  if(!col){ col={id:'col'+Date.now(),title:'Suggestions',tiles:[]}; boardColumns.push(col); }
+  if(!col.tiles) col.tiles = [];
+  col.tiles.push({id:'t'+Date.now(), title:sug.title, type:sug.type, url:sug.url, mediaUrl:sug.mediaUrl, content:sug.content});
+  saveLocal();
+  _deleteSuggestion(id);
+  _renderSuggestionsList();
+  _updateSuggestionsBadge();
+  renderBoard();
+}
+function rejectSuggestion(id){
+  _deleteSuggestion(id);
+  _renderSuggestionsList();
+}
+
+// Charger les suggestions au démarrage (mode prof)
+setTimeout(function(){
+  if(profMode) _loadSuggestions();
+}, 3000);
+
+/* ═══════════════════════════════════════════════════════
+   §15 — MENU FLOTTANT ÉLÈVE (⚙️)
+   ═══════════════════════════════════════════════════════ */
+var _sfabOpen = false;
+
+function _sfabToggle(){
+  _sfabOpen = !_sfabOpen;
+  document.getElementById('student-fab-menu').classList.toggle('open', _sfabOpen);
+  document.getElementById('student-fab-toggle').classList.toggle('open', _sfabOpen);
+  _sfabUpdateThemeLabel();
+}
+function _sfabClose(){
+  _sfabOpen = false;
+  document.getElementById('student-fab-menu').classList.remove('open');
+  document.getElementById('student-fab-toggle').classList.remove('open');
+}
+function _sfabUpdateThemeLabel(){
+  var isLight = document.documentElement.classList.contains('light');
+  var lbl = document.getElementById('sfab-theme-label');
+  if(lbl) lbl.textContent = isLight ? 'Mode sombre' : 'Mode clair';
+}
+function _sfabTheme(){
+  toggleTheme();
+  _sfabUpdateThemeLabel();
+}
+function _sfabLogout(){
+  _sfabClose();
+  doLogout();
+}
+function _sfabSuggest(){
+  _sfabClose();
+  openSuggestModal();
+}
+function _updateStudentFab(){
+  var fab = document.getElementById('student-fab');
+  if(!fab) return;
+  var onTree = document.getElementById('sc-tree') && document.getElementById('sc-tree').classList.contains('active');
+  var onBoard = document.getElementById('sc-board') && document.getElementById('sc-board').classList.contains('board-open');
+  fab.style.display = (!profMode && currentStudent && (onTree||onBoard)) ? 'flex' : 'none';
+  // Bouton suggestion : visible uniquement sur le board en mode élève
+  var sugBtn = document.getElementById('sfab-suggest-btn');
+  if(sugBtn) sugBtn.style.display = (onBoard && !profMode) ? 'flex' : 'none';
+  _sfabUpdateThemeLabel();
+}
+
+// Hooker sur show() pour mettre à jour le fab
+var _sfabOrigShow = window.show;
+window.show = function(id){
+  _sfabOrigShow(id);
+  setTimeout(_updateStudentFab, 60);
+};
+// Alias pour rétrocompatibilité
+window._showOrig = _sfabOrigShow;
+setTimeout(_updateStudentFab, 1500);
+
+// Fermer la popup de compétence si on clique en dehors (hors canvas)
+document.addEventListener('click', function(e){
+  const popup=document.getElementById('popup');
+  if(popup && popup.classList.contains('visible') && !popup.contains(e.target) && e.target.id!=='cv'){
+    closePopup();
+  }
+});
+
+// ═══════════════════════════════════════════════════════
+// BOUTON RETOUR NATIF (Android / navigateur)
+// Intercepte popstate pour naviguer dans l'app au lieu de quitter
+// ═══════════════════════════════════════════════════════
+(function(){
+  // On pousse un état à chaque transition d'écran principal
+  // et on intercepte le "retour" pour appeler la bonne fonction
+
+  function _appBack(){
+    // Modals ouvertes — les fermer en priorité
+    const openModal=document.querySelector('.modal-overlay.open');
+    if(openModal){closeModal(openModal.id);_pushState();return;}
+    // Overlay YouTube
+    const yt=document.getElementById('yt-expand-overlay');
+    if(yt&&yt.style.display==='flex'){closeYoutubeExpand();_pushState();return;}
+    // PDF viewer
+    const pdf=document.getElementById('modal-pdf-viewer');
+    if(pdf&&pdf.style.display==='flex'){closePdfViewer();_pushState();return;}
+    // Profile drawer
+    const pd=document.getElementById('profile-drawer');
+    if(pd&&!pd.classList.contains('hidden')){closeProfileDrawer();_pushState();return;}
+    // Lightbox
+    const lb=document.getElementById('lightbox');
+    if(lb&&lb.classList.contains('open')){if(typeof closeLightbox==='function')closeLightbox();_pushState();return;}
+    // Popup compétence
+    const popup=document.getElementById('popup');
+    if(popup&&popup.classList.contains('visible')){closePopup();_pushState();return;}
+    // Vue édition arbre
+    const ve=document.getElementById('view-edit');
+    if(ve&&ve.style.display!=='none'){toggleEditMode();_pushState();return;}
+    // Board ouvert
+    const board=document.getElementById('sc-board');
+    if(board&&board.classList.contains('board-open')){closeBoardScreen();_pushState();return;}
+    // Agenda ouvert
+    const agenda=document.getElementById('sc-agenda');
+    if(agenda&&agenda.classList.contains('active')){closeAgenda();_pushState();return;}
+    // Toolbox élève
+    const tb=document.getElementById('sc-toolbox');
+    if(tb&&tb.classList.contains('active')){closeToolboxScreen();_pushState();return;}
+    // Arbre → retour login/home
+    const tree=document.getElementById('sc-tree');
+    if(tree&&tree.classList.contains('active')){goBack();_pushState();return;}
+    // Login step2 → step1
+    const s2e=document.getElementById('login-step2-eleve');
+    const s2p=document.getElementById('login-step2-prof');
+    if((s2e&&s2e.style.display!=='none')||(s2p&&s2p.style.display!=='none')){backToStep1();_pushState();return;}
+    // Déjà à la racine (login ou home prof) : ne rien faire = rester dans l'app
+    _pushState();
+  }
+
+  function _pushState(){
+    history.pushState({app:true},'','');
+  }
+
+  // Pousser l'état initial immédiatement
+  history.replaceState({app:true},'','');
+
+  // Intercepter le retour
+  window.addEventListener('popstate',function(e){
+    // Toujours repousser un état pour rester dans l'historique
+    _appBack();
+  });
+
+  // Pousser un état à chaque changement d'écran significatif
+  // On ne wrappe plus window.show ici car _sfabOrigShow le fait déjà —
+  // le pushState est intégré directement dans _appBack() via popstate.
+  // L'état initial est replacé au chargement.
+})();
+
+// Fermer le menu si on clique ailleurs
+document.addEventListener('click', function(e){
+  var fab = document.getElementById('student-fab');
+  if(_sfabOpen && fab && !fab.contains(e.target)) _sfabClose();
+});
+</script>
+
+</body>
+</html>
