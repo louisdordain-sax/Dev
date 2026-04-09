@@ -118,9 +118,9 @@ html.light .drawer-handle{background:rgba(58,78,112,0.15)}
 .color-swatch.none.selected{outline-color:#60a5fa}
 html.light .color-swatch.selected{outline-color:#1558a8}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--body-bg);color:var(--ct-primary);font-family:var(--font-sans);min-height:100vh}
-.app{padding:1rem;max-width:600px;margin:0 auto}
-.screen{display:none}.screen.active{display:block}
+body{background:var(--body-bg);color:var(--ct-primary);font-family:var(--font-sans);min-height:100vh;overflow-x:hidden}
+.app{padding:1rem;max-width:600px;margin:0 auto;overflow-x:hidden}
+.screen{display:none;max-width:100vw;overflow-x:hidden}.screen.active{display:block}
 /* sc-tree est fixed et sort du flux du .app */
 #sc-tree{position:fixed;inset:0;background:var(--tree-bg);z-index:10;display:none;overflow:hidden}
 #sc-tree.active{display:block}
@@ -665,6 +665,13 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
   .ag-topbar { padding: 8px 10px !important; gap: 6px !important; }
   .ag-topbar .btn { padding: 5px 9px !important; font-size: 11px !important; }
   .ag-topbar .btn-sm { padding: 4px 8px !important; }
+  /* Sync : icône seule */
+  .ag-sync-btn { padding: 6px 8px !important; }
+  .ag-sync-label { display: none !important; }
+  /* Vues : abréviations */
+  .ag-view-label { display: none !important; }
+  .ag-view-icon { display: inline !important; }
+  .ag-view-btn { padding: 4px 10px !important; font-size: 11px !important; }
   /* Nom du mois : tronquer si besoin */
   #ag-period-label { font-size: 13px !important; }
   /* Agenda : colonnes à largeur strictement fixe */
@@ -1319,7 +1326,8 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
       <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
         <button class="btn btn-sm" onclick="openSuggestionsPanel()" id="btn-suggestions" style="display:none;padding:6px 8px;position:relative" title="Suggestions">
           <span id="suggestions-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#f87171;color:#fff;border-radius:99px;padding:0 4px;font-size:9px;font-weight:700;min-width:14px;text-align:center"></span>
-          💡</button>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </button>
         <button class="btn btn-sm" id="btn-board-interactions" onclick="openInteractionsModal()" style="display:none;padding:6px 8px" title="Interactions"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>
     </div>
@@ -4978,7 +4986,6 @@ loadLocal().then(()=>{ _restoreSession(); });
 
 function _restoreSession(){
   try{
-    // Essayer sessionStorage d'abord (même onglet), puis localStorage (autre onglet/refresh)
     var raw = sessionStorage.getItem('sax_session');
     if(!raw) return;
     var session = JSON.parse(raw);
@@ -4990,10 +4997,18 @@ function _restoreSession(){
     }
     if(session.role==='eleve' && session.studentId){
       var s = students.find(function(x){ return x.id===session.studentId; });
-      if(s){ profMode=false; openTree(s.id); return; }
+      // Sur refresh (performance.navigation.type===1) on retourne au login
+      // pour éviter que l'arbre bloque les other screens
+      var isReload = (performance && performance.navigation && performance.navigation.type===1)
+                  || (performance && performance.getEntriesByType && performance.getEntriesByType('navigation')[0] && performance.getEntriesByType('navigation')[0].type==='reload');
+      if(s && !isReload){ profMode=false; openTree(s.id); return; }
+      if(s && isReload){
+        // Montrer le login pré-rempli plutôt que de bloquer sur l'arbre
+        try{ sessionStorage.removeItem('sax_session'); }catch(e){}
+        return; // affiche l'écran login
+      }
     }
   }catch(e){}
-  // Session invalide ou expirée
   try{ sessionStorage.removeItem('sax_session'); }catch(e){}
 }
 </script>
@@ -5169,14 +5184,14 @@ html.light .ag-week-wrap,.html.light .ag-month-grid{border-color:var(--cbr-terti
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Retour
     </button>
     <span style="font-size:15px;font-weight:600;color:var(--ct-primary);flex:1">Agenda</span>
-    <button class="btn btn-sm btn-info" onclick="openAgSync()" title="Synchroniser avec Google Agenda" style="margin-right:4px;display:flex;align-items:center;gap:5px">
+    <button class="btn btn-sm btn-info ag-sync-btn" onclick="openAgSync()" title="Synchroniser avec Google Agenda" style="margin-right:4px;display:flex;align-items:center;gap:5px">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
-      Sync
+      <span class="ag-sync-label">Sync</span>
     </button>
     <div class="ag-view-seg">
-      <button class="ag-view-btn active" id="ag-btn-month" onclick="setAgView('month')">Mois</button>
-      <button class="ag-view-btn" id="ag-btn-week" onclick="setAgView('week')">Semaine</button>
-      <button class="ag-view-btn" id="ag-btn-day" onclick="setAgView('day')">Jour</button>
+      <button class="ag-view-btn active" id="ag-btn-month" onclick="setAgView('month')"><span class="ag-view-label">Mois</span><span class="ag-view-icon" style="display:none">M</span></button>
+      <button class="ag-view-btn" id="ag-btn-week" onclick="setAgView('week')"><span class="ag-view-label">Semaine</span><span class="ag-view-icon" style="display:none">S</span></button>
+      <button class="ag-view-btn" id="ag-btn-day" onclick="setAgView('day')"><span class="ag-view-label">Jour</span><span class="ag-view-icon" style="display:none">J</span></button>
     </div>
   </div>
 
