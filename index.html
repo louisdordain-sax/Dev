@@ -488,7 +488,21 @@ html.light .float-win-bar{background:var(--cb-secondary)}
   background-size:40px 40px}
 html.light .toolbox-grid-hint{opacity:0.07}
 
-/* ── MOT DE PASSE TOGGLE ── */
+/* ── BOARD HEADER : boutons icônes identiques ── */
+#btn-suggestions, #btn-board-interactions {
+  width: 30px !important;
+  height: 30px !important;
+  padding: 0 !important;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+#btn-suggestions svg, #btn-board-interactions svg {
+  width: 14px !important;
+  height: 14px !important;
+  flex-shrink: 0;
+}
+
 .pwd-wrap{position:relative;margin-bottom:10px}
 .pwd-wrap input{margin-bottom:0;padding-right:38px}
 .pwd-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);
@@ -1074,6 +1088,12 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
   <!-- Canvas -->
   <canvas id="cv"></canvas>
 
+  <!-- Bouton Recentrer — à l'intérieur de sc-tree pour partager le même stacking context que le popup -->
+  <button id="btn-recenter-tree" onclick="_treeResetView();_updateRecenterBtn();" style="display:none;position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 110px);left:50%;transform:translateX(-50%);z-index:15;pointer-events:auto;align-items:center;gap:7px;padding:7px 20px;border-radius:99px;border:0.5px solid rgba(55,138,221,0.55);background:rgba(6,9,20,0.82);color:rgba(138,154,184,0.9);font-size:12px;font-family:var(--font-sans);cursor:pointer;backdrop-filter:blur(6px);transition:opacity .2s;letter-spacing:.3px">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+    Recentrer
+  </button>
+
   <!-- Popup compétence -->
   <div class="popup" id="popup">
     <button class="popup-close" onclick="closePopup()">✕</button>
@@ -1133,7 +1153,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
 <div class="hud-tabs" id="hud-ctabs" style="display:none;position:fixed;top:48px;right:14px;z-index:26"></div>
 
 <!-- HUD profil bas-gauche — position:fixed -->
-<div class="hud-profile" id="hud-profile" style="display:none;position:fixed;bottom:36px;left:14px;z-index:26">
+<div class="hud-profile" id="hud-profile" style="display:none;position:fixed;bottom:36px;left:14px;z-index:27">
   <div style="display:flex;align-items:flex-end;gap:10px">
     <div class="hud-avatar" id="p-av" onclick="openProfileDrawer()" title="Mon profil"></div>
     <div>
@@ -1156,11 +1176,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
   </div>
 </div>
 
-<!-- Bouton Recentrer — centré en bas, visible seulement si vue déplacée -->
-<button id="btn-recenter-tree" onclick="_treeResetView();_updateRecenterBtn();" style="display:none;position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 110px);left:50%;transform:translateX(-50%);z-index:27;pointer-events:auto;align-items:center;gap:7px;padding:7px 20px;border-radius:99px;border:0.5px solid rgba(55,138,221,0.55);background:rgba(6,9,20,0.82);color:rgba(138,154,184,0.9);font-size:12px;font-family:var(--font-sans);cursor:pointer;backdrop-filter:blur(6px);transition:opacity .2s;letter-spacing:.3px">
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-  Recentrer
-</button>
+
 
 <div class="profile-drawer hidden" id="profile-drawer">
   <div class="profile-drawer-bg" onclick="closeProfileDrawer()"></div>
@@ -3625,8 +3641,8 @@ function openBoard(isProf){
   if(bsub)bsub.textContent=isProf?'Gérer les ressources partagées':'Ressources de votre professeur';
   // board-mode-badge supprimé
   
-  const ib=document.getElementById('btn-board-interactions');if(ib)ib.style.display=isProf?'flex':'none';
-  const sb=document.getElementById('btn-suggestions');if(sb)sb.style.display=isProf?'flex':'none';
+  const ib=document.getElementById('btn-board-interactions');if(ib){ib.style.display=isProf?'flex':'none';}
+  const sb=document.getElementById('btn-suggestions');if(sb){sb.style.display=isProf?'flex':'none';}
   if(isProf) setTimeout(_loadSuggestions, 500);
   renderBoard();
   // Masquer tous les écrans .screen
@@ -6748,7 +6764,11 @@ document.addEventListener('click', function(e){
     const s2e=document.getElementById('login-step2-eleve');
     const s2p=document.getElementById('login-step2-prof');
     if((s2e&&s2e.style.display!=='none')||(s2p&&s2p.style.display!=='none')){backToStep1();_pushState();return;}
-    // Déjà à la racine (login ou home prof) : ne rien faire = rester dans l'app
+    // Déjà à la racine (login ou home prof) : demander confirmation avant de quitter
+    if(window.confirm('Quitter l\'application ?')){
+      // L'utilisateur confirme : ne pas repousser l'état → le navigateur sort de l'app
+      return;
+    }
     _pushState();
   }
 
