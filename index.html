@@ -194,9 +194,9 @@ canvas{display:block;width:100%;height:100%;cursor:default;position:absolute;ins
 
 /* HUD barre bas : légende */
 .hud-botbar{position:absolute;bottom:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:center;gap:16px;padding:80px 14px 12px;
-  background:linear-gradient(to top,rgba(6,9,20,0.97) 0%,rgba(6,9,20,0.85) 35%,rgba(6,9,20,0.4) 65%,transparent 100%);
+  background:linear-gradient(to top,rgba(6,9,20,1) 0%,rgba(6,9,20,0.97) 30%,rgba(6,9,20,0.7) 58%,rgba(6,9,20,0.15) 85%,transparent 100%);
   pointer-events:none}
-html.light .hud-botbar{background:linear-gradient(to top,rgba(242,245,255,0.99) 0%,rgba(242,245,255,0.88) 35%,rgba(242,245,255,0.5) 65%,transparent 100%)}
+html.light .hud-botbar{background:linear-gradient(to top,rgba(242,245,255,1) 0%,rgba(242,245,255,0.97) 30%,rgba(242,245,255,0.7) 58%,rgba(242,245,255,0.15) 85%,transparent 100%)}
 
 /* HUD profil gauche (bas-gauche) */
 .hud-profile{position:absolute;bottom:36px;left:14px;z-index:20;display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:200px}
@@ -6722,6 +6722,20 @@ document.addEventListener('click', function(e){
 // BOUTON RETOUR NATIF (Android / navigateur)
 // Intercepte popstate pour naviguer dans l'app au lieu de quitter
 // ═══════════════════════════════════════════════════════
+var _exitTapTime=0;
+function _showExitToast(){
+  var t=document.getElementById('_exit-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='_exit-toast';
+    t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:99999;background:rgba(20,25,40,0.92);color:rgba(220,228,245,0.95);font-size:13px;padding:10px 22px;border-radius:99px;border:0.5px solid rgba(55,138,221,0.35);backdrop-filter:blur(8px);pointer-events:none;transition:opacity .3s;font-family:-apple-system,BlinkMacSystemFont,sans-serif;white-space:nowrap;box-shadow:0 4px 18px rgba(0,0,0,0.45)';
+    document.body.appendChild(t);
+  }
+  t.textContent='Appuyer encore pour quitter';
+  t.style.opacity='1';
+  clearTimeout(t._to);
+  t._to=setTimeout(function(){t.style.opacity='0';},2000);
+}
 (function(){
   // On pousse un état à chaque transition d'écran principal
   // et on intercepte le "retour" pour appeler la bonne fonction
@@ -6764,11 +6778,14 @@ document.addEventListener('click', function(e){
     const s2e=document.getElementById('login-step2-eleve');
     const s2p=document.getElementById('login-step2-prof');
     if((s2e&&s2e.style.display!=='none')||(s2p&&s2p.style.display!=='none')){backToStep1();_pushState();return;}
-    // Déjà à la racine (login ou home prof) : demander confirmation avant de quitter
-    if(window.confirm('Quitter l\'application ?')){
-      // L'utilisateur confirme : ne pas repousser l'état → le navigateur sort de l'app
-      return;
+    // Déjà à la racine : pattern "double appui pour quitter" (standard Android)
+    var _now=Date.now();
+    if(_now-_exitTapTime<2200){
+      // Deuxième appui dans les 2,2 s → quitter réellement
+      return; // ne pas repousser d'état → le navigateur sort de l'app
     }
+    _exitTapTime=_now;
+    _showExitToast();
     _pushState();
   }
 
