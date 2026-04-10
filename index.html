@@ -933,13 +933,14 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px"><polygon points="5 3 19 12 5 21 5 3"/></svg> Démarrer
         </button>
       </div>
-      <!-- Playlist Spotify -->
+      <!-- Playlist YouTube -->
       <div style="background:var(--cb-secondary);border:0.5px solid var(--cbr-tertiary);border-radius:14px;padding:14px 14px 10px;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.8 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
           <span style="font-size:13px;font-weight:600;color:var(--ct-primary)">Playlist du cours</span>
+          <span id="yt-pl-label-prof" style="font-size:10px;color:var(--ct-tertiary)"></span>
         </div>
-        <iframe style="border-radius:10px;display:block" src="https://open.spotify.com/embed/playlist/5xBFp4hSf9Nc3NkbmASlRe?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        <div id="yt-pl-div-prof"></div>
       </div>
     </div>
 
@@ -1078,6 +1079,11 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     <div class="err" id="pw-err">Erreur</div>
     <div id="pw-ok" style="font-size:11px;color:var(--ct-success);margin-bottom:8px;display:none">✓ Code modifié avec succès</div>
     <button class="btn btn-info" onclick="changePassword()">Enregistrer le nouveau code</button>
+  </div>
+  <div class="settings-card">
+    <h4><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle;margin-right:4px"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42C1 8.13 1 12 1 12s0 3.87.46 5.58a2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.96-1.96C23 15.87 23 12 23 12s0-3.87-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg> Playlist YouTube du cours</h4>
+    <p>L'URL de la playlist apparaît dans la boîte à outils des élèves et dans l'onglet Outils du prof. Accepte une playlist ou une vidéo unique.</p>
+    <div id="yt-playlist-setting"></div>
   </div>
 </div>
 
@@ -1309,13 +1315,14 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
         </button>
       </div>
 
-      <!-- Playlist Spotify (toujours visible) -->
+      <!-- Playlist YouTube (toujours visible) -->
       <div style="background:var(--cb-secondary);border:0.5px solid var(--cbr-tertiary);border-radius:14px;padding:14px 14px 10px;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.8 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
           <span style="font-size:13px;font-weight:600;color:var(--ct-primary)">Playlist du cours</span>
+          <span id="yt-pl-label-toolbox" style="font-size:10px;color:var(--ct-tertiary)"></span>
         </div>
-        <iframe style="border-radius:10px;display:block" src="https://open.spotify.com/embed/playlist/5xBFp4hSf9Nc3NkbmASlRe?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        <div id="yt-pl-div-toolbox"></div>
       </div>
 
     </div>
@@ -1785,6 +1792,11 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     <div class="field-label">Note <span style="opacity:.5;font-weight:400">(optionnel)</span></div>
     <textarea id="evt-note" rows="2" placeholder="Informations complémentaires..."></textarea>
 
+    <div class="field-label">École</div>
+    <select id="evt-school" style="margin-bottom:10px">
+      <option value="">— Choisir une école —</option>
+    </select>
+
     <div class="err" id="evt-err">Titre et date requis</div>
     <div class="modal-footer" style="justify-content:space-between">
       <button class="btn btn-danger btn-sm" id="evt-del-btn" onclick="_deleteEditingEvt()" style="display:none;flex-direction:row;align-items:center;justify-content:center;gap:5px">
@@ -2207,12 +2219,12 @@ function _initFirebase(){
 /* ── STORAGE (Firebase Realtime Database) ── */
 function saveLocal(){
   // Sauvegarde localStorage (fallback hors-ligne)
-  try{localStorage.setItem(SK,JSON.stringify({students,profCode,schools,boardColumns,tileInteractions,skillsData,branches:BRANCHES}))}catch(e){}
+  try{localStorage.setItem(SK,JSON.stringify({students,profCode,schools,boardColumns,tileInteractions,skillsData,branches:BRANCHES,ytPlaylistUrl}))}catch(e){}
   // Sauvegarde Firebase (debouncée 800ms pour éviter les écritures en rafale)
   if(_saveTimeout) clearTimeout(_saveTimeout);
   _saveTimeout = setTimeout(async ()=>{
     if(!_db) return;
-    const payload = {students,profCode,schools,boardColumns,tileInteractions,skillsData,branches:BRANCHES};
+    const payload = {students,profCode,schools,boardColumns,tileInteractions,skillsData,branches:BRANCHES,ytPlaylistUrl};
     try{
       await _db.ref(FIREBASE_PATH).set(payload);
       _showSyncIndicator('✓ Synchronisé', '#34d399');
@@ -2277,6 +2289,7 @@ async function loadLocal(){
     profCode         = cloudData.profCode === 'PROF2025' ? DEFAULT_PROF_CODE : (cloudData.profCode || DEFAULT_PROF_CODE);
     schools          = cloudData.schools        || [];
     boardColumns     = cloudData.boardColumns   || [];
+    ytPlaylistUrl    = cloudData.ytPlaylistUrl  || '';
     tileInteractions = cloudData.tileInteractions || {};
     // Charger les compétences depuis Firebase si elles ont déjà été sauvegardées
     if(cloudData.skillsData && typeof cloudData.skillsData === 'object'){
@@ -2543,8 +2556,59 @@ function populateSchoolFilters(){
   hf.innerHTML='<option value="">Toutes les écoles</option>'+schools.map(s=>`<option value="${s}">${s}</option>`).join('');
   if(cur)hf.value=cur;
   buildSchoolSelect('login-school');
+  const es=document.getElementById('evt-school');
+  if(es){
+    const prev=es.value;
+    es.innerHTML='<option value="">— Choisir une école —</option>'+schools.map(s=>`<option value="${s}">${s}</option>`).join('');
+    if(prev) es.value=prev;
+  }
 }
-function renderSettings(){renderSchoolsList();populateSchoolFilters()}
+function renderSettings(){renderSchoolsList();populateSchoolFilters();renderYtPlaylistSetting();}
+
+/* ── PLAYLIST YOUTUBE ── */
+function renderYtPlaylistSetting(){
+  var c=document.getElementById('yt-playlist-setting');if(!c)return;
+  c.innerHTML='<div class="field-label">URL de la playlist YouTube</div>'
+    +'<input type="url" id="yt-playlist-url-input" placeholder="https://www.youtube.com/playlist?list=..." value="'+escHtml(ytPlaylistUrl)+'" style="margin-bottom:8px">'
+    +'<div style="display:flex;gap:8px">'
+    +'<button class="btn btn-info btn-sm" onclick="saveYtPlaylistUrl()">Enregistrer</button>'
+    +(ytPlaylistUrl?'<button class="btn btn-sm" onclick="renderYtPlaylist(\'yt-pl-div-setting\',\'yt-pl-label-setting\')">Prévisualiser</button>':'')
+    +'</div>'
+    +'<div id="yt-pl-div-setting" style="margin-top:10px"></div>'
+    +'<span id="yt-pl-label-setting" style="font-size:10px;color:var(--ct-tertiary)"></span>';
+}
+function saveYtPlaylistUrl(){
+  var v=(document.getElementById('yt-playlist-url-input').value||'').trim();
+  ytPlaylistUrl=v;
+  saveLocal();
+  renderYtPlaylist('yt-pl-div-prof','yt-pl-label-prof');
+  renderYtPlaylist('yt-pl-div-toolbox','yt-pl-label-toolbox');
+  renderYtPlaylistSetting();
+  _showSyncIndicator('✓ Playlist enregistrée','#34d399');
+}
+function _ytEmbedUrl(rawUrl){
+  if(!rawUrl) return '';
+  // playlist?list=ID
+  var m=rawUrl.match(/[?&]list=([A-Za-z0-9_-]+)/);
+  if(m) return 'https://www.youtube-nocookie.com/embed/videoseries?list='+m[1]+'&rel=0&modestbranding=1';
+  // Single video
+  m=rawUrl.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  if(m) return 'https://www.youtube-nocookie.com/embed/'+m[1]+'?rel=0&modestbranding=1';
+  return '';
+}
+function renderYtPlaylist(divId, labelId){
+  var div=document.getElementById(divId);
+  var lbl=document.getElementById(labelId);
+  if(!div) return;
+  var embedUrl=_ytEmbedUrl(ytPlaylistUrl);
+  if(!embedUrl){
+    div.innerHTML='<div style="padding:12px;text-align:center;font-size:12px;color:var(--ct-tertiary)">Aucune playlist configurée.<br>'+(profMode?'Ajoutez une URL dans les Paramètres.':'')+'</div>';
+    if(lbl) lbl.textContent='';
+    return;
+  }
+  div.innerHTML='<iframe style="border-radius:10px;display:block" src="'+embedUrl+'" width="100%" height="320" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" allowfullscreen loading="lazy" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox"></iframe>';
+  if(lbl) lbl.textContent='';
+}
 
 /* ── CYCLE STATUS ── */
 function cycleStatus(student,cycle){
@@ -4247,6 +4311,7 @@ function openToolboxScreen(){
   var mp=document.getElementById('metro-panel');if(mp)mp.style.display='none';
   var sp=document.getElementById('share-panel');if(sp)sp.style.transform='translateY(100%)';
   show('sc-toolbox');
+  setTimeout(function(){ renderYtPlaylist('yt-pl-div-toolbox','yt-pl-label-toolbox'); },50);
 }
 function closeToolboxScreen(){
   _stopMetro();
@@ -4549,6 +4614,11 @@ function showProfTab(tab){
   if(tab==='eleves') renderHome();
   if(tab==='competences') renderCEHome();
   if(tab==='parametres') renderSettingsHome();
+  if(tab==='outils'){
+    setTimeout(function(){
+      renderYtPlaylist('yt-pl-div-prof','yt-pl-label-prof');
+    },50);
+  }
   if(tab==='accueil'){
     var sc=document.getElementById('hw-student-count');
     if(sc) sc.textContent=students.length+' élève'+(students.length!==1?'s':'');
@@ -5469,7 +5539,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const sl = document.getElementById('sc-login');
   if(sl) sl.style.display='none';
 });
-loadLocal().then(()=>{ _restoreSession(); });
+loadLocal().then(()=>{ _restoreSession(); setTimeout(function(){ renderYtPlaylist('yt-pl-div-prof','yt-pl-label-prof'); renderYtPlaylist('yt-pl-div-toolbox','yt-pl-label-toolbox'); }, 200); });
 
 function _restoreSession(){
   try{
@@ -5583,6 +5653,16 @@ function openPdfViewerById(tileId, title){
    §9 — AGENDA
    ═══════════════════════════════════════════════════════ */
 var agendaEvents = [];
+
+/* Retourne les événements filtrés selon l'école de l'utilisateur connecté.
+   Le prof voit tout. L'élève ne voit que son école. */
+function _agendaEventsFiltered(){
+  if(profMode) return agendaEvents;
+  var school = currentStudent ? (currentStudent.school||'') : '';
+  if(!school) return agendaEvents;
+  return agendaEvents.filter(function(e){ return e.school===school; });
+}
+var ytPlaylistUrl = ''; // URL YouTube playlist du cours
 var _agView = 'month';
 var _agDate = new Date(); _agDate.setHours(0,0,0,0);
 var _agSelDate = null;
@@ -5737,7 +5817,7 @@ function renderMonthView(body){
   // Jours du mois
   for(var day=1;day<=daysInMonth;day++){
     var dt=new Date(y,m,day), iso=fmtISO(dt);
-    var evts=agendaEvents.filter(function(e){ return e.date===iso; }).sort(function(a,b){ return (a.timeStart||'00:00').localeCompare(b.timeStart||'00:00'); });
+    var evts=_agendaEventsFiltered().filter(function(e){ return e.date===iso; }).sort(function(a,b){ return (a.timeStart||'00:00').localeCompare(b.timeStart||'00:00'); });
     var cell=document.createElement('div');
     cell.className='ag-month-cell'+(iso===today?' today':'')+(iso===_agSelDate?' selected':'');
     var num=document.createElement('div'); num.className='ag-month-num'; num.textContent=day; cell.appendChild(num);
@@ -5745,7 +5825,7 @@ function renderMonthView(body){
     shown.forEach(function(e){
       var chip=document.createElement('div'); chip.className='ag-month-chip';
       chip.style.background=EVT_COLORS[e.type||'cours'];
-      chip.textContent=(e.timeStart?e.timeStart+' ':'')+e.title;
+      chip.textContent=(e.timeStart?e.timeStart+' ':'')+e.title+(profMode&&e.school?' · '+e.school:'');
       cell.appendChild(chip);
     });
     if(evts.length>2){ var more=document.createElement('div'); more.className='ag-month-more'; more.textContent='+'+( evts.length-2)+' autres'; cell.appendChild(more); }
@@ -5796,7 +5876,7 @@ function renderWeekView(body){
       col.style.height='48px';
       col.style.position='relative';
       // Événements pour cette heure/jour
-      agendaEvents.filter(function(e){ return e.date===isoD; }).forEach(function(e){
+      _agendaEventsFiltered().filter(function(e){ return e.date===isoD; }).forEach(function(e){
         var startH=e.timeStart?parseInt(e.timeStart.split(':')[0]):null;
         var startM=e.timeStart?parseInt(e.timeStart.split(':')[1]):null;
         if(startH===h){
@@ -5807,7 +5887,7 @@ function renderWeekView(body){
           var heightPx=Math.max(20,(durMins/60)*48);
           var ev=document.createElement('div'); ev.className='ag-week-event';
           ev.style.cssText='top:'+topPx+'px;height:'+heightPx+'px;background:'+EVT_COLORS[e.type||'cours'];
-          ev.textContent=e.title;
+          ev.textContent=e.title+(profMode&&e.school?' · '+e.school:'');
           (function(evt){ ev.onclick=function(e2){ e2.stopPropagation(); _agSelDate=evt.date; _renderEvtPanel(evt.date); }; })(e);
           col.appendChild(ev);
         } else if(!e.timeStart){
@@ -5815,7 +5895,7 @@ function renderWeekView(body){
           if(h===0){
             var ev2=document.createElement('div'); ev2.className='ag-week-event';
             ev2.style.cssText='top:2px;height:20px;background:'+EVT_COLORS[e.type||'cours'];
-            ev2.textContent=e.title;
+            ev2.textContent=e.title+(profMode&&e.school?' · '+e.school:'');
             col.appendChild(ev2);
           }
         }
@@ -5890,7 +5970,7 @@ function renderDayView(body){
   wrap.appendChild(dayHdr);
 
   // Tous les événements du jour
-  var dayEvts = agendaEvents.filter(function(e){ return e.date===iso; });
+  var dayEvts = _agendaEventsFiltered().filter(function(e){ return e.date===iso; });
   var timedEvts = dayEvts.filter(function(e){ return !!e.timeStart; });
   var allDayEvts = dayEvts.filter(function(e){ return !e.timeStart; });
 
@@ -5932,7 +6012,7 @@ function renderDayView(body){
   allDayEvts.forEach(function(e){
     var ev=document.createElement('div'); ev.className='ag-day-event';
     ev.style.cssText='top:2px;left:4px;right:4px;height:22px;background:'+EVT_COLORS[e.type||'cours']+';pointer-events:auto';
-    ev.textContent='🗓 '+e.title+(e.lieu?' – '+e.lieu:'');
+    ev.textContent='🗓 '+e.title+(e.lieu?' – '+e.lieu:'')+(profMode&&e.school?' ['+e.school+']':'');
     (function(evt){ ev.onclick=function(ev2){ ev2.stopPropagation(); openEvtDetail(evt, evt.date); }; })(e);
     overlay.appendChild(ev);
   });
@@ -5962,6 +6042,7 @@ function renderDayView(body){
       +'pointer-events:auto;'
       +'box-shadow:0 1px 4px rgba(0,0,0,0.25)';
     ev.innerHTML='<div style="font-weight:600;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.title+'</div>'
+      +(profMode&&e.school?'<div style="font-size:8px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🏫 '+e.school+'</div>':'')
       +(e.lieu && heightPx>36?'<div style="opacity:.8;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍 '+e.lieu+'</div>':'')
       +(e.timeStart && heightPx>24?'<div style="opacity:.7;font-size:9px">'+e.timeStart+(e.timeEnd?' – '+e.timeEnd:'')+'</div>':'');
     (function(evt){ ev.onclick=function(ev2){ ev2.stopPropagation(); openEvtDetail(evt, evt.date); }; })(e);
@@ -5985,7 +6066,7 @@ function _renderEvtPanel(dateISO){
   if(!dateISO){ panel.style.display='none'; return; }
   var d=isoToDate(dateISO);
   title.textContent=DAYS_FR_LONG[d.getDay()]+' '+d.getDate()+' '+MONTHS_FR[d.getMonth()]+' '+d.getFullYear();
-  var evts=agendaEvents.filter(function(e){ return e.date===dateISO; }).sort(function(a,b){ return (a.timeStart||'').localeCompare(b.timeStart||''); });
+  var evts=_agendaEventsFiltered().filter(function(e){ return e.date===dateISO; }).sort(function(a,b){ return (a.timeStart||'').localeCompare(b.timeStart||''); });
   list.innerHTML='';
   if(!evts.length){ list.innerHTML='<div style="font-size:12px;color:var(--ct-tertiary);text-align:center;padding:8px">Aucun événement</div>'; panel.style.display='block'; return; }
   evts.forEach(function(evt){
@@ -5996,7 +6077,9 @@ function _renderEvtPanel(dateISO){
     var body2=document.createElement('div'); body2.style.flex='1';
     var hours=(evt.timeStart?evt.timeStart+(evt.timeEnd?' – '+evt.timeEnd:''):'Journée entière');
     body2.innerHTML='<div class="ag-evt-title">'+EVT_EMOJIS[evt.type||'cours']+' '+evt.title+'</div>'
-      +'<div class="ag-evt-meta">'+hours+(evt.lieu?' · 📍 '+evt.lieu:'')+'</div>'
+      +'<div class="ag-evt-meta">'+hours+(evt.lieu?' · 📍 '+evt.lieu:'')
+      +(profMode&&evt.school?' · <span style="display:inline-block;padding:1px 6px;border-radius:99px;background:rgba(55,138,221,0.15);color:var(--ct-info);font-size:9px;font-weight:600">'+evt.school+'</span>':'')
+      +'</div>'
       +(evt.note?'<div style="font-size:10px;color:var(--ct-tertiary);margin-top:2px">'+evt.note+'</div>':''  );
     item.appendChild(body2);
     // Flèche indicateur
@@ -6016,6 +6099,7 @@ function openEvtDetail(evt, dateISO){
   if(profMode){
     // Mode prof : ouvrir le modal d'édition pré-rempli
     _editEvtId = evt.id;
+    populateSchoolFilters(); // refresh evt-school list before setting value
     document.getElementById('evt-modal-title').textContent = 'Modifier l\'événement';
     document.getElementById('evt-title').value = evt.title || '';
     document.getElementById('evt-date').value = evt.date || '';
@@ -6023,6 +6107,11 @@ function openEvtDetail(evt, dateISO){
     document.getElementById('evt-time-end').value = evt.timeEnd || '';
     document.getElementById('evt-lieu').value = evt.lieu || '';
     document.getElementById('evt-note').value = evt.note || '';
+    var _es=document.getElementById('evt-school');
+    if(_es){
+      _es.innerHTML='<option value="">— Choisir une école —</option>'+schools.map(function(s){return'<option value="'+s+'">'+s+'</option>';}).join('');
+      _es.value=evt.school||'';
+    }
     document.getElementById('evt-err').style.display = 'none';
     // Sélectionner le bon type
     var typeBtn = document.getElementById('etyp-'+( evt.type||'cours'));
@@ -6048,8 +6137,9 @@ function openEvtDetail(evt, dateISO){
     document.getElementById('evtd-body').innerHTML =
       '<div>📅 '+DAYS_FR_LONG[d.getDay()]+' '+d.getDate()+' '+MONTHS_FR[d.getMonth()]+' '+d.getFullYear()+'</div>'
       +'<div>🕐 '+hours+'</div>'
-      +(evt.lieu?'<div>📍 '+evt.lieu+'</div>':''  )
-      +(evt.note?'<div style="margin-top:6px;padding:8px;background:var(--cb-secondary);border-radius:6px;color:var(--ct-primary)">'+evt.note+'</div>':''  );
+      +(evt.school?'<div>🏫 '+evt.school+'</div>':'')
+      +(evt.lieu?'<div>📍 '+evt.lieu+'</div>':'')
+      +(evt.note?'<div style="margin-top:6px;padding:8px;background:var(--cb-secondary);border-radius:6px;color:var(--ct-primary)">'+evt.note+'</div>':'');
     document.getElementById('evtd-gcal').href = _buildGCalUrl(evt);
     openModal('modal-evt-detail');
   }
@@ -6084,6 +6174,7 @@ function selectEvtType(btn){
 }
 function openAddEvtModal(){
   _editEvtId=null;
+  populateSchoolFilters(); // refresh evt-school list
   document.getElementById('evt-modal-title').textContent='Ajouter un événement';
   document.getElementById('evt-title').value='';
   document.getElementById('evt-date').value=_agSelDate||fmtISO(_agDate);
@@ -6095,6 +6186,11 @@ function openAddEvtModal(){
   document.getElementById('btn-time-end').classList.remove('has-value');
   document.getElementById('evt-lieu').value='';
   document.getElementById('evt-note').value='';
+  var evtSch=document.getElementById('evt-school');
+  if(evtSch){
+    evtSch.innerHTML='<option value="">— Choisir une école —</option>'+schools.map(function(s){return'<option value="'+s+'">'+s+'</option>';}).join('');
+    evtSch.value='';
+  }
   document.getElementById('evt-err').style.display='none';
   document.getElementById('evt-del-btn').style.display='none';
   selectEvtType(document.getElementById('etyp-cours'));
@@ -6118,17 +6214,16 @@ function confirmAddEvt(){
   var te=document.getElementById('evt-time-end').value;
   var lieu=document.getElementById('evt-lieu').value.trim();
   var note=document.getElementById('evt-note').value.trim();
+  var school=(document.getElementById('evt-school')||{}).value||'';
   var err=document.getElementById('evt-err'); err.style.display='none';
-  if(!title||!date){ err.style.display='block'; return; }
+  if(!title||!date||!school){ err.textContent='Titre, date et école requis'; err.style.display='block'; return; }
   if(_editEvtId){
-    // Mode édition : mettre à jour l'événement existant
     var idx=agendaEvents.findIndex(function(e){ return e.id===_editEvtId; });
     if(idx!==-1){
-      agendaEvents[idx]=Object.assign(agendaEvents[idx],{title:title,date:date,timeStart:ts,timeEnd:te,lieu:lieu,note:note,type:_evtType,color:EVT_COLORS[_evtType]});
+      agendaEvents[idx]=Object.assign(agendaEvents[idx],{title,date,timeStart:ts,timeEnd:te,lieu,note,school,type:_evtType,color:EVT_COLORS[_evtType]});
     }
   } else {
-    // Nouveau événement
-    agendaEvents.push({id:'evt'+Date.now(),title:title,date:date,timeStart:ts,timeEnd:te,lieu:lieu,note:note,type:_evtType,color:EVT_COLORS[_evtType]});
+    agendaEvents.push({id:'evt'+Date.now(),title,date,timeStart:ts,timeEnd:te,lieu,note,school,type:_evtType,color:EVT_COLORS[_evtType]});
   }
   _editEvtId=null;
   _saveAgendaEvents();
