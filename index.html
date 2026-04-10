@@ -493,6 +493,7 @@ html.light .toolbox-grid-hint{opacity:0.07}
   width: 30px !important;
   height: 30px !important;
   padding: 0 !important;
+  border-radius: 50% !important;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
@@ -501,6 +502,7 @@ html.light .toolbox-grid-hint{opacity:0.07}
   width: 14px !important;
   height: 14px !important;
   flex-shrink: 0;
+  display: block;
 }
 
 .pwd-wrap{position:relative;margin-bottom:10px}
@@ -1600,7 +1602,404 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
   </div>
 </div>
 
+
+<!-- Modal Familles de compétences -->
+<div class="modal-overlay" id="modal-families" onclick="if(event.target===this)closeModal('modal-families')">
+  <div class="modal-box" style="max-width:440px">
+    <h3>Gérer les familles de compétences</h3>
+    <div id="family-list" style="margin-bottom:14px"></div>
+    <hr style="border:none;border-top:0.5px solid var(--cbr-tertiary);margin:10px 0">
+    <!-- Panneau édition / ajout d'une famille -->
+    <div id="family-edit-panel">
+      <h4 id="family-modal-title" style="font-size:13px;margin-bottom:10px;color:var(--ct-primary)">Nouvelle famille</h4>
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <div style="flex:1">
+          <div class="field-label">Nom</div>
+          <input type="text" id="family-label-inp" placeholder="ex: Rythme" style="margin-bottom:0">
+        </div>
+        <div>
+          <div class="field-label">Couleur</div>
+          <input type="color" id="family-color-inp" value="#60a5fa" style="width:44px;height:38px;padding:2px;margin-bottom:0;cursor:pointer">
+        </div>
+        <button class="btn btn-info" onclick="saveFamilyEdit()" style="margin-bottom:0;white-space:nowrap">Enregistrer</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn btn-sm" onclick="cancelFamilyEdit()">Annuler</button>
+      </div>
+    </div>
+    <div class="modal-footer" style="margin-top:14px">
+      <button class="btn btn-info btn-sm" onclick="openAddFamilyPanel()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ajouter une famille</button>
+      <button class="btn" onclick="closeModal('modal-families')">Fermer</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-interactions" onclick="if(event.target===this)closeModal('modal-interactions')">
+  <div class="modal-box" style="max-width:520px;max-height:88vh;overflow-y:auto">
+    <h3>Interactions élèves</h3>
+    <p style="margin-bottom:12px">Consultations des ressources par élève.</p>
+    <div id="modal-interactions-body"></div>
+    <div class="modal-footer" style="margin-top:14px">
+      <button class="btn" onclick="closeModal('modal-interactions')">Fermer</button>
+      <button class="btn btn-danger btn-sm" onclick="clearInteractions()">Réinitialiser</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ÉCRAN AGENDA ══ -->
+<div id="sc-agenda" style="position:fixed;inset:0;z-index:16;display:none;flex-direction:column;background:var(--body-bg)">
+
+  <!-- Topbar -->
+  <div class="ag-topbar">
+    <button class="btn btn-sm" onclick="closeAgenda()" style="flex-shrink:0">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Retour
+    </button>
+    <span style="font-size:15px;font-weight:600;color:var(--ct-primary);flex:1;text-align:center">Agenda</span>
+    <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+    <button class="btn btn-sm btn-info ag-sync-btn" onclick="openAgSync()" title="Synchroniser avec Google Agenda" style="display:flex;align-items:center;gap:5px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+      <span class="ag-sync-label">Sync</span>
+    </button>
+    <div class="ag-view-seg">
+      <button class="ag-view-btn active" id="ag-btn-month" onclick="setAgView('month')"><span class="ag-view-label">Mois</span><span class="ag-view-icon" style="display:none">M</span></button>
+      <button class="ag-view-btn" id="ag-btn-week" onclick="setAgView('week')"><span class="ag-view-label">Semaine</span><span class="ag-view-icon" style="display:none">S</span></button>
+      <button class="ag-view-btn" id="ag-btn-day" onclick="setAgView('day')"><span class="ag-view-label">Jour</span><span class="ag-view-icon" style="display:none">J</span></button>
+    </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="ag-nav">
+    <button class="ag-nav-btn" onclick="agNav(-1)">&#8249;</button>
+    <button class="ag-today-btn" onclick="agGoToday()">Aujourd'hui</button>
+    <div class="ag-period-label" id="ag-period-label"></div>
+    <button class="ag-nav-btn" onclick="agNav(1)">&#8250;</button>
+  </div>
+
+  <!-- Corps -->
+  <div class="ag-body" id="ag-body"></div>
+  <!-- Panneau événements sélectionnés -->
+  <div class="ag-evt-panel" id="ag-evt-panel" style="display:none">
+    <div style="font-size:11px;font-weight:600;color:var(--ct-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px" id="ag-evt-panel-title"></div>
+    <div id="ag-evt-list"></div>
+  </div>
+
+  <!-- FAB -->
+  <button class="ag-fab" id="ag-fab" onclick="openAddEvtModal()" title="Ajouter" style="display:none">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+</div>
+
+<!-- ══ MODAL HORLOGE 24H (style Google Agenda) ══ -->
+<div class="modal-overlay" id="modal-clock" style="z-index:200" onclick="if(event.target===this)closeClock()">
+<div class="modal-box" style="max-width:320px;padding:20px;text-align:center">
+  <div style="font-size:12px;font-weight:600;color:var(--ct-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px" id="clock-label">Heure de début</div>
+
+  <!-- Affichage digital -->
+  <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:14px">
+    <span id="clock-h-display" style="font-size:44px;font-weight:700;font-family:var(--font-mono);color:var(--ct-info);cursor:pointer;padding:4px 10px;border-radius:10px;background:var(--cb-info)" onclick="switchClockMode('h')">0</span>
+    <span style="font-size:36px;font-weight:300;color:var(--ct-secondary)">:</span>
+    <span id="clock-m-display" style="font-size:44px;font-weight:700;font-family:var(--font-mono);color:var(--ct-secondary);cursor:pointer;padding:4px 10px;border-radius:10px" onclick="switchClockMode('m')">00</span>
+  </div>
+
+  <!-- Sélecteur de cercle heures/minutes -->
+  <div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px">
+    <button id="clock-btn-h" class="clock-ampm-btn active" onclick="switchClockMode('h')">Heures</button>
+    <button id="clock-btn-m" class="clock-ampm-btn" onclick="switchClockMode('m')">Minutes</button>
+  </div>
+
+  <!-- Cadran 24h (double cercle) -->
+  <div style="position:relative;width:240px;height:240px;margin:0 auto 14px">
+    <svg id="clock-svg" width="240" height="240" style="cursor:pointer;display:block"
+      onmousedown="clockDragStart(event)" onmousemove="clockDragMove(event)" onmouseup="clockDragEnd(event)"
+      ontouchstart="clockDragStart(event)" ontouchmove="clockDragMove(event)" ontouchend="clockDragEnd(event)">
+      <circle cx="120" cy="120" r="118" fill="var(--cb-secondary)" stroke="var(--cbr-tertiary)" stroke-width="0.5"/>
+      <g id="clock-ticks"></g>
+      <line id="clock-hand" x1="120" y1="120" x2="120" y2="30" stroke="var(--ct-info)" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="120" cy="120" r="4" fill="var(--ct-info)"/>
+      <circle id="clock-selector" cx="120" cy="30" r="14" fill="var(--ct-info)" opacity="0.9"/>
+      <text id="clock-selector-txt" x="120" y="35" text-anchor="middle" font-size="12" font-weight="600" fill="white">0</text>
+    </svg>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn" onclick="closeClock()">Annuler</button>
+    <button class="btn btn-info" onclick="confirmClock()">OK</button>
+  </div>
+</div>
+</div>
+
+
+<!-- ══ MODAL AJOUT ÉVÉNEMENT ══ -->
+<div class="modal-overlay" id="modal-evt">
+  <div class="modal-box" style="max-width:440px;max-height:90vh;overflow-y:auto">
+    <h3 id="evt-modal-title">Ajouter un événement</h3>
+
+    <!-- Type avec couleur -->
+    <div class="field-label">Type</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">
+      <button class="btn evt-type-btn" id="etyp-cours"   data-type="cours"   onclick="selectEvtType(this)" style="flex-direction:column;gap:3px;padding:8px 4px;font-size:11px">
+        <span style="font-size:18px">🎵</span>Cours
+        <span style="width:18px;height:4px;border-radius:99px;background:#378ADD;margin-top:2px"></span>
+      </button>
+      <button class="btn evt-type-btn" id="etyp-examen"  data-type="examen"  onclick="selectEvtType(this)" style="flex-direction:column;gap:3px;padding:8px 4px;font-size:11px">
+        <span style="font-size:18px">🎓</span>Examen
+        <span style="width:18px;height:4px;border-radius:99px;background:#EF9F27;margin-top:2px"></span>
+      </button>
+      <button class="btn evt-type-btn" id="etyp-concert" data-type="concert" onclick="selectEvtType(this)" style="flex-direction:column;gap:3px;padding:8px 4px;font-size:11px">
+        <span style="font-size:18px">🎤</span>Concert
+        <span style="width:18px;height:4px;border-radius:99px;background:#7F77DD;margin-top:2px"></span>
+      </button>
+    </div>
+
+    <div class="field-label">Titre</div>
+    <input type="text" id="evt-title" placeholder="ex: Cours de saxophone">
+
+    <div class="field-label">Date</div>
+    <input type="date" id="evt-date">
+
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <div style="flex:1">
+        <div class="field-label">Heure de début</div>
+        <button type="button" class="time-picker-btn" id="btn-time-start" onclick="openClock('start')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span id="lbl-time-start">Choisir</span>
+        </button>
+        <input type="hidden" id="evt-time-start">
+      </div>
+      <div style="flex:1">
+        <div class="field-label">Heure de fin</div>
+        <button type="button" class="time-picker-btn" id="btn-time-end" onclick="openClock('end')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span id="lbl-time-end">Choisir</span>
+        </button>
+        <input type="hidden" id="evt-time-end">
+      </div>
+    </div>
+
+    <div class="field-label">Lieu <span style="opacity:.5;font-weight:400">(optionnel)</span></div>
+    <input type="text" id="evt-lieu" placeholder="ex: Conservatoire de musique, Salle 3">
+
+    <div class="field-label">Note <span style="opacity:.5;font-weight:400">(optionnel)</span></div>
+    <textarea id="evt-note" rows="2" placeholder="Informations complémentaires..."></textarea>
+
+    <div class="err" id="evt-err">Titre et date requis</div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button class="btn btn-danger btn-sm" id="evt-del-btn" onclick="_deleteEditingEvt()" style="display:none;flex-direction:row;align-items:center;justify-content:center;gap:5px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Supprimer
+      </button>
+      <div style="display:flex;gap:6px;margin-left:auto">
+        <button class="btn" onclick="closeModal('modal-evt')">Annuler</button>
+        <button class="btn btn-info" onclick="confirmAddEvt()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- ══ LIGHTBOX PLEIN ÉCRAN ══ -->
+<div id="lightbox">
+  <div id="lightbox-toolbar">
+    <div id="lightbox-title"></div>
+    <div style="display:flex;gap:6px">
+      <button class="lb-btn" id="lb-dl-btn" onclick="_lbDownload()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Télécharger
+      </button>
+      <button class="lb-btn" id="lb-print-btn" onclick="_lbPrint()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimer
+      </button>
+    </div>
+  </div>
+  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
+</div>
+
+
+
+<!-- ══ MENU FLOTTANT ÉLÈVE ══ -->
+
+<div id="student-fab">
+  <div id="student-fab-menu">
+    <!-- Suggérer une ressource (board ouvert uniquement) -->
+    <button class="sfab-btn" id="sfab-suggest-btn" onclick="_sfabSuggest()" style="display:none">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Suggérer une ressource
+    </button>
+    <!-- Thème -->
+    <button class="sfab-btn" onclick="_sfabTheme()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <span id="sfab-theme-label">Mode clair</span>
+    </button>
+    <!-- Déconnexion -->
+    <button class="sfab-btn logout" onclick="_sfabLogout()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Déconnexion
+    </button>
+  </div>
+  <!-- Bouton principal -->
+  <button id="student-fab-toggle" onclick="_sfabToggle()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+</div>
+
+
+
+<style>
+/* ═══════════ STYLES AGENDA, LIGHTBOX, FAB ═══════════ */
+/* ── Agenda ── */
+#sc-agenda.active{display:flex!important}
+/* ── Topbar ── */
+.ag-topbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:0.5px solid var(--cbr-tertiary);flex-shrink:0;background:var(--cb-primary)}
+/* ── Vues ── */
+.ag-view-seg{display:flex;gap:3px;background:var(--cb-secondary);border-radius:99px;padding:3px;border:0.5px solid var(--cbr-tertiary)}
+.ag-view-btn{font-size:11px;padding:4px 12px;border-radius:99px;border:none;background:none;color:var(--ct-secondary);cursor:pointer;font-family:var(--font-sans);transition:all .15s}
+.ag-view-btn.active{background:var(--cb-info);color:var(--ct-info)}
+/* ── Navigation mois/semaine/jour ── */
+.ag-nav{display:flex;align-items:center;gap:6px;padding:8px 14px;flex-shrink:0}
+.ag-nav-btn{background:none;border:0.5px solid var(--cbr-tertiary);border-radius:99px;color:var(--ct-secondary);cursor:pointer;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;flex-shrink:0}
+.ag-nav-btn:hover{border-color:var(--cbr-info);color:var(--ct-info)}
+.ag-period-label{font-size:13px;font-weight:600;color:var(--ct-primary);flex:1;text-align:center}
+.ag-today-btn{font-size:11px;padding:3px 10px;border-radius:99px;border:0.5px solid var(--cbr-tertiary);color:var(--ct-secondary);background:none;cursor:pointer;font-family:var(--font-sans);transition:all .15s}
+.ag-today-btn:hover{border-color:var(--cbr-info);color:var(--ct-info)}
+/* ── Corps scrollable ── */
+.ag-body{flex:1;overflow-y:auto;overflow-x:hidden}
+/* ── Vue MOIS ── */
+.ag-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-left:0.5px solid var(--cbr-tertiary);border-top:0.5px solid var(--cbr-tertiary);width:100%}
+.ag-month-daylabel{text-align:center;font-size:10px;color:var(--ct-tertiary);padding:5px 0;font-weight:600;border-right:0.5px solid var(--cbr-tertiary);border-bottom:0.5px solid var(--cbr-tertiary);background:var(--cb-primary)}
+.ag-month-cell{min-height:72px;border-right:0.5px solid var(--cbr-tertiary);border-bottom:0.5px solid var(--cbr-tertiary);padding:4px;cursor:pointer;transition:background .1s;position:relative;overflow:hidden;min-width:0}
+.ag-month-cell:hover{background:var(--cb-secondary)}
+.ag-month-cell.today{background:var(--cb-info)}
+.ag-month-cell.other-month .ag-month-num{opacity:.3}
+.ag-month-cell.selected{outline:2px solid var(--cbr-info);outline-offset:-2px}
+.ag-month-num{font-size:11px;font-weight:600;color:var(--ct-primary);text-align:right;margin-bottom:2px}
+.ag-month-chip{font-size:9px;padding:1px 5px;border-radius:3px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;margin-bottom:1px;line-height:1.4}
+.ag-month-more{font-size:9px;color:var(--ct-tertiary);padding-left:2px}
+/* ── Vue SEMAINE ── */
+.ag-week-wrap{display:grid;grid-template-columns:44px repeat(7,minmax(0,1fr));border-left:0.5px solid var(--cbr-tertiary);border-top:0.5px solid var(--cbr-tertiary);width:100%}
+.ag-week-daylabel{text-align:center;padding:5px 2px;border-right:0.5px solid var(--cbr-tertiary);border-bottom:0.5px solid var(--cbr-tertiary);font-size:10px;color:var(--ct-tertiary);font-weight:600;background:var(--cb-primary);cursor:pointer;transition:background .1s}
+.ag-week-daylabel:hover{background:var(--cb-secondary)}
+.ag-week-daylabel.today{background:var(--cb-info);color:var(--ct-info)}
+.ag-week-daylabel .ag-week-daynum{font-size:16px;font-weight:700;color:var(--ct-primary);display:block}
+.ag-week-daylabel.today .ag-week-daynum{color:var(--ct-info)}
+.ag-time-gutter{border-right:0.5px solid var(--cbr-tertiary)}
+.ag-time-slot{height:48px;border-bottom:0.5px solid var(--cbr-tertiary);font-size:9px;color:var(--ct-tertiary);padding:2px 4px 0;text-align:right;font-family:var(--font-mono)}
+.ag-week-col{border-right:0.5px solid var(--cbr-tertiary);position:relative;cursor:pointer;transition:background .1s}
+.ag-week-col:hover{background:rgba(55,138,221,0.04)}
+.ag-week-col.today-col{background:rgba(55,138,221,0.04)}
+.ag-week-event{position:absolute;left:2px;right:2px;border-radius:4px;padding:2px 4px;font-size:10px;color:#fff;overflow:hidden;cursor:pointer;z-index:2;line-height:1.3}
+.ag-week-event:hover{filter:brightness(1.15)}
+/* ── Vue JOUR ── */
+.ag-day-wrap{display:grid;grid-template-columns:44px 1fr;border-left:0.5px solid var(--cbr-tertiary);border-top:0.5px solid var(--cbr-tertiary)}
+.ag-day-event{position:absolute;left:4px;right:4px;border-radius:6px;padding:4px 6px;font-size:11px;color:#fff;overflow:hidden;cursor:pointer;z-index:2}
+.ag-day-event:hover{filter:brightness(1.12)}
+
+/* ── Bouton sélecteur d'heure ── */
+.time-picker-btn{
+  width:100%;display:flex;align-items:center;gap:6px;
+  padding:8px 10px;border-radius:var(--br-md);
+  border:0.5px solid var(--cbr-tertiary);
+  background:var(--cb-secondary);color:var(--ct-primary);
+  font-size:13px;font-family:var(--font-sans);
+  cursor:pointer;transition:all .15s;text-align:left;
+}
+.time-picker-btn:hover{border-color:var(--cbr-info);background:var(--cb-info)}
+.time-picker-btn.has-value{border-color:var(--cbr-info);color:var(--ct-info)}
+html.light .time-picker-btn{background:#fff;border-color:var(--cbr-tertiary)}
+
+/* ── Lightbox / PDF ── */
+/* ── LIGHTBOX ── */
+#lightbox{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.93);display:none;flex-direction:column;align-items:center;justify-content:center}
+#lightbox.open{display:flex}
+#lightbox-img{max-width:92vw;max-height:80vh;border-radius:8px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,0.6)}
+#lightbox-toolbar{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(to bottom,rgba(0,0,0,0.7),transparent);z-index:9999}
+#lightbox-title{font-size:13px;color:#fff;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-btn{background:rgba(255,255,255,0.12);border:0.5px solid rgba(255,255,255,0.2);border-radius:99px;color:#fff;cursor:pointer;font-size:11px;padding:5px 12px;display:flex;align-items:center;gap:5px;transition:all .15s;font-family:var(--font-sans)}
+.lb-btn:hover{background:rgba(255,255,255,0.22)}
+#lightbox-close{position:fixed;top:12px;right:14px;font-size:22px;color:#fff;cursor:pointer;background:none;border:none;line-height:1;padding:4px 8px;opacity:.8;z-index:9999}
+#lightbox-close:hover{opacity:1}
+/* ── Liste événements (sélection) ── */
+.ag-evt-panel{padding:12px 14px;border-top:0.5px solid var(--cbr-tertiary);flex-shrink:0;max-height:35vh;overflow-y:auto}
+.ag-evt-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--cb-secondary);border-radius:var(--br-md);border:0.5px solid var(--cbr-tertiary);margin-bottom:6px;position:relative}
+.ag-evt-bar{width:3px;border-radius:99px;align-self:stretch;flex-shrink:0;min-height:32px}
+.ag-evt-title{font-size:12px;font-weight:500;color:var(--ct-primary);margin-bottom:2px}
+.ag-evt-meta{font-size:10px;color:var(--ct-secondary)}
+.ag-evt-gcal{display:inline-flex;align-items:center;gap:3px;margin-top:5px;font-size:10px;padding:2px 7px;border-radius:99px;border:0.5px solid var(--cbr-info);color:var(--ct-info);background:var(--cb-info);cursor:pointer;text-decoration:none;transition:all .15s}
+.ag-evt-gcal:hover{background:var(--cbr-info);color:#fff}
+.ag-evt-del{position:absolute;top:6px;right:6px;background:none;border:none;cursor:pointer;color:var(--ct-tertiary);font-size:13px;padding:2px 4px;border-radius:3px}
+.ag-evt-del:hover{color:var(--ct-danger);background:var(--cb-danger)}
+/* ── FAB ── */
+.ag-fab{position:fixed;bottom:20px;right:18px;z-index:200;width:46px;height:46px;border-radius:50%;background:#378ADD;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(55,138,221,0.45);transition:all .15s}
+.ag-fab:hover{transform:scale(1.08)}
+/* ── Light mode ── */
+html.light .ag-month-cell.today{background:var(--cb-info)}
+html.light .ag-week-wrap,.html.light .ag-month-grid{border-color:var(--cbr-tertiary)}
+
+/* ── Couleur accent nav ── */
+.clock-ampm-btn{font-size:11px;padding:4px 12px;border-radius:99px;border:0.5px solid var(--cbr-tertiary);background:none;color:var(--ct-secondary);cursor:pointer;font-family:var(--font-sans);transition:all .15s}
+.clock-ampm-btn.active{background:var(--cb-info);color:var(--ct-info);border-color:var(--cbr-info)}
+
+/* ── FAB élève ── */
+#student-fab{
+  position:fixed;bottom:18px;right:18px;z-index:9000;
+  display:none;flex-direction:column;align-items:flex-end;gap:8px;
+}
+#student-fab-menu{
+  display:none;flex-direction:column;align-items:flex-end;gap:6px;
+  animation:fadeInUp .15s ease;
+}
+#student-fab-menu.open{display:flex}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.sfab-btn{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 16px;border-radius:99px;
+  border:0.5px solid var(--cbr-secondary);
+  background:rgba(15,20,32,0.88);
+  color:var(--ct-primary);
+  font-size:12px;font-family:var(--font-sans);
+  cursor:pointer;backdrop-filter:blur(10px);
+  transition:all .15s;white-space:nowrap;
+  box-shadow:0 2px 12px rgba(0,0,0,0.4);
+}
+.sfab-btn:hover{border-color:var(--cbr-info);background:rgba(30,42,64,0.95)}
+.sfab-btn.logout{color:var(--ct-danger);border-color:var(--cbr-danger)}
+.sfab-btn.logout:hover{background:var(--cb-danger)}
+html.light .sfab-btn{background:rgba(255,255,255,0.94);box-shadow:0 2px 12px rgba(100,120,160,0.18)}
+#student-fab-toggle{
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(15,20,32,0.88);
+  border:0.5px solid var(--cbr-secondary);
+  color:var(--ct-secondary);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(10px);
+  box-shadow:0 2px 12px rgba(0,0,0,0.35);
+  transition:all .15s;
+}
+#student-fab-toggle:hover{border-color:var(--cbr-info);color:var(--ct-info)}
+#student-fab-toggle.open{background:rgba(30,42,64,0.95);border-color:var(--cbr-info)}
+html.light #student-fab-toggle{background:rgba(255,255,255,0.94)}
+
+</style>
+
 <script>
+/* ════════════════════════════════════════════════════════════════
+   SAXOPHONE — Classes de Louis Dordain
+   ════════════════════════════════════════════════════════════════
+   §§ 1-14  Application principale (auth, arbre, HUD, partage…)
+   §15      Visionneuse PDF
+   §16      Agenda & espace de partage
+   §17      Lightbox image
+   §18      FAB élève · Suggestions · Retour Android
+   ════════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════════
+   §§ 1–14 — APPLICATION PRINCIPALE
+   Config · État global · Firebase · Auth · Navigation · Arbre
+   HUD · Partage · Outils · Compétences · Élèves · Examens · Exports
+   ════════════════════════════════════════════════════════════════ */
 /* ════════════════════════════════════════════════════════
    ██████  CONFIGURATION FIREBASE  ██████
    → Remplacez les valeurs ci-dessous par les vôtres
@@ -5087,113 +5486,10 @@ function _restoreSession(){
   }catch(e){}
   try{ sessionStorage.removeItem('sax_session'); }catch(e){}
 }
-</script>
 
-<!-- Modal Familles de compétences -->
-<div class="modal-overlay" id="modal-families" onclick="if(event.target===this)closeModal('modal-families')">
-  <div class="modal-box" style="max-width:440px">
-    <h3>Gérer les familles de compétences</h3>
-    <div id="family-list" style="margin-bottom:14px"></div>
-    <hr style="border:none;border-top:0.5px solid var(--cbr-tertiary);margin:10px 0">
-    <!-- Panneau édition / ajout d'une famille -->
-    <div id="family-edit-panel">
-      <h4 id="family-modal-title" style="font-size:13px;margin-bottom:10px;color:var(--ct-primary)">Nouvelle famille</h4>
-      <div style="display:flex;gap:8px;align-items:flex-end">
-        <div style="flex:1">
-          <div class="field-label">Nom</div>
-          <input type="text" id="family-label-inp" placeholder="ex: Rythme" style="margin-bottom:0">
-        </div>
-        <div>
-          <div class="field-label">Couleur</div>
-          <input type="color" id="family-color-inp" value="#60a5fa" style="width:44px;height:38px;padding:2px;margin-bottom:0;cursor:pointer">
-        </div>
-        <button class="btn btn-info" onclick="saveFamilyEdit()" style="margin-bottom:0;white-space:nowrap">Enregistrer</button>
-      </div>
-      <div style="display:flex;gap:6px;margin-top:8px">
-        <button class="btn btn-sm" onclick="cancelFamilyEdit()">Annuler</button>
-      </div>
-    </div>
-    <div class="modal-footer" style="margin-top:14px">
-      <button class="btn btn-info btn-sm" onclick="openAddFamilyPanel()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ajouter une famille</button>
-      <button class="btn" onclick="closeModal('modal-families')">Fermer</button>
-    </div>
-  </div>
-</div>
-<div class="modal-overlay" id="modal-interactions" onclick="if(event.target===this)closeModal('modal-interactions')">
-  <div class="modal-box" style="max-width:520px;max-height:88vh;overflow-y:auto">
-    <h3>Interactions élèves</h3>
-    <p style="margin-bottom:12px">Consultations des ressources par élève.</p>
-    <div id="modal-interactions-body"></div>
-    <div class="modal-footer" style="margin-top:14px">
-      <button class="btn" onclick="closeModal('modal-interactions')">Fermer</button>
-      <button class="btn btn-danger btn-sm" onclick="clearInteractions()">Réinitialiser</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══ ÉCRAN AGENDA ══ -->
-<div id="sc-agenda" style="position:fixed;inset:0;z-index:16;display:none;flex-direction:column;background:var(--body-bg)">
-<style>
-#sc-agenda.active{display:flex!important}
-/* ── Topbar ── */
-.ag-topbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:0.5px solid var(--cbr-tertiary);flex-shrink:0;background:var(--cb-primary)}
-/* ── Vues ── */
-.ag-view-seg{display:flex;gap:3px;background:var(--cb-secondary);border-radius:99px;padding:3px;border:0.5px solid var(--cbr-tertiary)}
-.ag-view-btn{font-size:11px;padding:4px 12px;border-radius:99px;border:none;background:none;color:var(--ct-secondary);cursor:pointer;font-family:var(--font-sans);transition:all .15s}
-.ag-view-btn.active{background:var(--cb-info);color:var(--ct-info)}
-/* ── Navigation mois/semaine/jour ── */
-.ag-nav{display:flex;align-items:center;gap:6px;padding:8px 14px;flex-shrink:0}
-.ag-nav-btn{background:none;border:0.5px solid var(--cbr-tertiary);border-radius:99px;color:var(--ct-secondary);cursor:pointer;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;flex-shrink:0}
-.ag-nav-btn:hover{border-color:var(--cbr-info);color:var(--ct-info)}
-.ag-period-label{font-size:13px;font-weight:600;color:var(--ct-primary);flex:1;text-align:center}
-.ag-today-btn{font-size:11px;padding:3px 10px;border-radius:99px;border:0.5px solid var(--cbr-tertiary);color:var(--ct-secondary);background:none;cursor:pointer;font-family:var(--font-sans);transition:all .15s}
-.ag-today-btn:hover{border-color:var(--cbr-info);color:var(--ct-info)}
-/* ── Corps scrollable ── */
-.ag-body{flex:1;overflow-y:auto;overflow-x:hidden}
-/* ── Vue MOIS ── */
-.ag-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-left:0.5px solid var(--cbr-tertiary);border-top:0.5px solid var(--cbr-tertiary);width:100%}
-.ag-month-daylabel{text-align:center;font-size:10px;color:var(--ct-tertiary);padding:5px 0;font-weight:600;border-right:0.5px solid var(--cbr-tertiary);border-bottom:0.5px solid var(--cbr-tertiary);background:var(--cb-primary)}
-.ag-month-cell{min-height:72px;border-right:0.5px solid var(--cbr-tertiary);border-bottom:0.5px solid var(--cbr-tertiary);padding:4px;cursor:pointer;transition:background .1s;position:relative;overflow:hidden;min-width:0}
-.ag-month-cell:hover{background:var(--cb-secondary)}
-.ag-month-cell.today{background:var(--cb-info)}
-.ag-month-cell.other-month .ag-month-num{opacity:.3}
-.ag-month-cell.selected{outline:2px solid var(--cbr-info);outline-offset:-2px}
-.ag-month-num{font-size:11px;font-weight:600;color:var(--ct-primary);text-align:right;margin-bottom:2px}
-.ag-month-chip{font-size:9px;padding:1px 5px;border-radius:3px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;margin-bottom:1px;line-height:1.4}
-.ag-month-more{font-size:9px;color:var(--ct-tertiary);padding-left:2px}
-/* ── Vue SEMAINE ── */
-.ag-week-wrap{display:grid;grid-template-columns:44px repeat(7,minmax(0,1fr));border-left:0.5px solid var(--cbr-tertiary);border-top:0.5px solid var(--cbr-tertiary);width:100%}
-.ag-week-daylabel{text-align:center;padding:5px 2px;border-right:0.5px solid var(--cbr-tertiary);border-bottom:0.5px solid var(--cbr-tertiary);font-size:10px;color:var(--ct-tertiary);font-weight:600;background:var(--cb-primary);cursor:pointer;transition:background .1s}
-.ag-week-daylabel:hover{background:var(--cb-secondary)}
-.ag-week-daylabel.today{background:var(--cb-info);color:var(--ct-info)}
-.ag-week-daylabel .ag-week-daynum{font-size:16px;font-weight:700;color:var(--ct-primary);display:block}
-.ag-week-daylabel.today .ag-week-daynum{color:var(--ct-info)}
-.ag-time-gutter{border-right:0.5px solid var(--cbr-tertiary)}
-.ag-time-slot{height:48px;border-bottom:0.5px solid var(--cbr-tertiary);font-size:9px;color:var(--ct-tertiary);padding:2px 4px 0;text-align:right;font-family:var(--font-mono)}
-.ag-week-col{border-right:0.5px solid var(--cbr-tertiary);position:relative;cursor:pointer;transition:background .1s}
-.ag-week-col:hover{background:rgba(55,138,221,0.04)}
-.ag-week-col.today-col{background:rgba(55,138,221,0.04)}
-.ag-week-event{position:absolute;left:2px;right:2px;border-radius:4px;padding:2px 4px;font-size:10px;color:#fff;overflow:hidden;cursor:pointer;z-index:2;line-height:1.3}
-.ag-week-event:hover{filter:brightness(1.15)}
-/* ── Vue JOUR ── */
-.ag-day-wrap{display:grid;grid-template-columns:44px 1fr;border-left:0.5px solid var(--cbr-tertiary);border-top:0.5px solid var(--cbr-tertiary)}
-.ag-day-event{position:absolute;left:4px;right:4px;border-radius:6px;padding:4px 6px;font-size:11px;color:#fff;overflow:hidden;cursor:pointer;z-index:2}
-.ag-day-event:hover{filter:brightness(1.12)}
-
-/* ── Bouton sélecteur d'heure ── */
-.time-picker-btn{
-  width:100%;display:flex;align-items:center;gap:6px;
-  padding:8px 10px;border-radius:var(--br-md);
-  border:0.5px solid var(--cbr-tertiary);
-  background:var(--cb-secondary);color:var(--ct-primary);
-  font-size:13px;font-family:var(--font-sans);
-  cursor:pointer;transition:all .15s;text-align:left;
-}
-.time-picker-btn:hover{border-color:var(--cbr-info);background:var(--cb-info)}
-.time-picker-btn.has-value{border-color:var(--cbr-info);color:var(--ct-info)}
-html.light .time-picker-btn{background:#fff;border-color:var(--cbr-tertiary)}
-</style>
-<script>
+/* ════════════════════════════════════════════════════════════════
+   §15 — VISIONNEUSE PDF
+   ════════════════════════════════════════════════════════════════ */
 /* ── VISIONNEUSE PDF ── */
 function openPdfViewer(title, dataUrl){
   var modal = document.getElementById('modal-pdf-viewer');
@@ -5224,189 +5520,10 @@ function openPdfViewerById(tileId, title){
   boardColumns.forEach(function(col){ (col.tiles||[]).forEach(function(t){ if(t.id===tileId) src=(t.imgData||t.url||''); }); });
   if(src) openPdfViewer(title||'Document', src);
 }
-</script>
-<style>
-/* ── LIGHTBOX ── */
-#lightbox{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.93);display:none;flex-direction:column;align-items:center;justify-content:center}
-#lightbox.open{display:flex}
-#lightbox-img{max-width:92vw;max-height:80vh;border-radius:8px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,0.6)}
-#lightbox-toolbar{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(to bottom,rgba(0,0,0,0.7),transparent);z-index:9999}
-#lightbox-title{font-size:13px;color:#fff;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lb-btn{background:rgba(255,255,255,0.12);border:0.5px solid rgba(255,255,255,0.2);border-radius:99px;color:#fff;cursor:pointer;font-size:11px;padding:5px 12px;display:flex;align-items:center;gap:5px;transition:all .15s;font-family:var(--font-sans)}
-.lb-btn:hover{background:rgba(255,255,255,0.22)}
-#lightbox-close{position:fixed;top:12px;right:14px;font-size:22px;color:#fff;cursor:pointer;background:none;border:none;line-height:1;padding:4px 8px;opacity:.8;z-index:9999}
-#lightbox-close:hover{opacity:1}
-/* ── Liste événements (sélection) ── */
-.ag-evt-panel{padding:12px 14px;border-top:0.5px solid var(--cbr-tertiary);flex-shrink:0;max-height:35vh;overflow-y:auto}
-.ag-evt-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--cb-secondary);border-radius:var(--br-md);border:0.5px solid var(--cbr-tertiary);margin-bottom:6px;position:relative}
-.ag-evt-bar{width:3px;border-radius:99px;align-self:stretch;flex-shrink:0;min-height:32px}
-.ag-evt-title{font-size:12px;font-weight:500;color:var(--ct-primary);margin-bottom:2px}
-.ag-evt-meta{font-size:10px;color:var(--ct-secondary)}
-.ag-evt-gcal{display:inline-flex;align-items:center;gap:3px;margin-top:5px;font-size:10px;padding:2px 7px;border-radius:99px;border:0.5px solid var(--cbr-info);color:var(--ct-info);background:var(--cb-info);cursor:pointer;text-decoration:none;transition:all .15s}
-.ag-evt-gcal:hover{background:var(--cbr-info);color:#fff}
-.ag-evt-del{position:absolute;top:6px;right:6px;background:none;border:none;cursor:pointer;color:var(--ct-tertiary);font-size:13px;padding:2px 4px;border-radius:3px}
-.ag-evt-del:hover{color:var(--ct-danger);background:var(--cb-danger)}
-/* ── FAB ── */
-.ag-fab{position:fixed;bottom:20px;right:18px;z-index:200;width:46px;height:46px;border-radius:50%;background:#378ADD;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(55,138,221,0.45);transition:all .15s}
-.ag-fab:hover{transform:scale(1.08)}
-/* ── Light mode ── */
-html.light .ag-month-cell.today{background:var(--cb-info)}
-html.light .ag-week-wrap,.html.light .ag-month-grid{border-color:var(--cbr-tertiary)}
-</style>
 
-  <!-- Topbar -->
-  <div class="ag-topbar">
-    <button class="btn btn-sm" onclick="closeAgenda()" style="flex-shrink:0">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Retour
-    </button>
-    <span style="font-size:15px;font-weight:600;color:var(--ct-primary);flex:1;text-align:center">Agenda</span>
-    <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-    <button class="btn btn-sm btn-info ag-sync-btn" onclick="openAgSync()" title="Synchroniser avec Google Agenda" style="display:flex;align-items:center;gap:5px">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
-      <span class="ag-sync-label">Sync</span>
-    </button>
-    <div class="ag-view-seg">
-      <button class="ag-view-btn active" id="ag-btn-month" onclick="setAgView('month')"><span class="ag-view-label">Mois</span><span class="ag-view-icon" style="display:none">M</span></button>
-      <button class="ag-view-btn" id="ag-btn-week" onclick="setAgView('week')"><span class="ag-view-label">Semaine</span><span class="ag-view-icon" style="display:none">S</span></button>
-      <button class="ag-view-btn" id="ag-btn-day" onclick="setAgView('day')"><span class="ag-view-label">Jour</span><span class="ag-view-icon" style="display:none">J</span></button>
-    </div>
-    </div>
-  </div>
-
-  <!-- Navigation -->
-  <div class="ag-nav">
-    <button class="ag-nav-btn" onclick="agNav(-1)">&#8249;</button>
-    <button class="ag-today-btn" onclick="agGoToday()">Aujourd'hui</button>
-    <div class="ag-period-label" id="ag-period-label"></div>
-    <button class="ag-nav-btn" onclick="agNav(1)">&#8250;</button>
-  </div>
-
-  <!-- Corps -->
-  <div class="ag-body" id="ag-body"></div>
-  <!-- Panneau événements sélectionnés -->
-  <div class="ag-evt-panel" id="ag-evt-panel" style="display:none">
-    <div style="font-size:11px;font-weight:600;color:var(--ct-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px" id="ag-evt-panel-title"></div>
-    <div id="ag-evt-list"></div>
-  </div>
-
-  <!-- FAB -->
-  <button class="ag-fab" id="ag-fab" onclick="openAddEvtModal()" title="Ajouter" style="display:none">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  </button>
-</div>
-
-<!-- ══ MODAL HORLOGE 24H (style Google Agenda) ══ -->
-<div class="modal-overlay" id="modal-clock" style="z-index:200" onclick="if(event.target===this)closeClock()">
-<div class="modal-box" style="max-width:320px;padding:20px;text-align:center">
-  <div style="font-size:12px;font-weight:600;color:var(--ct-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px" id="clock-label">Heure de début</div>
-
-  <!-- Affichage digital -->
-  <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:14px">
-    <span id="clock-h-display" style="font-size:44px;font-weight:700;font-family:var(--font-mono);color:var(--ct-info);cursor:pointer;padding:4px 10px;border-radius:10px;background:var(--cb-info)" onclick="switchClockMode('h')">0</span>
-    <span style="font-size:36px;font-weight:300;color:var(--ct-secondary)">:</span>
-    <span id="clock-m-display" style="font-size:44px;font-weight:700;font-family:var(--font-mono);color:var(--ct-secondary);cursor:pointer;padding:4px 10px;border-radius:10px" onclick="switchClockMode('m')">00</span>
-  </div>
-
-  <!-- Sélecteur de cercle heures/minutes -->
-  <div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px">
-    <button id="clock-btn-h" class="clock-ampm-btn active" onclick="switchClockMode('h')">Heures</button>
-    <button id="clock-btn-m" class="clock-ampm-btn" onclick="switchClockMode('m')">Minutes</button>
-  </div>
-
-  <!-- Cadran 24h (double cercle) -->
-  <div style="position:relative;width:240px;height:240px;margin:0 auto 14px">
-    <svg id="clock-svg" width="240" height="240" style="cursor:pointer;display:block"
-      onmousedown="clockDragStart(event)" onmousemove="clockDragMove(event)" onmouseup="clockDragEnd(event)"
-      ontouchstart="clockDragStart(event)" ontouchmove="clockDragMove(event)" ontouchend="clockDragEnd(event)">
-      <circle cx="120" cy="120" r="118" fill="var(--cb-secondary)" stroke="var(--cbr-tertiary)" stroke-width="0.5"/>
-      <g id="clock-ticks"></g>
-      <line id="clock-hand" x1="120" y1="120" x2="120" y2="30" stroke="var(--ct-info)" stroke-width="2" stroke-linecap="round"/>
-      <circle cx="120" cy="120" r="4" fill="var(--ct-info)"/>
-      <circle id="clock-selector" cx="120" cy="30" r="14" fill="var(--ct-info)" opacity="0.9"/>
-      <text id="clock-selector-txt" x="120" y="35" text-anchor="middle" font-size="12" font-weight="600" fill="white">0</text>
-    </svg>
-  </div>
-
-  <div class="modal-footer">
-    <button class="btn" onclick="closeClock()">Annuler</button>
-    <button class="btn btn-info" onclick="confirmClock()">OK</button>
-  </div>
-</div>
-</div>
-
-<style>
-.clock-ampm-btn{font-size:11px;padding:4px 12px;border-radius:99px;border:0.5px solid var(--cbr-tertiary);background:none;color:var(--ct-secondary);cursor:pointer;font-family:var(--font-sans);transition:all .15s}
-.clock-ampm-btn.active{background:var(--cb-info);color:var(--ct-info);border-color:var(--cbr-info)}
-</style>
-
-<!-- ══ MODAL AJOUT ÉVÉNEMENT ══ -->
-<div class="modal-overlay" id="modal-evt">
-  <div class="modal-box" style="max-width:440px;max-height:90vh;overflow-y:auto">
-    <h3 id="evt-modal-title">Ajouter un événement</h3>
-
-    <!-- Type avec couleur -->
-    <div class="field-label">Type</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">
-      <button class="btn evt-type-btn" id="etyp-cours"   data-type="cours"   onclick="selectEvtType(this)" style="flex-direction:column;gap:3px;padding:8px 4px;font-size:11px">
-        <span style="font-size:18px">🎵</span>Cours
-        <span style="width:18px;height:4px;border-radius:99px;background:#378ADD;margin-top:2px"></span>
-      </button>
-      <button class="btn evt-type-btn" id="etyp-examen"  data-type="examen"  onclick="selectEvtType(this)" style="flex-direction:column;gap:3px;padding:8px 4px;font-size:11px">
-        <span style="font-size:18px">🎓</span>Examen
-        <span style="width:18px;height:4px;border-radius:99px;background:#EF9F27;margin-top:2px"></span>
-      </button>
-      <button class="btn evt-type-btn" id="etyp-concert" data-type="concert" onclick="selectEvtType(this)" style="flex-direction:column;gap:3px;padding:8px 4px;font-size:11px">
-        <span style="font-size:18px">🎤</span>Concert
-        <span style="width:18px;height:4px;border-radius:99px;background:#7F77DD;margin-top:2px"></span>
-      </button>
-    </div>
-
-    <div class="field-label">Titre</div>
-    <input type="text" id="evt-title" placeholder="ex: Cours de saxophone">
-
-    <div class="field-label">Date</div>
-    <input type="date" id="evt-date">
-
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <div style="flex:1">
-        <div class="field-label">Heure de début</div>
-        <button type="button" class="time-picker-btn" id="btn-time-start" onclick="openClock('start')">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <span id="lbl-time-start">Choisir</span>
-        </button>
-        <input type="hidden" id="evt-time-start">
-      </div>
-      <div style="flex:1">
-        <div class="field-label">Heure de fin</div>
-        <button type="button" class="time-picker-btn" id="btn-time-end" onclick="openClock('end')">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <span id="lbl-time-end">Choisir</span>
-        </button>
-        <input type="hidden" id="evt-time-end">
-      </div>
-    </div>
-
-    <div class="field-label">Lieu <span style="opacity:.5;font-weight:400">(optionnel)</span></div>
-    <input type="text" id="evt-lieu" placeholder="ex: Conservatoire de musique, Salle 3">
-
-    <div class="field-label">Note <span style="opacity:.5;font-weight:400">(optionnel)</span></div>
-    <textarea id="evt-note" rows="2" placeholder="Informations complémentaires..."></textarea>
-
-    <div class="err" id="evt-err">Titre et date requis</div>
-    <div class="modal-footer" style="justify-content:space-between">
-      <button class="btn btn-danger btn-sm" id="evt-del-btn" onclick="_deleteEditingEvt()" style="display:none;flex-direction:row;align-items:center;justify-content:center;gap:5px">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-        Supprimer
-      </button>
-      <div style="display:flex;gap:6px;margin-left:auto">
-        <button class="btn" onclick="closeModal('modal-evt')">Annuler</button>
-        <button class="btn btn-info" onclick="confirmAddEvt()">Enregistrer</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
+/* ════════════════════════════════════════════════════════════════
+   §16 — AGENDA · HORLOGE · ESPACE DE PARTAGE (board)
+   ════════════════════════════════════════════════════════════════ */
 /* ══════════════════════════════════════════════
    AGENDA — Vue Mois / Semaine / Jour
 ══════════════════════════════════════════════ */
@@ -6378,30 +6495,10 @@ function _icsEscape(s){
   return String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
 }
 
-</script>
 
-
-
-<!-- ══ LIGHTBOX PLEIN ÉCRAN ══ -->
-<div id="lightbox">
-  <div id="lightbox-toolbar">
-    <div id="lightbox-title"></div>
-    <div style="display:flex;gap:6px">
-      <button class="lb-btn" id="lb-dl-btn" onclick="_lbDownload()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Télécharger
-      </button>
-      <button class="lb-btn" id="lb-print-btn" onclick="_lbPrint()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        Imprimer
-      </button>
-    </div>
-  </div>
-  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
-  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
-</div>
-
-<script>
+/* ════════════════════════════════════════════════════════════════
+   §17 — LIGHTBOX IMAGE
+   ════════════════════════════════════════════════════════════════ */
 var _lbSrc = '', _lbName = '';
 
 function openLightbox(src, name){
@@ -6431,76 +6528,10 @@ function _lbPrint(){
   w.document.write('<html><body style="margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="'+_lbSrc+'" style="max-width:100%;max-height:100vh" onload="window.print();window.close()"></body></html>');
   w.document.close();
 }
-</script>
 
-
-<!-- ══ MENU FLOTTANT ÉLÈVE ══ -->
-<style>
-#student-fab{
-  position:fixed;bottom:18px;right:18px;z-index:9000;
-  display:none;flex-direction:column;align-items:flex-end;gap:8px;
-}
-#student-fab-menu{
-  display:none;flex-direction:column;align-items:flex-end;gap:6px;
-  animation:fadeInUp .15s ease;
-}
-#student-fab-menu.open{display:flex}
-@keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.sfab-btn{
-  display:flex;align-items:center;gap:8px;
-  padding:9px 16px;border-radius:99px;
-  border:0.5px solid var(--cbr-secondary);
-  background:rgba(15,20,32,0.88);
-  color:var(--ct-primary);
-  font-size:12px;font-family:var(--font-sans);
-  cursor:pointer;backdrop-filter:blur(10px);
-  transition:all .15s;white-space:nowrap;
-  box-shadow:0 2px 12px rgba(0,0,0,0.4);
-}
-.sfab-btn:hover{border-color:var(--cbr-info);background:rgba(30,42,64,0.95)}
-.sfab-btn.logout{color:var(--ct-danger);border-color:var(--cbr-danger)}
-.sfab-btn.logout:hover{background:var(--cb-danger)}
-html.light .sfab-btn{background:rgba(255,255,255,0.94);box-shadow:0 2px 12px rgba(100,120,160,0.18)}
-#student-fab-toggle{
-  width:44px;height:44px;border-radius:50%;
-  background:rgba(15,20,32,0.88);
-  border:0.5px solid var(--cbr-secondary);
-  color:var(--ct-secondary);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  backdrop-filter:blur(10px);
-  box-shadow:0 2px 12px rgba(0,0,0,0.35);
-  transition:all .15s;
-}
-#student-fab-toggle:hover{border-color:var(--cbr-info);color:var(--ct-info)}
-#student-fab-toggle.open{background:rgba(30,42,64,0.95);border-color:var(--cbr-info)}
-html.light #student-fab-toggle{background:rgba(255,255,255,0.94)}
-</style>
-
-<div id="student-fab">
-  <div id="student-fab-menu">
-    <!-- Suggérer une ressource (board ouvert uniquement) -->
-    <button class="sfab-btn" id="sfab-suggest-btn" onclick="_sfabSuggest()" style="display:none">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      Suggérer une ressource
-    </button>
-    <!-- Thème -->
-    <button class="sfab-btn" onclick="_sfabTheme()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-      <span id="sfab-theme-label">Mode clair</span>
-    </button>
-    <!-- Déconnexion -->
-    <button class="sfab-btn logout" onclick="_sfabLogout()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Déconnexion
-    </button>
-  </div>
-  <!-- Bouton principal -->
-  <button id="student-fab-toggle" onclick="_sfabToggle()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-  </button>
-</div>
-
-<script>
+/* ════════════════════════════════════════════════════════════════
+   §18 — MENU FLOTTANT ÉLÈVE (FAB) · SUGGESTIONS · RETOUR ANDROID
+   ════════════════════════════════════════════════════════════════ */
 
 /* ══ SUGGESTIONS ÉLÈVES (Padlet) ══ */
 var _suggestions = [];
@@ -6793,19 +6824,15 @@ function _showExitToast(){
     history.pushState({app:true},'','');
   }
 
-  // Pousser l'état initial immédiatement
+  // Deux entrées initiales : replaceState (ancre) + pushState (buffer)
+  // Sans ce pushState, Android ferme l'app au premier appui sans déclencher popstate
   history.replaceState({app:true},'','');
+  history.pushState({app:true},'',''); // entrée tampon
 
   // Intercepter le retour
   window.addEventListener('popstate',function(e){
-    // Toujours repousser un état pour rester dans l'historique
     _appBack();
   });
-
-  // Pousser un état à chaque changement d'écran significatif
-  // On ne wrappe plus window.show ici car _sfabOrigShow le fait déjà —
-  // le pushState est intégré directement dans _appBack() via popstate.
-  // L'état initial est replacé au chargement.
 })();
 
 // Fermer le menu si on clique ailleurs
@@ -6813,7 +6840,7 @@ document.addEventListener('click', function(e){
   var fab = document.getElementById('student-fab');
   if(_sfabOpen && fab && !fab.contains(e.target)) _sfabClose();
 });
-</script>
 
+</script>
 </body>
 </html>
