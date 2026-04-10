@@ -783,7 +783,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
         <div style="font-size:10px;color:var(--ct-tertiary);margin-bottom:10px">Ton choix est mémorisé sur cet appareil.</div>
       </div>
       <input type="text" id="login-code-eleve" placeholder="Prénom Nom" style="text-align:center;font-size:15px" onkeydown="if(event.keyCode===13)document.getElementById('login-pwd-eleve').focus()">
-      <div class="pwd-wrap"><input type="password" id="login-pwd-eleve" placeholder="Mot de passe" style="text-align:center;font-size:14px;letter-spacing:1px;width:100%" oninput="peekLastChar('login-pwd-eleve')" onkeydown="if(event.key==='Enter')doLoginEleve()" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"><button type="button" class="pwd-eye" onmousedown="showPwd('login-pwd-eleve')" onmouseup="hidePwd('login-pwd-eleve')" onmouseleave="hidePwd('login-pwd-eleve')" ontouchstart="showPwd('login-pwd-eleve')" ontouchend="hidePwd('login-pwd-eleve')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+      <div class="pwd-wrap"><input type="password" id="login-pwd-eleve" placeholder="Mot de passe" style="text-align:center;font-size:14px;letter-spacing:1px;width:100%" onkeydown="if(event.key==='Enter')doLoginEleve()" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"><button type="button" class="pwd-eye" onmousedown="showPwd('login-pwd-eleve')" onmouseup="hidePwd('login-pwd-eleve')" onmouseleave="hidePwd('login-pwd-eleve')" ontouchstart="showPwd('login-pwd-eleve')" ontouchend="hidePwd('login-pwd-eleve')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
       <div style="font-size:10px;color:var(--ct-tertiary);margin-bottom:10px;margin-top:-6px">Mot de passe par défaut : initiale + nom (ex: <em>ldurand</em>)</div>
       <div class="err" id="login-err-eleve">Prénom / nom ou mot de passe incorrect</div>
       <button class="btn btn-info" style="width:100%;padding:9px;text-align:center" onclick="doLoginEleve()">Entrer</button>
@@ -792,7 +792,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     <!-- Étape 2 prof : code uniquement -->
     <div id="login-step2-prof" style="display:none;background:var(--cb-primary);border:0.5px solid var(--cbr-tertiary);border-radius:var(--br-lg);padding:16px">
       <button onclick="backToStep1()" style="background:none;border:none;color:var(--ct-tertiary);cursor:pointer;font-size:12px;margin-bottom:10px;padding:0;display:flex;align-items:center;gap:4px;font-family:var(--font-sans)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Retour</button>
-      <div class="pwd-wrap"><input type="password" id="login-code-prof" placeholder="Code professeur" style="text-align:center;font-size:15px;letter-spacing:3px;width:100%" oninput="peekLastChar('login-code-prof')" onkeydown="if(event.key==='Enter')doLoginProf()" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"><button type="button" class="pwd-eye" onmousedown="showPwd('login-code-prof')" onmouseup="hidePwd('login-code-prof')" onmouseleave="hidePwd('login-code-prof')" ontouchstart="showPwd('login-code-prof')" ontouchend="hidePwd('login-code-prof')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+      <div class="pwd-wrap"><input type="password" id="login-code-prof" placeholder="Code professeur" style="text-align:center;font-size:15px;letter-spacing:3px;width:100%" onkeydown="if(event.key==='Enter')doLoginProf()" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"><button type="button" class="pwd-eye" onmousedown="showPwd('login-code-prof')" onmouseup="hidePwd('login-code-prof')" onmouseleave="hidePwd('login-code-prof')" ontouchstart="showPwd('login-code-prof')" ontouchend="hidePwd('login-code-prof')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
       <div class="err" id="login-err-prof">Code incorrect</div>
       <button class="btn btn-warn" style="width:100%;padding:9px;text-align:center" onclick="doLoginProf()">Entrer</button>
     </div>
@@ -3731,11 +3731,20 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
     if(tile.type==='image'&&(tile.imgData||tile.url)){
       const imgSrc=tile.imgData||tile.url;
       if(_isPdfTile){
-        previewHtml=`<div style="position:relative;overflow:hidden;height:110px;cursor:pointer;border-bottom:0.5px solid var(--cbr-tertiary)" onclick="event.stopPropagation();openPdfViewerById('${tile.id}','${(tile.title||'Document').replace(/'/g,"\\'")}');trackInteraction('${tile.id}')">
-          <iframe src="${imgSrc}#toolbar=0&navpanes=0&scrollbar=0&view=FitH" style="width:100%;height:350px;border:none;pointer-events:none;transform-origin:top left;transform:scale(0.4);width:250%;height:900px;" loading="lazy"></iframe>
-          <div style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-end;padding:6px;background:linear-gradient(to top,rgba(0,0,0,0.5) 0%,transparent 60%)">
-            <span style="font-size:9px;padding:2px 6px;border-radius:99px;background:rgba(96,165,250,0.9);color:#fff;font-weight:500">PDF · Cliquer pour ouvrir</span>
-          </div></div>`;
+        // Sur Android, les iframes PDF sont cassées → placeholder cliquable
+        const _isAndroid = /android/i.test(navigator.userAgent);
+        if(_isAndroid){
+          previewHtml=`<div style="position:relative;overflow:hidden;height:110px;cursor:pointer;border-bottom:0.5px solid var(--cbr-tertiary);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--cb-secondary)" onclick="event.stopPropagation();openPdfViewerById('${tile.id}','${(tile.title||'Document').replace(/'/g,"\\'")}');trackInteraction('${tile.id}')">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ct-danger)" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span style="font-size:10px;color:var(--ct-secondary)">Appuyer pour ouvrir le PDF</span>
+          </div>`;
+        } else {
+          previewHtml=`<div style="position:relative;overflow:hidden;height:110px;cursor:pointer;border-bottom:0.5px solid var(--cbr-tertiary)" onclick="event.stopPropagation();openPdfViewerById('${tile.id}','${(tile.title||'Document').replace(/'/g,"\\'")}');trackInteraction('${tile.id}')">
+            <iframe src="${imgSrc}#toolbar=0&navpanes=0&scrollbar=0&view=FitH" style="width:250%;height:900px;border:none;pointer-events:none;transform-origin:top left;transform:scale(0.4);" loading="lazy"></iframe>
+            <div style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-end;padding:6px;background:linear-gradient(to top,rgba(0,0,0,0.5) 0%,transparent 60%)">
+              <span style="font-size:9px;padding:2px 6px;border-radius:99px;background:rgba(96,165,250,0.9);color:#fff;font-weight:500">PDF · Cliquer pour ouvrir</span>
+            </div></div>`;
+        }
       } else {
         previewHtml=`<img class="tile-preview" src="${imgSrc}" draggable="false" style="cursor:zoom-in" onclick="event.stopPropagation();openTilePreview(this.src,'${(tile.title||'image').replace(/'/g,"\\'")}','image');trackInteraction('${tile.id}')" onerror="this.style.display='none'">`;
       }
@@ -5495,45 +5504,45 @@ function _restoreSession(){
    ════════════════════════════════════════════════════════════════ */
 /* ── VISIONNEUSE PDF ── */
 function openPdfViewer(title, dataUrl){
-  // Sur Android, les iframes PDF ne fonctionnent pas.
-  // On convertit en Blob URL et on ouvre l'app PDF native via window.open().
   var isAndroid = /android/i.test(navigator.userAgent);
-  var isDataUrl = dataUrl && dataUrl.startsWith('data:');
 
-  if(isAndroid || isDataUrl){
-    // Blob URL → déclenche l'appli PDF native (ou le téléchargement)
+  if(isAndroid){
+    // Android : convertir en Blob URL et ouvrir (déclenche le lecteur PDF natif)
     try{
-      var byteString, mimeString;
-      if(isDataUrl){
-        var arr = dataUrl.split(',');
-        mimeString = arr[0].match(/:(.*?);/)[1];
-        byteString = atob(arr[1]);
-        var byteArray = new Uint8Array(byteString.length);
-        for(var i=0;i<byteString.length;i++) byteArray[i]=byteString.charCodeAt(i);
-        var blob = new Blob([byteArray], {type: mimeString});
+      var blob;
+      if(dataUrl.startsWith('data:')){
+        var parts = dataUrl.split(',');
+        var mime  = parts[0].match(/:(.*?);/)[1];
+        var bin   = atob(parts[1]);
+        var arr   = new Uint8Array(bin.length);
+        for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+        blob = new Blob([arr], {type: mime});
       } else {
-        // URL distante : on fetch puis blob
-        fetch(dataUrl).then(function(r){return r.blob();}).then(function(blob){
-          var blobUrl = URL.createObjectURL(blob);
-          var a = document.createElement('a');
-          a.href = blobUrl; a.target='_blank'; a.rel='noopener';
-          a.download = title+'.pdf';
-          document.body.appendChild(a); a.click();
-          setTimeout(function(){a.remove(); URL.revokeObjectURL(blobUrl);}, 3000);
-        });
+        // URL distante → fetch puis blob
+        fetch(dataUrl)
+          .then(function(r){ return r.blob(); })
+          .then(function(b){
+            var burl = URL.createObjectURL(b);
+            var w = window.open(burl, '_blank');
+            if(!w){ location.href = burl; }
+            setTimeout(function(){ URL.revokeObjectURL(burl); }, 10000);
+          });
         return;
       }
       var blobUrl = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = blobUrl; a.target='_blank'; a.rel='noopener';
-      a.download = title+'.pdf';
-      document.body.appendChild(a); a.click();
-      setTimeout(function(){a.remove(); URL.revokeObjectURL(blobUrl);}, 3000);
-      return;
-    }catch(e){ /* fallback : viewer iframe */ }
+      // Ouvrir sans attribut download → lecteur PDF natif
+      var w = window.open(blobUrl, '_blank');
+      if(!w){ location.href = blobUrl; } // fallback si popup bloquée
+      setTimeout(function(){ URL.revokeObjectURL(blobUrl); }, 10000);
+    }catch(e){
+      // Dernier recours : lien direct
+      var a=document.createElement('a'); a.href=dataUrl; a.target='_blank'; a.rel='noopener';
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+    return;
   }
 
-  // Desktop / iOS Safari : viewer iframe inline
+  // Desktop / iOS : viewer iframe inline
   var modal = document.getElementById('modal-pdf-viewer');
   if(!modal){
     modal = document.createElement('div');
