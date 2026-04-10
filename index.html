@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Saxophone">
+<meta name="apple-mobile-web-app-title" content="Saxophone 🎷">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#090c16">
-<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Saxophone&quot;,&quot;short_name&quot;:&quot;Saxophone&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%23090c16&quot;,&quot;theme_color&quot;:&quot;%23090c16&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%B7%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
+<meta name="theme-color" content="#090c16" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eaeef8" media="(prefers-color-scheme: light)">
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Classes de Louis Dordain&quot;,&quot;short_name&quot;:&quot;Saxophone&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;orientation&quot;:&quot;portrait&quot;,&quot;background_color&quot;:&quot;%23090c16&quot;,&quot;theme_color&quot;:&quot;%23090c16&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%B7%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;,&quot;purpose&quot;:&quot;any maskable&quot;}]}">
 <title>Classes de Louis Dordain — Saxophone 🎷 (En ligne)</title>
 <!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -192,10 +193,10 @@ canvas{display:block;width:100%;height:100%;cursor:default;position:absolute;ins
 .hud-topbar>*{pointer-events:auto}
 
 /* HUD barre bas : légende */
-.hud-botbar{position:absolute;bottom:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:center;gap:16px;padding:24px 14px 12px;
-  background:linear-gradient(to top,rgba(6,9,20,0.88) 0%,rgba(6,9,20,0.55) 50%,transparent 100%);
+.hud-botbar{position:absolute;bottom:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:center;gap:16px;padding:80px 14px 12px;
+  background:linear-gradient(to top,rgba(6,9,20,0.97) 0%,rgba(6,9,20,0.85) 35%,rgba(6,9,20,0.4) 65%,transparent 100%);
   pointer-events:none}
-html.light .hud-botbar{background:linear-gradient(to top,rgba(242,245,255,0.95) 0%,rgba(242,245,255,0.6) 50%,transparent 100%)}
+html.light .hud-botbar{background:linear-gradient(to top,rgba(242,245,255,0.99) 0%,rgba(242,245,255,0.88) 35%,rgba(242,245,255,0.5) 65%,transparent 100%)}
 
 /* HUD profil gauche (bas-gauche) */
 .hud-profile{position:absolute;bottom:36px;left:14px;z-index:20;display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:200px}
@@ -1156,7 +1157,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
 </div>
 
 <!-- Bouton Recentrer — centré en bas, visible seulement si vue déplacée -->
-<button id="btn-recenter-tree" onclick="_treeResetView();_updateRecenterBtn();" style="display:none;position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 80px);left:50%;transform:translateX(-50%);z-index:27;pointer-events:auto;align-items:center;gap:7px;padding:7px 20px;border-radius:99px;border:0.5px solid rgba(55,138,221,0.55);background:rgba(6,9,20,0.82);color:rgba(138,154,184,0.9);font-size:12px;font-family:var(--font-sans);cursor:pointer;backdrop-filter:blur(6px);transition:opacity .2s;letter-spacing:.3px">
+<button id="btn-recenter-tree" onclick="_treeResetView();_updateRecenterBtn();" style="display:none;position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 110px);left:50%;transform:translateX(-50%);z-index:27;pointer-events:auto;align-items:center;gap:7px;padding:7px 20px;border-radius:99px;border:0.5px solid rgba(55,138,221,0.55);background:rgba(6,9,20,0.82);color:rgba(138,154,184,0.9);font-size:12px;font-family:var(--font-sans);cursor:pointer;backdrop-filter:blur(6px);transition:opacity .2s;letter-spacing:.3px">
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
   Recentrer
 </button>
@@ -1327,11 +1328,13 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
       <div id="board-main-title" class="board-header-title" style="flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Espace de partage</div>
       <!-- Actions prof : icônes de même taille, serrées à droite -->
       <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;min-width:56px;justify-content:flex-end">
-        <button class="btn btn-sm" onclick="openSuggestionsPanel()" id="btn-suggestions" style="display:none;width:30px;height:30px;padding:0;position:relative;justify-content:center" title="Suggestions">
+        <button class="btn btn-sm" onclick="openSuggestionsPanel()" id="btn-suggestions" style="display:none;width:30px;height:30px;padding:0;position:relative;align-items:center;justify-content:center" title="Suggestions">
           <span id="suggestions-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#f87171;color:#fff;border-radius:99px;padding:0 4px;font-size:9px;font-weight:700;min-width:14px;text-align:center"></span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         </button>
-        <button class="btn btn-sm" id="btn-board-interactions" onclick="openInteractionsModal()" style="display:none;width:30px;height:30px;padding:0;justify-content:center" title="Interactions"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button class="btn btn-sm" id="btn-board-interactions" onclick="openInteractionsModal()" style="display:none;width:30px;height:30px;padding:0;align-items:center;justify-content:center" title="Interactions">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
       </div>
     </div>
     <div class="board-columns-wrap">
@@ -2383,9 +2386,9 @@ function toggleEditMode(){
     document.getElementById('hud-topbar').style.display='flex';
     const hl=document.getElementById('hud-layer-global');if(hl)hl.style.display='block';
     const hb=document.getElementById('hud-botbar');if(hb)hb.style.display='flex';
-    const rb=document.getElementById('btn-recenter-tree');if(rb)rb.style.display='flex';
     document.getElementById('hud-ctabs').style.display='flex';
     document.getElementById('hud-profile').style.display='flex';
+    _updateRecenterBtn();
   }
 }
 function saveAndBack(){saveLocal();toggleEditMode();updateProfileBar()}
@@ -2429,8 +2432,8 @@ function renderTreeScreen(){
   document.getElementById('hud-topbar').style.display='flex';
   const _hl=document.getElementById('hud-layer-global');if(_hl)_hl.style.display='block';
   const _hb=document.getElementById('hud-botbar');if(_hb)_hb.style.display='flex';
-  const _rb=document.getElementById('btn-recenter-tree');if(_rb)_rb.style.display='flex';
   document.getElementById('hud-profile').style.display='flex';
+  _updateRecenterBtn();
 
   const tabs=document.getElementById('hud-ctabs');tabs.innerHTML='';
   for(let c=1;c<=3;c++){
@@ -3618,11 +3621,12 @@ function escHtml(s){
    ═══════════════════════════════════════════════════════ */
 function openBoard(isProf){
   boardIsProfMode=!!isProf;
-  document.getElementById('board-subtitle').textContent=isProf?'Gérer les ressources partagées':'Ressources de votre professeur';
+  const bsub=document.getElementById('board-subtitle');
+  if(bsub)bsub.textContent=isProf?'Gérer les ressources partagées':'Ressources de votre professeur';
   // board-mode-badge supprimé
   
-  const ib=document.getElementById('btn-board-interactions');if(ib)ib.style.display=isProf?'inline-flex':'none';
-  const sb=document.getElementById('btn-suggestions');if(sb)sb.style.display=isProf?'inline-flex':'none';
+  const ib=document.getElementById('btn-board-interactions');if(ib)ib.style.display=isProf?'flex':'none';
+  const sb=document.getElementById('btn-suggestions');if(sb)sb.style.display=isProf?'flex':'none';
   if(isProf) setTimeout(_loadSuggestions, 500);
   renderBoard();
   // Masquer tous les écrans .screen
@@ -3636,9 +3640,9 @@ function openBoard(isProf){
 function closeBoardScreen(){
   const scb2 = document.getElementById('sc-board');
   scb2.classList.remove('board-open');
-  scb2.style.display = 'none'; // IMPORTANT: explicite
+  scb2.style.display = 'none';
   if(boardIsProfMode){ show('sc-home'); showProfTab('outils'); }
-  else if(currentStudent && _toolboxFromTree){ show('sc-toolbox'); }
+  else if(currentStudent && _toolboxFromTree){ show('sc-toolbox'); _updateStudentFab(); }
   else if(currentStudent){ show('sc-tree'); renderTreeScreen(); }
   else { show('sc-login'); }
 }
