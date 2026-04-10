@@ -2,7 +2,13 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Saxophone">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#090c16">
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Saxophone&quot;,&quot;short_name&quot;:&quot;Saxophone&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%23090c16&quot;,&quot;theme_color&quot;:&quot;%23090c16&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%B7%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
 <title>Classes de Louis Dordain — Saxophone 🎷 (En ligne)</title>
 <!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -1149,8 +1155,8 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
   </div>
 </div>
 
-<!-- Bouton Recentrer — position:fixed bas droite, ne chevauche pas le profil -->
-<button id="btn-recenter-tree" onclick="_treeResetView()" style="display:none;position:fixed;bottom:60px;right:14px;z-index:27;pointer-events:auto;align-items:center;gap:7px;padding:7px 16px;border-radius:99px;border:0.5px solid rgba(55,138,221,0.55);background:rgba(6,9,20,0.82);color:rgba(138,154,184,0.9);font-size:12px;font-family:var(--font-sans);cursor:pointer;backdrop-filter:blur(6px);transition:all .15s;letter-spacing:.3px">
+<!-- Bouton Recentrer — centré en bas, visible seulement si vue déplacée -->
+<button id="btn-recenter-tree" onclick="_treeResetView();_updateRecenterBtn();" style="display:none;position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 80px);left:50%;transform:translateX(-50%);z-index:27;pointer-events:auto;align-items:center;gap:7px;padding:7px 20px;border-radius:99px;border:0.5px solid rgba(55,138,221,0.55);background:rgba(6,9,20,0.82);color:rgba(138,154,184,0.9);font-size:12px;font-family:var(--font-sans);cursor:pointer;backdrop-filter:blur(6px);transition:opacity .2s;letter-spacing:.3px">
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
   Recentrer
 </button>
@@ -1317,18 +1323,15 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
 <div id="sc-board" style="position:fixed;inset:0;z-index:10;background:var(--cb-primary);display:none;flex-direction:column;padding:0">
   <div class="board-inner">
     <div class="board-header" style="display:flex;align-items:center;gap:8px">
-      <button class="btn btn-sm" onclick="closeBoardScreen()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Retour</button>
-      <div style="flex:1;min-width:0">
-        <div class="board-header-title" id="board-main-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Espace de partage</div>
-        <div class="board-header-sub" id="board-subtitle">Documents, liens, enregistrements</div>
-      </div>
-      <!-- Actions prof : icônes compactes, serrées à droite -->
-      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-        <button class="btn btn-sm" onclick="openSuggestionsPanel()" id="btn-suggestions" style="display:none;padding:6px 8px;position:relative" title="Suggestions">
+      <button class="btn btn-sm" onclick="closeBoardScreen()" style="flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Retour</button>
+      <div id="board-main-title" class="board-header-title" style="flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Espace de partage</div>
+      <!-- Actions prof : icônes de même taille, serrées à droite -->
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;min-width:56px;justify-content:flex-end">
+        <button class="btn btn-sm" onclick="openSuggestionsPanel()" id="btn-suggestions" style="display:none;width:30px;height:30px;padding:0;position:relative;justify-content:center" title="Suggestions">
           <span id="suggestions-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#f87171;color:#fff;border-radius:99px;padding:0 4px;font-size:9px;font-weight:700;min-width:14px;text-align:center"></span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         </button>
-        <button class="btn btn-sm" id="btn-board-interactions" onclick="openInteractionsModal()" style="display:none;padding:6px 8px" title="Interactions"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button class="btn btn-sm" id="btn-board-interactions" onclick="openInteractionsModal()" style="display:none;width:30px;height:30px;padding:0;justify-content:center" title="Interactions"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>
     </div>
     <div class="board-columns-wrap">
@@ -2390,9 +2393,8 @@ function saveAndBack(){saveLocal();toggleEditMode();updateProfileBar()}
 function renderTreeScreen(){
   updateProfileBar();
   const mb=document.getElementById('mode-badge');
-  mb.textContent=profMode?'':'Lecture seule';
-  mb.className='badge '+(profMode?'badge-prof':'badge-eleve');
-  mb.style.display=profMode?'none':'inline-block';
+  mb.textContent='';
+  mb.style.display='none';
   const cs=cycleStatus(currentStudent,currentCycle);
   const isExam=cs==='awaiting_exam';
 
@@ -2407,7 +2409,8 @@ function renderTreeScreen(){
   const hudBotbar=document.getElementById('hud-botbar');
   if(hudBotbar)hudBotbar.style.display=isExam?'none':'flex';
   const recenterBtn=document.getElementById('btn-recenter-tree');
-  if(recenterBtn)recenterBtn.style.display=isExam?'none':'flex';
+  if(recenterBtn)recenterBtn.style.display=isExam?'none':'';
+  if(!isExam)_updateRecenterBtn();
   document.getElementById('hud-ctabs').style.display=isExam?'none':'flex';
   document.getElementById('hud-profile').style.display=isExam?'none':'flex';
 
@@ -2536,7 +2539,12 @@ let _nodesCache=null;
 let _treeZoom=1,_treeOffX=0,_treeOffY=0;
 let _treePanning=false,_treePanSX=0,_treePanSY=0,_treePanOX=0,_treePanOY=0;
 let _treePinchDist=0;
-function _treeResetView(){_treeZoom=1;_treeOffX=0;_treeOffY=0;}
+function _treeResetView(){_treeZoom=1;_treeOffX=0;_treeOffY=0;_nodesCache=null;}
+function _updateRecenterBtn(){
+  const rb=document.getElementById('btn-recenter-tree');if(!rb)return;
+  const moved=Math.abs(_treeOffX)>4||Math.abs(_treeOffY)>4||Math.abs(_treeZoom-1)>0.05;
+  rb.style.display=moved?'flex':'none';
+}
 function getNodes(){return _nodesCache||calcNodes()}
 
 // Canvas de mesure de texte — créé une seule fois, réutilisé
@@ -2820,12 +2828,14 @@ function drawRadial(){
 const cv2=document.getElementById('cv');
 // Convertir coordonnées écran → monde (pour zoom/pan)
 function _cvToWorld(ex,ey){
-  const W=cv2.width,H=cv2.height,cx=W/2,cy=H/2;
+  const dpr=window.devicePixelRatio||1;
+  const W=cv2.width/dpr,H=cv2.height/dpr,cx=W/2,cy=H/2;
   return{x:(ex-cx-_treeOffX)/_treeZoom+cx,y:(ey-cy-_treeOffY)/_treeZoom+cy};
 }
 // Convertir monde → écran (pour positionner la popup)
 function _worldToScreen(wx,wy){
-  const W=cv2.width,H=cv2.height,cx=W/2,cy=H/2;
+  const dpr=window.devicePixelRatio||1;
+  const W=cv2.width/dpr,H=cv2.height/dpr,cx=W/2,cy=H/2;
   return{x:(wx-cx)*_treeZoom+cx+_treeOffX,y:(wy-cy)*_treeZoom+cy+_treeOffY};
 }
 cv2.onclick=e=>{
@@ -2892,14 +2902,18 @@ cv2.addEventListener('wheel',function(e){
   _treeOffX=_treeOffX*ratio+(mx-cx)*(1-ratio);
   _treeOffY=_treeOffY*ratio+(my-cy)*(1-ratio);
   _treeZoom=newZ;
+  _updateRecenterBtn();
 },{passive:false});
 
 // Touch : pinch zoom + pan
+// Touch : tap bref → popup / glissement → pan / pinch → zoom
+var _touchTapStart={x:0,y:0,t:0};
 cv2.addEventListener('touchstart',function(e){
   if(e.touches.length===2){
     _treePinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
     _treePanning=false;
   } else if(e.touches.length===1){
+    _touchTapStart={x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()};
     _treePanning=true;_treePanSX=e.touches[0].clientX;_treePanSY=e.touches[0].clientY;_treePanOX=_treeOffX;_treePanOY=_treeOffY;
   }
 },{passive:true});
@@ -2907,14 +2921,49 @@ cv2.addEventListener('touchmove',function(e){
   if(e.touches.length===2){
     const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
     const ratio=d/(_treePinchDist||d);
-    _treePinchDist=d;
+    const midX=(e.touches[0].clientX+e.touches[1].clientX)/2;
+    const midY=(e.touches[0].clientY+e.touches[1].clientY)/2;
+    const dpr=window.devicePixelRatio||1;
+    const W=cv2.width/dpr,H=cv2.height/dpr,cx=W/2,cy=H/2;
+    _treeOffX=_treeOffX*ratio+(midX-cx)*(1-ratio);
+    _treeOffY=_treeOffY*ratio+(midY-cy)*(1-ratio);
     _treeZoom=Math.max(0.4,Math.min(4,_treeZoom*ratio));
+    _treePinchDist=d;
+    _nodesCache=null;
   } else if(e.touches.length===1&&_treePanning){
     _treeOffX=_treePanOX+(e.touches[0].clientX-_treePanSX);
     _treeOffY=_treePanOY+(e.touches[0].clientY-_treePanSY);
+    _updateRecenterBtn();
   }
 },{passive:true});
-cv2.addEventListener('touchend',function(){_treePanning=false;},{passive:true});
+cv2.addEventListener('touchend',function(e){
+  if(!currentStudent){_treePanning=false;return;}
+  const dt=Date.now()-_touchTapStart.t;
+  const dx=Math.abs((e.changedTouches[0]||{}).clientX-_touchTapStart.x);
+  const dy=Math.abs((e.changedTouches[0]||{}).clientY-_touchTapStart.y);
+  const isTap=dt<300&&dx<12&&dy<12;
+  if(isTap){
+    const cache=getNodes();const{nm,_nRad,RSN_BASE_C,mS}=cache;
+    const skList=skillsData[currentCycle]||[];
+    const cx=e.changedTouches[0].clientX,cy2=e.changedTouches[0].clientY;
+    const w=_cvToWorld(cx,cy2);
+    let hit=false;
+    for(const skill of skList){
+      const p=nm[skill.id];if(!p)continue;
+      const r=(_nRad&&_nRad[skill.id])||RSN_BASE_C||(Math.min(cv2.width,cv2.height)/(window.devicePixelRatio||1)*0.042*(mS||1));
+      if(Math.hypot(w.x-p.x,w.y-p.y)<=r*1.2/_treeZoom){
+        selSkill=skill;
+        const sc=_worldToScreen(p.x,p.y);
+        lastPopupX=sc.x;lastPopupY=sc.y;
+        showPopup(skill,sc.x,sc.y,cx,cy2);hit=true;break;
+      }
+    }
+    if(!hit)closePopup();
+  }
+  _treePanning=false;
+  // Mettre à jour le btn recentrer
+  _updateRecenterBtn();
+},{passive:true});
 
 /* Popup */
 function showPopup(skill,nodeX,nodeY,clientX,clientY){
@@ -2933,14 +2982,21 @@ function showPopup(skill,nodeX,nodeY,clientX,clientY){
   const btns=document.getElementById('pop-btns');
   if(profMode){btns.innerHTML=`<button class="sb ${state==='locked'?'sl':''}" onclick="setSkFromPopup('${skill.id}','locked')">—</button><button class="sb ${state==='progress'?'sp2':''}" onclick="setSkFromPopup('${skill.id}','progress')">En cours</button><button class="sb ${state==='done'?'sd':''}" onclick="setSkFromPopup('${skill.id}','done')">✓ Maîtrisée</button>`}
   else btns.innerHTML='';
-  /* Positionnement relatif au viewport (canvas = plein écran) */
+  /* Positionnement relatif au viewport — jamais hors écran */
   const popup=document.getElementById('popup');
   const px=clientX||nodeX,py=clientY||nodeY;
-  const popW=220,popH=280;
+  const popW=popup.offsetWidth||220;
+  const popH=popup.offsetHeight||300;
   const vw=window.innerWidth,vh=window.innerHeight;
-  let left=px+20,top=py-popH/2;
-  if(left+popW>vw-10)left=px-popW-20;
-  if(top<60)top=60;if(top+popH>vh-20)top=vh-popH-20;
+  const margin=12;
+  let left=px+16,top=py-Math.round(popH/2);
+  // Si trop à droite → à gauche du nœud
+  if(left+popW>vw-margin)left=px-popW-16;
+  // Si toujours hors écran à gauche → centrer
+  if(left<margin)left=margin;
+  // Contraindre verticalement
+  if(top<60)top=60;
+  if(top+popH>vh-margin)top=vh-popH-margin;
   popup.style.left=left+'px';popup.style.top=top+'px';popup.classList.add('visible');
 }
 function closePopup(){document.getElementById('popup').classList.remove('visible');selSkill=null}
@@ -5180,11 +5236,12 @@ html.light .ag-week-wrap,.html.light .ag-month-grid{border-color:var(--cbr-terti
 
   <!-- Topbar -->
   <div class="ag-topbar">
-    <button class="btn btn-sm" onclick="closeAgenda()">
+    <button class="btn btn-sm" onclick="closeAgenda()" style="flex-shrink:0">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Retour
     </button>
-    <span style="font-size:15px;font-weight:600;color:var(--ct-primary);flex:1">Agenda</span>
-    <button class="btn btn-sm btn-info ag-sync-btn" onclick="openAgSync()" title="Synchroniser avec Google Agenda" style="margin-right:4px;display:flex;align-items:center;gap:5px">
+    <span style="font-size:15px;font-weight:600;color:var(--ct-primary);flex:1;text-align:center">Agenda</span>
+    <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+    <button class="btn btn-sm btn-info ag-sync-btn" onclick="openAgSync()" title="Synchroniser avec Google Agenda" style="display:flex;align-items:center;gap:5px">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
       <span class="ag-sync-label">Sync</span>
     </button>
@@ -5192,6 +5249,7 @@ html.light .ag-week-wrap,.html.light .ag-month-grid{border-color:var(--cbr-terti
       <button class="ag-view-btn active" id="ag-btn-month" onclick="setAgView('month')"><span class="ag-view-label">Mois</span><span class="ag-view-icon" style="display:none">M</span></button>
       <button class="ag-view-btn" id="ag-btn-week" onclick="setAgView('week')"><span class="ag-view-label">Semaine</span><span class="ag-view-icon" style="display:none">S</span></button>
       <button class="ag-view-btn" id="ag-btn-day" onclick="setAgView('day')"><span class="ag-view-label">Jour</span><span class="ag-view-icon" style="display:none">J</span></button>
+    </div>
     </div>
   </div>
 
@@ -5205,7 +5263,6 @@ html.light .ag-week-wrap,.html.light .ag-month-grid{border-color:var(--cbr-terti
 
   <!-- Corps -->
   <div class="ag-body" id="ag-body"></div>
-
   <!-- Panneau événements sélectionnés -->
   <div class="ag-evt-panel" id="ag-evt-panel" style="display:none">
     <div style="font-size:11px;font-weight:600;color:var(--ct-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px" id="ag-evt-panel-title"></div>
@@ -5357,12 +5414,34 @@ function openAgenda(){
   _agendaFromProf = profMode;
   _loadAgendaEvents();
   document.getElementById('ag-fab').style.display = profMode ? 'flex' : 'none';
-  // Masquer tous les écrans .screen
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const sca = document.getElementById('sc-agenda');
-  sca.style.display = 'flex'; // explicite
+  sca.style.display = 'flex';
   sca.classList.add('active');
   renderAgenda();
+  _initAgendaSwipe();
+}
+
+// Swipe gauche/droite sur le corps de l'agenda
+var _agSwipeInit=false;
+function _initAgendaSwipe(){
+  if(_agSwipeInit)return;
+  _agSwipeInit=true;
+  var body=document.getElementById('ag-body');
+  if(!body)return;
+  var sx=0,sy=0,stime=0;
+  body.addEventListener('touchstart',function(e){
+    if(e.touches.length!==1)return;
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;stime=Date.now();
+  },{passive:true});
+  body.addEventListener('touchend',function(e){
+    if(!e.changedTouches.length)return;
+    var dx=e.changedTouches[0].clientX-sx;
+    var dy=e.changedTouches[0].clientY-sy;
+    var dt=Date.now()-stime;
+    if(dt>500||Math.abs(dy)>Math.abs(dx)||Math.abs(dx)<40)return;
+    agNav(dx<0?1:-1);
+  },{passive:true});
 }
 function closeAgenda(){
   const sca2 = document.getElementById('sc-agenda');
