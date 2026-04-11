@@ -2528,26 +2528,44 @@ function saveYtPlaylistUrl(){
   _showSyncIndicator('✓ Playlist enregistrée','#34d399');
 }
 function _ytEmbedUrl(rawUrl){
-  if(!rawUrl) return '';
-  // playlist?list=ID
+  if(!rawUrl) return {embedUrl:'', listId:'', videoId:''};
+  var listId='', videoId='';
   var m=rawUrl.match(/[?&]list=([A-Za-z0-9_-]+)/);
-  if(m) return 'https://www.youtube-nocookie.com/embed/videoseries?list='+m[1]+'&rel=0&modestbranding=1';
-  // Single video
+  if(m) listId=m[1];
   m=rawUrl.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-  if(m) return 'https://www.youtube-nocookie.com/embed/'+m[1]+'?rel=0&modestbranding=1';
-  return '';
+  if(m) videoId=m[1];
+  var embedUrl='';
+  if(listId){
+    // Playlist : activer le panneau liste (listType=playlist) + démarrer sur la 1ère vidéo
+    var base = videoId
+      ? 'https://www.youtube-nocookie.com/embed/'+videoId+'?list='+listId
+      : 'https://www.youtube-nocookie.com/embed/videoseries?list='+listId;
+    embedUrl = base+'&listType=playlist&rel=0&modestbranding=1';
+  } else if(videoId){
+    embedUrl = 'https://www.youtube-nocookie.com/embed/'+videoId+'?rel=0&modestbranding=1';
+  }
+  return {embedUrl, listId, videoId};
 }
 function renderYtPlaylist(divId, labelId){
   var div=document.getElementById(divId);
   var lbl=document.getElementById(labelId);
   if(!div) return;
-  var embedUrl=_ytEmbedUrl(ytPlaylistUrl);
-  if(!embedUrl){
+  var info=_ytEmbedUrl(ytPlaylistUrl);
+  if(!info.embedUrl){
     div.innerHTML='<div style="padding:12px;text-align:center;font-size:12px;color:var(--ct-tertiary)">Aucune playlist configurée.<br>'+(profMode?'Ajoutez une URL dans les Paramètres.':'')+'</div>';
     if(lbl) lbl.textContent='';
     return;
   }
-  div.innerHTML='<iframe style="border-radius:10px;display:block" src="'+embedUrl+'" width="100%" height="320" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" allowfullscreen loading="lazy" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox"></iframe>';
+  // Hauteur : si c'est une playlist → 500px (vidéo ~56% + liste déroulante ~44%)
+  // Si c'est une vidéo seule → ratio 16:9
+  var h = info.listId ? '500' : '220';
+  div.innerHTML='<div style="position:relative;border-radius:10px;overflow:hidden;background:#000">'
+    +'<iframe src="'+info.embedUrl+'" width="100%" height="'+h+'" frameborder="0" '
+    +'style="display:block" '
+    +'allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" '
+    +'allowfullscreen loading="lazy" '
+    +'sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox">'
+    +'</iframe></div>';
   if(lbl) lbl.textContent='';
 }
 
