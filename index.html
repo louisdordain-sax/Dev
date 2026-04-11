@@ -216,7 +216,17 @@ html.light .hud-botbar{background:linear-gradient(to top,rgba(242,245,255,1) 0%,
 .hud-tab.active{background:rgba(30,58,95,0.85);color:var(--ct-info);border-color:var(--cbr-info)}
 
 /* Popup compétence */
-.popup{position:fixed;background:rgba(6,9,20,0.97);border:0.5px solid rgba(55,138,221,0.4);border-radius:var(--br-lg);padding:12px 14px;width:220px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:30;
+
+/* ── AUTO-ÉVALUATION ÉLÈVE ── */
+.self-eval-wrap{margin-top:10px;border-top:0.5px solid rgba(55,138,221,0.2);padding-top:10px}
+.self-eval-label{font-size:11px;color:var(--ct-secondary);margin-bottom:6px}
+.self-eval-slider{width:100%;accent-color:#378ADD;cursor:pointer;height:4px;margin:0 0 4px}
+.self-eval-ticks{display:flex;justify-content:space-between;font-size:9px;color:var(--ct-tertiary);font-family:var(--font-mono);margin-bottom:6px}
+.self-eval-score{font-size:22px;font-weight:700;font-family:var(--font-mono);text-align:center;margin:4px 0;transition:color .2s}
+.self-eval-send{width:100%;margin-top:4px;font-size:11px;padding:5px 0;border-radius:99px}
+.self-eval-prof-score{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:99px;border:0.5px solid;margin-top:4px}
+.eval-pending-badge{display:inline-block;min-width:16px;height:16px;border-radius:99px;background:#f87171;color:#fff;font-size:9px;font-weight:700;text-align:center;line-height:16px;padding:0 4px;margin-left:4px;vertical-align:middle}
+.popup{position:fixed;background:rgba(6,9,20,0.97);border:0.5px solid rgba(55,138,221,0.4);border-radius:var(--br-lg);padding:12px 14px;width:240px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:30;
   box-shadow:0 0 24px rgba(55,138,221,0.15);backdrop-filter:blur(6px)}
 .popup.visible{opacity:1;pointer-events:auto}
 .popup-title{font-size:13px;font-weight:500;color:var(--ct-primary);margin-bottom:2px}
@@ -420,7 +430,7 @@ html.light .tile:hover .tile-gear-btn{opacity:1}
 html.light #tile-preview-win{background:#fff;border-color:var(--cbr-tertiary);box-shadow:0 8px 32px rgba(80,100,150,0.18)}
 
 /* ── BOUTON EXPAND APERÇU ── */
-.tile-expand-btn{margin-left:auto;flex-shrink:0;background:none;border:0.5px solid var(--cbr-tertiary);border-radius:4px;padding:2px 5px;color:var(--ct-tertiary);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center}
+.tile-expand-btn{margin-left:auto;flex-shrink:0;background:none;border:0.5px solid var(--cbr-tertiary);border-radius:50%;width:28px;height:28px;padding:0;color:var(--ct-tertiary);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center}
 .tile-expand-btn:hover{border-color:var(--cbr-info);color:var(--ct-info);background:var(--cb-info)}
 
 /* ── SOUS-ONGLETS FICHIERS ── */
@@ -2397,7 +2407,9 @@ function doLoginProf(){
   if(v===profCode){
     profMode=true;
     try{sessionStorage.setItem('sax_session',JSON.stringify({role:'prof',tab:'eleves'}));}catch(e){}
-    show('sc-home');renderHome();return;
+    show('sc-home');renderHome();
+    setTimeout(_loadProfNotifications, 1500);
+    return;
   }
   document.getElementById('login-err-prof').style.display='block';
 }
@@ -2629,6 +2641,80 @@ function _ytSwitchVideo(divId, newSrc){
 }
 
 
+
+/* ── AUTO-ÉVALUATION ÉLÈVE ── */
+function _evalColor(v){
+  if(v>=9) return '#34d399'; // excellent
+  if(v>=8) return '#60d090'; // très bien
+  if(v>=6) return '#EF9F27'; // bien
+  if(v>=4) return '#f59e5a'; // moyen
+  return '#f87171'; // à travailler
+}
+
+function submitSelfEval(skillId){
+  var slider=document.getElementById('pop-eval-slider');
+  if(!slider) return;
+  var score=parseInt(slider.value);
+  if(!currentStudent.selfEval) currentStudent.selfEval={};
+  currentStudent.selfEval[skillId]=score;
+  saveLocal();
+  // Notification Firebase pour le prof si score ≥ 8
+  if(score>=8) _notifyProfSelfEval(skillId, score);
+  // Feedback visuel
+  var btn=document.querySelector('.self-eval-send');
+  if(btn){btn.textContent='✓ Envoyé !';btn.classList.remove('btn-info');btn.classList.add('btn-success');btn.disabled=true;}
+}
+
+function _notifyProfSelfEval(skillId, score){
+  if(!_db) return;
+  var notif={
+    id:'notif_'+Date.now(),
+    type:'selfEval',
+    studentId:currentStudent.id,
+    studentName:currentStudent.name,
+    skillId:skillId,
+    score:score,
+    date:new Date().toLocaleDateString('fr-FR'),
+    read:false
+  };
+  _db.ref('sax_notifications/'+notif.id).set(notif);
+}
+
+/* Charge les notifications prof et met à jour le badge */
+var _profNotifications=[];
+function _loadProfNotifications(){
+  if(!_db||!profMode) return;
+  _db.ref('sax_notifications').on('value',function(snap){
+    var d=snap.val();
+    _profNotifications=d?Object.values(d).filter(Boolean):[];
+    _updateNotifBadge();
+  });
+}
+function _updateNotifBadge(){
+  var unread=_profNotifications.filter(function(n){return !n.read&&n.score>=8;});
+  // Badge sur le tab élèves
+  var tab=document.getElementById('ptab-eleves');
+  if(tab){
+    var badge=document.getElementById('notif-tab-badge');
+    if(!badge){
+      badge=document.createElement('span');
+      badge.id='notif-tab-badge';
+      badge.className='eval-pending-badge';
+      tab.appendChild(badge);
+    }
+    if(unread.length){badge.textContent=unread.length;badge.style.display='inline-block';}
+    else badge.style.display='none';
+  }
+  renderHome(); // refresh la liste pour mettre à jour les badges par élève
+}
+function _markNotifsReadFor(studentId){
+  _profNotifications.filter(function(n){return n.studentId===studentId&&!n.read;}).forEach(function(n){
+    n.read=true;
+    if(_db) _db.ref('sax_notifications/'+n.id+'/read').set(true);
+  });
+  _updateNotifBadge();
+}
+
 /* ── CYCLE STATUS ── */
 function cycleStatus(student,cycle){
   const skList=skillsData[cycle]||[];if(!skList.length)return 'incomplete';
@@ -2690,6 +2776,11 @@ function renderHome(){
       var _validerBtn = cs==='awaiting_exam'
         ? '<button class="btn btn-success btn-sm" style="white-space:nowrap" onclick="openExamModal(\'' + s.id + '\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Valider</button>'
         : '';
+      // Badge auto-éval en attente (score ≥ 8)
+      var _pendingEvals=Object.entries(s.selfEval||{}).filter(function(e){return e[1]>=8;});
+      var _evalBadge=_pendingEvals.length
+        ?`<span class="eval-pending-badge" title="${_pendingEvals.length} auto-éval(s) ≥ 8/10 en attente de validation">${_pendingEvals.length}</span>`
+        :'';
       var _cycleYear = getCycleYear(s);
       var _examHtml = cs==='awaiting_exam'
         ? '<div style="margin-top:3px"><span style="font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(239,159,39,.12);color:#EF9F27;border:0.5px solid rgba(239,159,39,.4);font-weight:600;white-space:nowrap;font-family:var(--font-mono)">' + _cycleYear + '</span><span style="font-size:10px;color:var(--ct-tertiary);margin-left:5px">— examen</span></div>'
@@ -2697,7 +2788,7 @@ function renderHome(){
       row.innerHTML=`
         <div class="avatar" style="background:${s.color}22;color:${s.color};width:36px;height:36px;font-size:12px;flex-shrink:0">${initials(s.name)}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:500;color:var(--ct-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div>
+          <div style="font-size:13px;font-weight:500;color:var(--ct-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}${_evalBadge}</div>
           ${_examHtml}
         </div>
         <div class="std-row-actions" style="display:flex;gap:4px;flex-shrink:0;flex-wrap:nowrap">
@@ -2850,6 +2941,8 @@ function openTree(id){
   currentCycle=currentStudent.cycle;selSkill=null;hovSkill=null;editMode=false;
   _nodesCache=null;_treeResetView();
   closePopup();cancelAnim();
+  // Marquer les auto-évals de cet élève comme lues (prof)
+  if(profMode) _markNotifsReadFor(id);
   // Bouton Outils : visible en mode élève, masqué en mode prof (prévisualisation)
   const btnTools=document.getElementById('btn-tools-tree');
   if(btnTools) btnTools.style.display=profMode?'none':'inline-flex';
@@ -3484,8 +3577,31 @@ function showPopup(skill,nodeX,nodeY,clientX,clientY){
   if(state==='done')todoEl.innerHTML='<strong>Bravo !</strong> Cette compétence est acquise.';
   else todoEl.innerHTML=`<strong>Pour progresser :</strong> ${skill.todo||'Continue tes efforts !'}`;
   const btns=document.getElementById('pop-btns');
-  if(profMode){btns.innerHTML=`<button class="sb ${state==='locked'?'sl':''}" onclick="setSkFromPopup('${skill.id}','locked')">—</button><button class="sb ${state==='progress'?'sp2':''}" onclick="setSkFromPopup('${skill.id}','progress')">En cours</button><button class="sb ${state==='done'?'sd':''}" onclick="setSkFromPopup('${skill.id}','done')">✓ Maîtrisée</button>`}
-  else btns.innerHTML='';
+  if(profMode){
+    // Score d'auto-évaluation de l'élève
+    const selfEvals=currentStudent.selfEval||{};
+    const score=selfEvals[skill.id];
+    const scoreTxt=score!=null
+      ?`<div class="self-eval-prof-score" style="border-color:${score>=8?'var(--cbr-success)':'var(--cbr-tertiary)'};background:${score>=8?'var(--cb-success)':'var(--cb-secondary)'};color:${score>=8?'var(--ct-success)':'var(--ct-secondary)'}">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Auto-éval élève : <strong>${score}/10</strong>${score>=8?' — à valider':''}
+        </div>`
+      :'';
+    btns.innerHTML=`<div style="width:100%">${scoreTxt}<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:${score!=null?'8px':'0'}"><button class="sb ${state==='locked'?'sl':''}" onclick="setSkFromPopup('${skill.id}','locked')">—</button><button class="sb ${state==='progress'?'sp2':''}" onclick="setSkFromPopup('${skill.id}','progress')">En cours</button><button class="sb ${state==='done'?'sd':''}" onclick="setSkFromPopup('${skill.id}','done')">✓ Maîtrisée</button></div></div>`;
+  } else {
+    // Mode élève : curseur auto-évaluation
+    const selfEvals=currentStudent.selfEval||{};
+    const curScore=selfEvals[skill.id]??null;
+    const displayScore=curScore!=null?curScore:5;
+    btns.innerHTML=`<div class="self-eval-wrap" style="width:100%">
+      <div class="self-eval-label">Mon auto-évaluation</div>
+      <div class="self-eval-score" id="pop-eval-score" style="color:${_evalColor(displayScore)}">${displayScore}/10</div>
+      <input type="range" class="self-eval-slider" id="pop-eval-slider" min="0" max="10" step="1" value="${displayScore}"
+        oninput="var v=+this.value;document.getElementById('pop-eval-score').textContent=v+'/10';document.getElementById('pop-eval-score').style.color=_evalColor(v)">
+      <div class="self-eval-ticks"><span>0</span><span>2</span><span>4</span><span>5</span><span>6</span><span>8</span><span>10</span></div>
+      <button class="btn self-eval-send btn-info" onclick="submitSelfEval('${skill.id}')">Envoyer mon évaluation</button>
+    </div>`;
+  }
   /* Positionnement relatif au viewport — jamais hors écran */
   const popup=document.getElementById('popup');
   const px=clientX||nodeX,py=clientY||nodeY;
@@ -3511,6 +3627,14 @@ function setSkFromPopup(id,state){
     if(!_checkExamCancellation(currentCycle))return;
   }
   if(state==='locked')delete currentStudent.skillStates[id];else currentStudent.skillStates[id]=state;
+  // Si le prof valide 'done', effacer l'auto-éval en attente
+  if(state==='done'&&currentStudent.selfEval&&currentStudent.selfEval[id]!=null){
+    delete currentStudent.selfEval[id];
+    // Marquer la notif Firebase comme lue
+    _profNotifications.filter(n=>n.skillId===id&&n.studentId===currentStudent.id).forEach(n=>{
+      n.read=true;if(_db)_db.ref('sax_notifications/'+n.id+'/read').set(true);
+    });
+  }
   saveLocal();const skill=skillsData[currentCycle].find(s=>s.id===id);if(skill)showPopup(skill,lastPopupX,lastPopupY);
   updateProfileBar();if(cycleStatus(currentStudent,currentCycle)==='awaiting_exam'){closePopup();renderTreeScreen()}
 }
@@ -3877,12 +4001,11 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
   const canPreview = tile.type==='image'||tile.type==='audio'||tile.type==='text'||tile.type==='link';
   let previewBtnHtml = '';
   if(isPdf){
-    previewBtnHtml = `<button class="tile-expand-btn" onclick="event.stopPropagation();openPdfViewerById('${tile.id}','${(tile.title||'Document').replace(/'/g,"\\'")}');trackInteraction('${tile.id}')" title="Ouvrir le PDF"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button>`
-      + `<button class="tile-expand-btn" onclick="event.stopPropagation();(function(){var t=null;boardColumns.forEach(function(c){c.tiles.forEach(function(x){if(x.id==='${tile.id}')t=x;});});if(t&&t.imgData){var a=document.createElement('a');a.href=t.imgData;a.download='${(tile.title||'document').replace(/'/g,'').replace(/[^a-z0-9]/gi,'_')}.pdf';a.click();}})()" title="Télécharger le PDF"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>`;
+    previewBtnHtml = `<button class="tile-expand-btn" onclick="event.stopPropagation();(function(){var t=null;boardColumns.forEach(function(c){c.tiles.forEach(function(x){if(x.id==='${tile.id}')t=x;});});if(t&&t.imgData){var a=document.createElement('a');a.href=t.imgData;a.download='${(tile.title||'document').replace(/'/g,'').replace(/[^a-z0-9]/gi,'_')}.pdf';a.click();}})();" title="Télécharger le PDF"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>`;
   } else if(tile.type==='download'){
     previewBtnHtml = `<button class="tile-expand-btn" onclick="event.stopPropagation();downloadTileFile('${tile.id}');trackInteraction('${tile.id}')" title="Télécharger"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>`;
   } else if(canPreview){
-    previewBtnHtml = `<button class="tile-expand-btn" onclick="event.stopPropagation();openTilePreview('${tile.type==='image'?_imgSrcForType.replace(/'/g,"\\'"):tile.id}','${(tile.title||'').replace(/'/g,"\\'")}','${tile.type}')" title="Aperçu agrandi"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>`;
+    previewBtnHtml = `<button class="tile-expand-btn" onclick="event.stopPropagation();openTilePreview('${tile.type==='image'?_imgSrcForType.replace(/'/g,"\\'"):tile.id}','${(tile.title||'').replace(/'/g,"\\'")}','${tile.type}')" title="Aperçu agrandi"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>`;
   }
 
   // Badge : label et couleur (PDF détecté dynamiquement)
@@ -5214,7 +5337,7 @@ function buildShareTile(tile, colIdx, tileIdx, colId){
       // Aperçu PDF : icône cliquable pour ouvrir la visionneuse
       var pdfPrev=document.createElement('div');
       pdfPrev.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:80px;background:var(--cb-info);border-radius:6px;margin-bottom:6px;cursor:pointer;border:0.5px solid var(--cbr-info)';
-      pdfPrev.innerHTML='<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ct-info)" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span style="font-size:10px;color:var(--ct-info);font-weight:500">Ouvrir le PDF</span>';
+      pdfPrev.innerHTML='<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ct-info)" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
       (function(_tid,_s,_t){pdfPrev.onclick=function(){trackInteraction(_tid);openPdfViewer(_t,_s);};})(tile.id,_src,tile.title||'Document');
       wrap.appendChild(pdfPrev);
     } else {
@@ -5571,6 +5694,7 @@ function _restoreSession(){
       profMode=true; show('sc-home');
       if(session.tab) showProfTab(session.tab);
       else renderHome();
+      setTimeout(_loadProfNotifications, 2000);
       return;
     }
     if(session.role==='eleve' && session.studentId){
