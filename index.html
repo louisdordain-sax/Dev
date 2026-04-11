@@ -1685,6 +1685,9 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     <button class="ag-nav-btn" onclick="agNav(1)">&#8250;</button>
   </div>
 
+  <!-- Légende écoles -->
+  <div id="ag-school-legend" style="display:none;padding:5px 14px 6px;gap:10px;flex-wrap:wrap;border-bottom:0.5px solid var(--cbr-tertiary);flex-shrink:0"></div>
+
   <!-- Corps -->
   <div class="ag-body" id="ag-body"></div>
   <!-- Panneau événements sélectionnés -->
@@ -1743,24 +1746,6 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
 <div class="modal-overlay" id="modal-evt">
   <div class="modal-box" style="max-width:440px;max-height:90vh;overflow-y:auto">
     <h3 id="evt-modal-title">Ajouter un événement</h3>
-
-    <!-- Type avec couleur -->
-    <div class="field-label">Type</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">
-      <button class="btn evt-type-btn" id="etyp-cours"   data-type="cours"   onclick="selectEvtType(this)" style="flex-direction:column;gap:3px;padding:8px 4px;font-size:11px">
-        <span style="font-size:18px">🎵</span>Cours
-        <span style="width:18px;height:4px;border-radius:99px;background:#378ADD;margin-top:2px"></span>
-      </button>
-      <button class="btn evt-type-btn" id="etyp-examen"  data-type="examen"  onclick="selectEvtType(this)" style="flex-direction:column;gap:3px;padding:8px 4px;font-size:11px">
-        <span style="font-size:18px">🎓</span>Examen
-        <span style="width:18px;height:4px;border-radius:99px;background:#EF9F27;margin-top:2px"></span>
-      </button>
-      <button class="btn evt-type-btn" id="etyp-concert" data-type="concert" onclick="selectEvtType(this)" style="flex-direction:column;gap:3px;padding:8px 4px;font-size:11px">
-        <span style="font-size:18px">🎤</span>Concert
-        <span style="width:18px;height:4px;border-radius:99px;background:#7F77DD;margin-top:2px"></span>
-      </button>
-    </div>
-
     <div class="field-label">Titre</div>
     <input type="text" id="evt-title" placeholder="ex: Cours de saxophone">
 
@@ -5662,16 +5647,40 @@ function _agendaEventsFiltered(){
   if(!school) return agendaEvents;
   return agendaEvents.filter(function(e){ return e.school===school; });
 }
+
+/* Légende des couleurs d'école dans l'agenda */
+function _renderSchoolLegend(){
+  var leg = document.getElementById('ag-school-legend');
+  if(!leg) return;
+  // Élève : pas de légende (une seule école)
+  if(!profMode){ leg.style.display='none'; return; }
+  if(!schools.length){ leg.style.display='none'; return; }
+  leg.style.display='flex';
+  leg.innerHTML = schools.map(function(s, i){
+    var col = SCHOOL_COLOR_PALETTE[i % SCHOOL_COLOR_PALETTE.length];
+    return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--ct-secondary)">'
+      +'<span style="width:10px;height:10px;border-radius:50%;background:'+col+';flex-shrink:0;display:inline-block"></span>'
+      + s +'</span>';
+  }).join('');
+}
 var ytPlaylistUrl = ''; // URL YouTube playlist du cours
 var _agView = 'month';
 var _agDate = new Date(); _agDate.setHours(0,0,0,0);
 var _agSelDate = null;
-var _evtType = 'cours';
 var _editEvtId = null;
 
-var EVT_COLORS = {cours:'#378ADD', examen:'#EF9F27', concert:'#7F77DD'};
 var EVT_LABELS = {cours:'Cours', examen:'Examen', concert:'Concert / Audition'};
-var EVT_EMOJIS = {cours:'🎵', examen:'🎓', concert:'🎤'};
+/* Couleurs d'école — palette de 8 teintes bien distinctes */
+var SCHOOL_COLOR_PALETTE = [
+  '#378ADD','#1D9E75','#D85A30','#7F77DD',
+  '#EF9F27','#e05c8a','#2abfbf','#8B5CF6'
+];
+function _schoolColor(schoolName){
+  if(!schoolName) return '#555e78';
+  var idx = schools.indexOf(schoolName);
+  if(idx === -1) idx = 0;
+  return SCHOOL_COLOR_PALETTE[idx % SCHOOL_COLOR_PALETTE.length];
+}
 var MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 var DAYS_FR_LONG = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 var DAYS_FR_SHORT = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
@@ -5686,6 +5695,7 @@ function openAgenda(){
   const sca = document.getElementById('sc-agenda');
   sca.style.display = 'flex';
   sca.classList.add('active');
+  _renderSchoolLegend();
   renderAgenda();
   _initAgendaSwipe();
 }
@@ -5824,8 +5834,8 @@ function renderMonthView(body){
     var shown=evts.slice(0,2);
     shown.forEach(function(e){
       var chip=document.createElement('div'); chip.className='ag-month-chip';
-      chip.style.background=EVT_COLORS[e.type||'cours'];
-      chip.textContent=(e.timeStart?e.timeStart+' ':'')+e.title+(profMode&&e.school?' · '+e.school:'');
+      chip.style.background=_schoolColor(e.school);
+      chip.textContent=(e.timeStart?e.timeStart+' ':'')+e.title;
       cell.appendChild(chip);
     });
     if(evts.length>2){ var more=document.createElement('div'); more.className='ag-month-more'; more.textContent='+'+( evts.length-2)+' autres'; cell.appendChild(more); }
@@ -5886,16 +5896,16 @@ function renderWeekView(body){
           var topPx=(startM/60)*48;
           var heightPx=Math.max(20,(durMins/60)*48);
           var ev=document.createElement('div'); ev.className='ag-week-event';
-          ev.style.cssText='top:'+topPx+'px;height:'+heightPx+'px;background:'+EVT_COLORS[e.type||'cours'];
-          ev.textContent=e.title+(profMode&&e.school?' · '+e.school:'');
+          ev.style.cssText='top:'+topPx+'px;height:'+heightPx+'px;background:'+_schoolColor(e.school);
+          ev.textContent=e.title;
           (function(evt){ ev.onclick=function(e2){ e2.stopPropagation(); _agSelDate=evt.date; _renderEvtPanel(evt.date); }; })(e);
           col.appendChild(ev);
         } else if(!e.timeStart){
           // Journée entière — afficher en haut de h=0
           if(h===0){
             var ev2=document.createElement('div'); ev2.className='ag-week-event';
-            ev2.style.cssText='top:2px;height:20px;background:'+EVT_COLORS[e.type||'cours'];
-            ev2.textContent=e.title+(profMode&&e.school?' · '+e.school:'');
+            ev2.style.cssText='top:2px;height:20px;background:'+_schoolColor(e.school)+';'
+            ev2.textContent=e.title;
             col.appendChild(ev2);
           }
         }
@@ -6011,8 +6021,8 @@ function renderDayView(body){
   // Événements journée entière en haut
   allDayEvts.forEach(function(e){
     var ev=document.createElement('div'); ev.className='ag-day-event';
-    ev.style.cssText='top:2px;left:4px;right:4px;height:22px;background:'+EVT_COLORS[e.type||'cours']+';pointer-events:auto';
-    ev.textContent='🗓 '+e.title+(e.lieu?' – '+e.lieu:'')+(profMode&&e.school?' ['+e.school+']':'');
+    ev.style.cssText='top:2px;left:4px;right:4px;height:22px;background:'+_schoolColor(e.school)+';pointer-events:auto';
+    ev.textContent=e.title+(e.lieu?' – '+e.lieu:'');
     (function(evt){ ev.onclick=function(ev2){ ev2.stopPropagation(); openEvtDetail(evt, evt.date); }; })(e);
     overlay.appendChild(ev);
   });
@@ -6038,12 +6048,11 @@ function renderDayView(body){
       +'left:calc('+leftPct+'% + '+GAP+'px);'
       +'width:calc('+widthPct+'% - '+(GAP*2)+'px);'
       +'right:auto;'
-      +'background:'+EVT_COLORS[e.type||'cours']+';'
+      +'background:'+_schoolColor(e.school)+';'
       +'pointer-events:auto;'
       +'box-shadow:0 1px 4px rgba(0,0,0,0.25)';
     ev.innerHTML='<div style="font-weight:600;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.title+'</div>'
-      +(profMode&&e.school?'<div style="font-size:8px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🏫 '+e.school+'</div>':'')
-      +(e.lieu && heightPx>36?'<div style="opacity:.8;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍 '+e.lieu+'</div>':'')
+            +(e.lieu && heightPx>36?'<div style="opacity:.8;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍 '+e.lieu+'</div>':'')
       +(e.timeStart && heightPx>24?'<div style="opacity:.7;font-size:9px">'+e.timeStart+(e.timeEnd?' – '+e.timeEnd:'')+'</div>':'');
     (function(evt){ ev.onclick=function(ev2){ ev2.stopPropagation(); openEvtDetail(evt, evt.date); }; })(e);
     overlay.appendChild(ev);
@@ -6073,13 +6082,11 @@ function _renderEvtPanel(dateISO){
     var item=document.createElement('div'); item.className='ag-evt-item';
     item.style.cursor='pointer';
     item.title=profMode?'Cliquer pour modifier':'Cliquer pour voir les détails';
-    var bar=document.createElement('div'); bar.className='ag-evt-bar'; bar.style.background=EVT_COLORS[evt.type||'cours']; item.appendChild(bar);
+    var bar=document.createElement('div'); bar.className='ag-evt-bar'; bar.style.background=_schoolColor(evt.school); item.appendChild(bar);
     var body2=document.createElement('div'); body2.style.flex='1';
     var hours=(evt.timeStart?evt.timeStart+(evt.timeEnd?' – '+evt.timeEnd:''):'Journée entière');
-    body2.innerHTML='<div class="ag-evt-title">'+EVT_EMOJIS[evt.type||'cours']+' '+evt.title+'</div>'
-      +'<div class="ag-evt-meta">'+hours+(evt.lieu?' · 📍 '+evt.lieu:'')
-      +(profMode&&evt.school?' · <span style="display:inline-block;padding:1px 6px;border-radius:99px;background:rgba(55,138,221,0.15);color:var(--ct-info);font-size:9px;font-weight:600">'+evt.school+'</span>':'')
-      +'</div>'
+    body2.innerHTML='<div class="ag-evt-title">'+evt.title+'</div>'
+      +'<div class="ag-evt-meta">'+hours+(evt.lieu?' · 📍 '+evt.lieu:'')+'</div>'
       +(evt.note?'<div style="font-size:10px;color:var(--ct-tertiary);margin-top:2px">'+evt.note+'</div>':''  );
     item.appendChild(body2);
     // Flèche indicateur
@@ -6114,8 +6121,6 @@ function openEvtDetail(evt, dateISO){
     }
     document.getElementById('evt-err').style.display = 'none';
     // Sélectionner le bon type
-    var typeBtn = document.getElementById('etyp-'+( evt.type||'cours'));
-    if(typeBtn) selectEvtType(typeBtn);
     // Afficher le bouton Supprimer en mode édition
     var db=document.getElementById('evt-del-btn');db.style.display='inline-flex';db.style.flexDirection='row';db.style.alignItems='center';db.style.justifyContent='center';db.style.gap='5px';
     _syncTimeButtons();
@@ -6132,8 +6137,8 @@ function openEvtDetail(evt, dateISO){
     }
     var hours = evt.timeStart ? evt.timeStart+(evt.timeEnd?' – '+evt.timeEnd:'') : 'Journée entière';
     var d = isoToDate(evt.date);
-    document.getElementById('evtd-color-bar').style.background = EVT_COLORS[evt.type||'cours'];
-    document.getElementById('evtd-title').textContent = EVT_EMOJIS[evt.type||'cours']+' '+evt.title;
+    document.getElementById('evtd-color-bar').style.background = _schoolColor(evt.school);
+    document.getElementById('evtd-title').textContent = evt.title;
     document.getElementById('evtd-body').innerHTML =
       '<div>📅 '+DAYS_FR_LONG[d.getDay()]+' '+d.getDate()+' '+MONTHS_FR[d.getMonth()]+' '+d.getFullYear()+'</div>'
       +'<div>🕐 '+hours+'</div>'
@@ -6167,11 +6172,6 @@ function _buildGCalUrl(evt){
 function _addHour(t){ var p=t.split(':'); var h=parseInt(p[0])+1; return pad(Math.min(h,23))+':'+p[1]; }
 
 /* ── Modal ajout/édition ── */
-function selectEvtType(btn){
-  document.querySelectorAll('.evt-type-btn').forEach(function(b){ b.classList.remove('btn-info'); });
-  btn.classList.add('btn-info');
-  _evtType=btn.dataset.type;
-}
 function openAddEvtModal(){
   _editEvtId=null;
   populateSchoolFilters(); // refresh evt-school list
@@ -6193,7 +6193,6 @@ function openAddEvtModal(){
   }
   document.getElementById('evt-err').style.display='none';
   document.getElementById('evt-del-btn').style.display='none';
-  selectEvtType(document.getElementById('etyp-cours'));
   _syncTimeButtons();
   openModal('modal-evt');
 }
@@ -6220,10 +6219,10 @@ function confirmAddEvt(){
   if(_editEvtId){
     var idx=agendaEvents.findIndex(function(e){ return e.id===_editEvtId; });
     if(idx!==-1){
-      agendaEvents[idx]=Object.assign(agendaEvents[idx],{title,date,timeStart:ts,timeEnd:te,lieu,note,school,type:_evtType,color:EVT_COLORS[_evtType]});
+      agendaEvents[idx]=Object.assign(agendaEvents[idx],{title,date,timeStart:ts,timeEnd:te,lieu,note,school});
     }
   } else {
-    agendaEvents.push({id:'evt'+Date.now(),title,date,timeStart:ts,timeEnd:te,lieu,note,school,type:_evtType,color:EVT_COLORS[_evtType]});
+    agendaEvents.push({id:'evt'+Date.now(),title,date,timeStart:ts,timeEnd:te,lieu,note,school});
   }
   _editEvtId=null;
   _saveAgendaEvents();
@@ -6601,7 +6600,7 @@ function _buildICS(events){
     }
     var desc = (evt.note || '');
     var location = evt.lieu || '';
-    var summary = EVT_EMOJIS[evt.type||'cours'] + ' ' + evt.title;
+    var summary = evt.title;
 
     lines.push('BEGIN:VEVENT');
     lines.push('UID:' + (evt.id || ('evt'+Date.now())) + '@saxophone-competences');
@@ -6616,9 +6615,6 @@ function _buildICS(events){
     lines.push('SUMMARY:' + _icsEscape(summary));
     if(location) lines.push('LOCATION:' + _icsEscape(location));
     if(desc)     lines.push('DESCRIPTION:' + _icsEscape(desc));
-    // Couleur par type (propriété non standard mais supportée par Google)
-    var colorMap = {cours:'1', examen:'5', concert:'9'};
-    if(colorMap[evt.type]) lines.push('COLOR:' + colorMap[evt.type]);
     lines.push('END:VEVENT');
   });
 
