@@ -1621,6 +1621,8 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     </button>
     <span style="font-size:15px;font-weight:600;color:var(--ct-primary);flex:1;text-align:center">Agenda</span>
     <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+    <!-- Filtre école (prof seulement, injecté par JS) -->
+    <select id="ag-school-filter" style="display:none;margin-bottom:0;font-size:11px;padding:4px 8px;height:30px;border-radius:99px;width:auto;min-width:0;max-width:120px" onchange="renderAgenda();_renderSchoolLegend()"></select>
     <button class="btn btn-sm btn-info ag-sync-btn" onclick="openAgSync()" title="Synchroniser avec Google Agenda" style="display:flex;align-items:center;gap:5px">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
       <span class="ag-sync-label">Sync</span>
@@ -2519,35 +2521,13 @@ function saveYtPlaylistUrl(){
   var v=(document.getElementById('yt-playlist-url-input').value||'').trim();
   ytPlaylistUrl=v;
   saveLocal();
-  // Re-render all player instances
-  _ytDestroyAll();
   renderYtPlaylist('yt-pl-div-prof','yt-pl-label-prof');
   renderYtPlaylist('yt-pl-div-toolbox','yt-pl-label-toolbox');
   renderYtPlaylistSetting();
   _showSyncIndicator('✓ Playlist enregistrée','#34d399');
 }
 
-/* ── YOUTUBE IFRAME API PLAYER ── */
-var _ytApiReady = false;
-var _ytPendingInits = []; // [{divId, listId, videoId}]
-var _ytPlayers = {}; // divId → {player, listId, ids:[]}
-
-// Charger l'IFrame API une seule fois
-function _ytLoadApi(){
-  if(window.YT && window.YT.Player){ _ytApiReady=true; return; }
-  if(document.getElementById('yt-iframe-api-script')) return;
-  var s=document.createElement('script');
-  s.id='yt-iframe-api-script';
-  s.src='https://www.youtube.com/iframe_api';
-  document.head.appendChild(s);
-}
-// Callback appelé par l'API YouTube quand elle est prête
-window.onYouTubeIframeAPIReady = function(){
-  _ytApiReady=true;
-  _ytPendingInits.forEach(function(p){ _ytInitPlayer(p.divId, p.listId, p.videoId); });
-  _ytPendingInits=[];
-};
-
+/* ── YOUTUBE PLAYLIST : iframe player + liste RSS ── */
 function _ytParseUrl(rawUrl){
   if(!rawUrl) return {listId:'',videoId:''};
   var listId='', videoId='';
@@ -2555,142 +2535,100 @@ function _ytParseUrl(rawUrl){
   if(m) listId=m[1];
   m=rawUrl.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
   if(m) videoId=m[1];
-  return {listId, videoId};
-}
-
-function _ytDestroyAll(){
-  Object.keys(_ytPlayers).forEach(function(id){
-    try{ _ytPlayers[id].player.destroy(); }catch(e){}
-  });
-  _ytPlayers={};
+  return {listId:listId, videoId:videoId};
 }
 
 function renderYtPlaylist(divId, labelId){
   var div=document.getElementById(divId);
   if(!div) return;
   var info=_ytParseUrl(ytPlaylistUrl);
+
   if(!info.listId && !info.videoId){
     div.innerHTML='<div style="padding:12px;text-align:center;font-size:12px;color:var(--ct-tertiary)">Aucune playlist configurée.<br>'+(profMode?'Ajoutez une URL dans les Paramètres.':'')+'</div>';
     return;
   }
-  // Détruire l'éventuel player précédent dans ce div
-  if(_ytPlayers[divId]){ try{_ytPlayers[divId].player.destroy();}catch(e){} delete _ytPlayers[divId]; }
 
-  // Structure : player iframe en haut + liste miniatures en dessous
-  div.innerHTML=
-    '<div id="'+divId+'-frame" style="border-radius:10px 10px 0 0;overflow:hidden;background:#000"></div>'
-    +'<div id="'+divId+'-list" style="max-height:220px;overflow-y:auto;border:0.5px solid var(--cbr-tertiary);border-top:none;border-radius:0 0 10px 10px;background:var(--cb-secondary)">'
-    +'<div style="padding:14px;text-align:center;font-size:11px;color:var(--ct-tertiary)">Chargement de la playlist…</div>'
-    +'</div>';
-
-  _ytLoadApi();
-  if(_ytApiReady){
-    _ytInitPlayer(divId, info.listId, info.videoId);
+  // Construire l'URL d'embed
+  var embedSrc;
+  if(info.listId){
+    embedSrc = info.videoId
+      ? 'https://www.youtube-nocookie.com/embed/'+info.videoId+'?list='+info.listId+'&rel=0&modestbranding=1'
+      : 'https://www.youtube-nocookie.com/embed/videoseries?list='+info.listId+'&rel=0&modestbranding=1';
   } else {
-    _ytPendingInits.push({divId:divId, listId:info.listId, videoId:info.videoId});
+    embedSrc = 'https://www.youtube-nocookie.com/embed/'+info.videoId+'?rel=0&modestbranding=1';
   }
+
+  // Player iframe (ratio 16:9)
+  div.innerHTML =
+    '<div style="position:relative;border-radius:10px 10px 0 0;overflow:hidden;background:#000;padding-bottom:56.25%;height:0">'
+    +'<iframe id="'+divId+'-frame" src="'+embedSrc+'" '
+    +'style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" '
+    +'allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" '
+    +'allowfullscreen loading="lazy"></iframe>'
+    +'</div>'
+    +(info.listId
+      ? '<div id="'+divId+'-list" style="border:0.5px solid var(--cbr-tertiary);border-top:none;border-radius:0 0 10px 10px;overflow:hidden">'
+        +'<div style="padding:10px;text-align:center;font-size:11px;color:var(--ct-tertiary)">Chargement de la liste…</div>'
+        +'</div>'
+      : '');
+
+  // Charger la liste via RSS si playlist
+  if(info.listId) _ytFetchList(divId, info.listId, embedSrc);
 }
 
-function _ytInitPlayer(divId, listId, videoId){
-  var frameDiv=document.getElementById(divId+'-frame');
-  if(!frameDiv) return;
-
-  // Créer un élément cible pour YT.Player
-  var target=document.createElement('div');
-  target.id=divId+'-yt-target';
-  frameDiv.appendChild(target);
-
-  var playerVars={rel:0, modestbranding:1, playsinline:1};
-  if(listId){ playerVars.list=listId; playerVars.listType='playlist'; }
-
-  var p=new YT.Player(divId+'-yt-target',{
-    width:'100%',
-    height:'220',
-    videoId: videoId || undefined,
-    playerVars: playerVars,
-    events:{
-      onReady: function(e){ _ytOnReady(divId, e.target, listId); },
-      onStateChange: function(e){ _ytOnStateChange(divId, e.target); }
-    }
-  });
-  _ytPlayers[divId]={player:p, listId:listId, ids:[]};
-}
-
-function _ytOnReady(divId, player, listId){
-  if(!listId){ return; } // vidéo seule — pas de liste à rendre
-  // Récupérer les IDs de la playlist
-  setTimeout(function(){
-    var ids=[];
-    try{ ids=player.getPlaylist()||[]; }catch(e){}
-    _ytPlayers[divId].ids=ids;
-    _ytRenderList(divId, player, ids, player.getPlaylistIndex?player.getPlaylistIndex():0);
-  }, 800);
-}
-
-function _ytOnStateChange(divId, player){
-  // Mettre à jour le surlignage de la vidéo en cours
-  var idx=0;
-  try{ idx=player.getPlaylistIndex(); }catch(e){}
-  var ids=(_ytPlayers[divId]||{}).ids||[];
-  if(!ids.length) return;
-  _ytHighlight(divId, idx);
-}
-
-function _ytRenderList(divId, player, ids, currentIdx){
+function _ytFetchList(divId, listId, baseEmbedSrc){
   var listDiv=document.getElementById(divId+'-list');
-  if(!listDiv||!ids.length){
-    if(listDiv) listDiv.style.display='none';
-    return;
-  }
-  var html='';
-  ids.forEach(function(vid, i){
-    var thumb='https://img.youtube.com/vi/'+vid+'/mqdefault.jpg';
-    var isActive = i===currentIdx;
-    html+='<div class="yt-pl-item" id="'+divId+'-item-'+i+'" onclick="_ytPlay(\''+divId+'\','+i+')" '
-      +'style="display:flex;align-items:center;gap:10px;padding:7px 10px;cursor:pointer;border-bottom:0.5px solid var(--cbr-tertiary);'
-      +(isActive?'background:var(--cb-info);':'')
-      +'transition:background .15s">'
-      +'<div style="position:relative;flex-shrink:0;width:72px;height:40px;border-radius:5px;overflow:hidden;background:#000">'
-      +'<img src="'+thumb+'" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\'">'
-      +(isActive?'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>':'')
-      +'</div>'
-      +'<span style="font-size:11px;color:'+(isActive?'var(--ct-info)':'var(--ct-secondary)')+';line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">Vidéo '+(i+1)+'</span>'
-      +'</div>';
-  });
-  listDiv.innerHTML=html;
+  if(!listDiv) return;
+  // Flux RSS YouTube (pas de clé API requise)
+  var rssUrl='https://www.youtube.com/feeds/videos.xml?playlist_id='+listId;
+  var proxyUrl='https://api.allorigins.win/raw?url='+encodeURIComponent(rssUrl);
+  fetch(proxyUrl)
+    .then(function(r){ return r.text(); })
+    .then(function(xml){
+      var parser=new DOMParser();
+      var doc=parser.parseFromString(xml,'text/xml');
+      var entries=Array.from(doc.querySelectorAll('entry'));
+      if(!entries.length){ listDiv.style.display='none'; return; }
+      var html='<div style="max-height:240px;overflow-y:auto">';
+      entries.forEach(function(entry, i){
+        var title=(entry.querySelector('title')||{}).textContent||('Vidéo '+(i+1));
+        var vidId='';
+        var vidEl=entry.querySelector('videoId');
+        if(!vidEl) vidEl=entry.querySelector('[name="videoId"]');
+        // yt:videoId element
+        var ns=entry.getElementsByTagNameNS('http://www.youtube.com/xml/schemas/2015','videoId');
+        if(ns.length) vidId=ns[0].textContent;
+        if(!vidId){
+          var link=entry.querySelector('link[rel="alternate"]');
+          if(link){ var m=link.getAttribute('href').match(/v=([A-Za-z0-9_-]{11})/); if(m) vidId=m[1]; }
+        }
+        var thumb=vidId?'https://img.youtube.com/vi/'+vidId+'/mqdefault.jpg':'';
+        var newSrc=vidId
+          ?'https://www.youtube-nocookie.com/embed/'+vidId+'?list='+listId+'&rel=0&modestbranding=1&autoplay=1'
+          :baseEmbedSrc;
+        html+='<div onclick="_ytSwitchVideo(''+divId+'',''+escHtml(newSrc)+'')" '
+          +'style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;border-bottom:0.5px solid var(--cbr-tertiary);transition:background .15s" '
+          +'onmouseover="this.style.background='var(--cb-info)'" onmouseout="this.style.background=''">'
+          +(thumb
+            ?'<img src="'+thumb+'" style="width:68px;height:38px;object-fit:cover;border-radius:4px;flex-shrink:0" loading="lazy" onerror="this.style.display='none'">'
+            :'<div style="width:68px;height:38px;background:var(--cbr-tertiary);border-radius:4px;flex-shrink:0"></div>')
+          +'<span style="font-size:11px;color:var(--ct-primary);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+escHtml(title)+'</span>'
+          +'</div>';
+      });
+      html+='</div>';
+      listDiv.innerHTML=html;
+    })
+    .catch(function(){
+      // RSS indisponible : masquer la liste proprement
+      listDiv.innerHTML='<div style="padding:8px 10px;font-size:11px;color:var(--ct-tertiary);text-align:center">Liste non disponible</div>';
+    });
 }
 
-function _ytPlay(divId, idx){
-  var obj=_ytPlayers[divId]; if(!obj) return;
-  try{ obj.player.playVideoAt(idx); }catch(e){}
-  _ytHighlight(divId, idx);
+function _ytSwitchVideo(divId, newSrc){
+  var frame=document.getElementById(divId+'-frame');
+  if(frame) frame.src=newSrc;
 }
 
-function _ytHighlight(divId, idx){
-  var ids=(_ytPlayers[divId]||{}).ids||[];
-  ids.forEach(function(vid, i){
-    var el=document.getElementById(divId+'-item-'+i);
-    if(!el) return;
-    var isActive=i===idx;
-    el.style.background=isActive?'var(--cb-info)':'';
-    var span=el.querySelector('span');
-    if(span) span.style.color=isActive?'var(--ct-info)':'var(--ct-secondary)';
-    // Mettre à jour l'icône play
-    var imgWrap=el.querySelector('div[style*="position:relative"]');
-    if(imgWrap){
-      var existing=imgWrap.querySelector('div');
-      if(isActive && !existing){
-        var overlay=document.createElement('div');
-        overlay.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center';
-        overlay.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
-        imgWrap.appendChild(overlay);
-      } else if(!isActive && existing){ existing.remove(); }
-    }
-  });
-  // Scroll vers l'élément actif
-  var activeEl=document.getElementById(divId+'-item-'+idx);
-  if(activeEl) activeEl.scrollIntoView({block:'nearest',behavior:'smooth'});
-}
 
 /* ── CYCLE STATUS ── */
 function cycleStatus(student,cycle){
@@ -5737,27 +5675,47 @@ function openPdfViewerById(tileId, title){
 var agendaEvents = [];
 
 /* Retourne les événements filtrés selon l'école de l'utilisateur connecté.
-   Le prof voit tout. L'élève ne voit que son école. */
+   Le prof voit tout (ou filtre via le sélecteur). L'élève ne voit que son école. */
 function _agendaEventsFiltered(){
-  if(profMode) return agendaEvents;
+  if(profMode){
+    var sel=document.getElementById('ag-school-filter');
+    var chosen=sel?sel.value:'';
+    if(chosen) return agendaEvents.filter(function(e){ return e.school===chosen; });
+    return agendaEvents;
+  }
   var school = currentStudent ? (currentStudent.school||'') : '';
   if(!school) return agendaEvents;
   return agendaEvents.filter(function(e){ return e.school===school; });
+}
+
+/* Popule le sélecteur d'école prof dans la topbar agenda */
+function _populateAgSchoolFilter(){
+  var sel=document.getElementById('ag-school-filter');
+  if(!sel) return;
+  if(!profMode){ sel.style.display='none'; return; }
+  var prev=sel.value;
+  sel.innerHTML='<option value="">Toutes les écoles</option>'
+    +schools.map(function(s){ return '<option value="'+escHtml(s)+'">'+escHtml(s)+'</option>'; }).join('');
+  if(prev) sel.value=prev;
+  sel.style.display=schools.length?'block':'none';
 }
 
 /* Légende des couleurs d'école dans l'agenda */
 function _renderSchoolLegend(){
   var leg = document.getElementById('ag-school-legend');
   if(!leg) return;
-  // Élève : pas de légende (une seule école)
   if(!profMode){ leg.style.display='none'; return; }
-  if(!schools.length){ leg.style.display='none'; return; }
+  // Si filtre actif → une seule école → pas de légende nécessaire
+  var sel=document.getElementById('ag-school-filter');
+  var chosen=sel?sel.value:'';
+  var list=chosen?[chosen]:schools;
+  if(!list.length){ leg.style.display='none'; return; }
   leg.style.display='flex';
-  leg.innerHTML = schools.map(function(s, i){
-    var col = SCHOOL_COLOR_PALETTE[i % SCHOOL_COLOR_PALETTE.length];
+  leg.innerHTML = list.map(function(s){
+    var col = _schoolColor(s);
     return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--ct-secondary)">'
       +'<span style="width:10px;height:10px;border-radius:50%;background:'+col+';flex-shrink:0;display:inline-block"></span>'
-      + s +'</span>';
+      +escHtml(s)+'</span>';
   }).join('');
 }
 var ytPlaylistUrl = ''; // URL YouTube playlist du cours
@@ -5792,6 +5750,7 @@ function openAgenda(){
   const sca = document.getElementById('sc-agenda');
   sca.style.display = 'flex';
   sca.classList.add('active');
+  _populateAgSchoolFilter();
   _renderSchoolLegend();
   renderAgenda();
   _initAgendaSwipe();
