@@ -1621,8 +1621,6 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     </button>
     <span style="font-size:15px;font-weight:600;color:var(--ct-primary);flex:1;text-align:center">Agenda</span>
     <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-    <!-- Filtre école (prof seulement, injecté par JS) -->
-    <select id="ag-school-filter" style="display:none;margin-bottom:0;font-size:11px;padding:4px 8px;height:30px;border-radius:99px;width:auto;min-width:0;max-width:120px" onchange="renderAgenda();_renderSchoolLegend()"></select>
     <button class="btn btn-sm btn-info ag-sync-btn" onclick="openAgSync()" title="Synchroniser avec Google Agenda" style="display:flex;align-items:center;gap:5px">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
       <span class="ag-sync-label">Sync</span>
@@ -1640,6 +1638,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     <button class="ag-nav-btn" onclick="agNav(-1)">&#8249;</button>
     <button class="ag-today-btn" onclick="agGoToday()">Aujourd'hui</button>
     <div class="ag-period-label" id="ag-period-label"></div>
+    <select id="ag-school-filter" style="display:none;margin-bottom:0;font-size:11px;padding:4px 8px;height:28px;border-radius:99px;width:auto;min-width:0;max-width:110px;flex-shrink:0" onchange="renderAgenda();_renderSchoolLegend()"></select>
     <button class="ag-nav-btn" onclick="agNav(1)">&#8250;</button>
   </div>
 
@@ -3878,7 +3877,8 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
   const canPreview = tile.type==='image'||tile.type==='audio'||tile.type==='text'||tile.type==='link';
   let previewBtnHtml = '';
   if(isPdf){
-    previewBtnHtml = `<button class="tile-expand-btn" onclick="event.stopPropagation();openPdfViewerById('${tile.id}','${(tile.title||'Document').replace(/'/g,"\\'")}');trackInteraction('${tile.id}')" title="Ouvrir le PDF"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button>`;
+    previewBtnHtml = `<button class="tile-expand-btn" onclick="event.stopPropagation();openPdfViewerById('${tile.id}','${(tile.title||'Document').replace(/'/g,"\\'")}');trackInteraction('${tile.id}')" title="Ouvrir le PDF"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button>`
+      + `<button class="tile-expand-btn" onclick="event.stopPropagation();(function(){var t=null;boardColumns.forEach(function(c){c.tiles.forEach(function(x){if(x.id==='${tile.id}')t=x;});});if(t&&t.imgData){var a=document.createElement('a');a.href=t.imgData;a.download='${(tile.title||'document').replace(/'/g,'').replace(/[^a-z0-9]/gi,'_')}.pdf';a.click();}})()" title="Télécharger le PDF"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>`;
   } else if(tile.type==='download'){
     previewBtnHtml = `<button class="tile-expand-btn" onclick="event.stopPropagation();downloadTileFile('${tile.id}');trackInteraction('${tile.id}')" title="Télécharger"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>`;
   } else if(canPreview){
@@ -4182,7 +4182,8 @@ function _updateThemeBtns(){
 
 /* ══ TRACKING INTERACTIONS ══ */
 function trackInteraction(tileId){
-  if(!tileId||boardIsProfMode||!currentStudent)return;
+  // Ne jamais incrémenter depuis un compte prof ou un aperçu prof
+  if(!tileId||boardIsProfMode||profMode||!currentStudent)return;
   if(!tileInteractions[tileId])tileInteractions[tileId]=[];
   const today=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
   const ex=tileInteractions[tileId].find(function(e){return e.studentId===currentStudent.id;});
