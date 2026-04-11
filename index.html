@@ -2606,11 +2606,11 @@ function _ytFetchList(divId, listId, baseEmbedSrc){
         var newSrc=vidId
           ?'https://www.youtube-nocookie.com/embed/'+vidId+'?list='+listId+'&rel=0&modestbranding=1&autoplay=1'
           :baseEmbedSrc;
-        html+='<div onclick="_ytSwitchVideo(''+divId+'',''+escHtml(newSrc)+'')" '
+        html+='<div onclick="_ytSwitchVideo(\''+divId+'\',\''+escHtml(newSrc)+'\')" '
           +'style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;border-bottom:0.5px solid var(--cbr-tertiary);transition:background .15s" '
-          +'onmouseover="this.style.background='var(--cb-info)'" onmouseout="this.style.background=''">'
+          +'onmouseover="this.style.background=\'var(--cb-info)\'" onmouseout="this.style.background=\'\'"> '
           +(thumb
-            ?'<img src="'+thumb+'" style="width:68px;height:38px;object-fit:cover;border-radius:4px;flex-shrink:0" loading="lazy" onerror="this.style.display='none'">'
+            ?'<img src="'+thumb+'" style="width:68px;height:38px;object-fit:cover;border-radius:4px;flex-shrink:0" loading="lazy" onerror="this.style.display=\'none\'">'
             :'<div style="width:68px;height:38px;background:var(--cbr-tertiary);border-radius:4px;flex-shrink:0"></div>')
           +'<span style="font-size:11px;color:var(--ct-primary);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+escHtml(title)+'</span>'
           +'</div>';
