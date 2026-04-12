@@ -221,7 +221,8 @@ html.light .hud-botbar{background:linear-gradient(to top,rgba(242,245,255,1) 0%,
 .self-eval-wrap{margin-top:10px;border-top:0.5px solid rgba(55,138,221,0.2);padding-top:10px}
 .self-eval-label{font-size:11px;color:var(--ct-secondary);margin-bottom:6px}
 .self-eval-slider{width:100%;accent-color:#378ADD;cursor:pointer;height:4px;margin:0 0 4px}
-.self-eval-ticks{display:flex;justify-content:space-between;font-size:9px;color:var(--ct-tertiary);font-family:var(--font-mono);margin-bottom:6px}
+.self-eval-ticks{display:grid;grid-template-columns:repeat(11,1fr);font-size:9px;color:var(--ct-tertiary);font-family:var(--font-mono);margin-bottom:6px}
+.self-eval-ticks span{text-align:center;}
 .self-eval-score{font-size:22px;font-weight:700;font-family:var(--font-mono);text-align:center;margin:4px 0;transition:color .2s}
 .self-eval-send{width:100%;margin-top:4px;font-size:11px;padding:5px 0;border-radius:99px}
 .self-eval-prof-score{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:99px;border:0.5px solid;margin-top:4px}
@@ -430,7 +431,7 @@ html.light .tile:hover .tile-gear-btn{opacity:1}
 html.light #tile-preview-win{background:#fff;border-color:var(--cbr-tertiary);box-shadow:0 8px 32px rgba(80,100,150,0.18)}
 
 /* ── BOUTON EXPAND APERÇU ── */
-.tile-expand-btn{margin-left:auto;flex-shrink:0;background:none;border:0.5px solid var(--cbr-tertiary);border-radius:50%;width:28px;height:28px;padding:0;color:var(--ct-tertiary);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center}
+.tile-expand-btn{margin-left:2px;flex-shrink:0;background:none;border:0.5px solid var(--cbr-tertiary);border-radius:50%;width:28px;height:28px;padding:0;color:var(--ct-tertiary);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center}
 .tile-expand-btn:hover{border-color:var(--cbr-info);color:var(--ct-info);background:var(--cb-info)}
 
 /* ── SOUS-ONGLETS FICHIERS ── */
@@ -544,6 +545,17 @@ html.light .prof-tab.active{color:var(--ct-info)}
 .btn-logout:hover{color:var(--ct-danger)!important;border-color:var(--cbr-danger)!important;background:var(--cb-danger)!important}
 .prof-nav-end{margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 0 0 8px}
 .prof-content{flex:1;padding:1.2rem;max-width:700px;width:100%;margin:0 auto;box-sizing:border-box}
+/* Menu FAB prof */
+.prof-fab-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border-radius:8px;border:none;background:none;color:var(--ct-secondary);font-size:12px;font-family:var(--font-sans);cursor:pointer;text-align:left;transition:background .12s}
+.prof-fab-item:hover{background:var(--cb-secondary);color:var(--ct-primary)}
+html.light .prof-fab-item:hover{background:var(--cb-secondary)}
+/* Notif items */
+.notif-item{padding:10px 12px;border-radius:8px;border:0.5px solid var(--cbr-tertiary);background:var(--cb-secondary);margin-bottom:8px}
+.notif-item.unread{border-color:var(--cbr-info);background:var(--cb-info)}
+.notif-item.low{border-color:var(--cbr-warning);background:var(--cb-warning)}
+.notif-item-title{font-size:12px;font-weight:500;color:var(--ct-primary);margin-bottom:2px}
+.notif-item-sub{font-size:11px;color:var(--ct-secondary)}
+.notif-item-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 
 /* Écran accueil prof */
 .home-welcome{text-align:center;padding:2rem 1rem 1rem}
@@ -835,13 +847,43 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     </button>
 
     <div class="prof-nav-end">
-      <button class="btn btn-sm" id="ptab-parametres" onclick="showProfTab('parametres')" title="Paramètres" style="padding:6px 8px;transition:all .15s"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
-      <button class="btn btn-sm" id="theme-btn-home" onclick="toggleTheme()" title="Thème" style="padding:6px 8px;transition:all .15s">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      </button>
-      <button class="btn btn-sm btn-logout" onclick="doLogout()" title="Déconnexion" style="padding:6px 8px;transition:all .15s">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </button>
+      <!-- Menu prof unifié -->
+      <div style="position:relative" id="prof-fab-wrap">
+        <button id="prof-fab-btn" onclick="_profFabToggle()" style="position:relative;padding:6px 8px;transition:all .15s" class="btn btn-sm" title="Menu">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          <span id="prof-fab-badge" style="display:none;position:absolute;top:-3px;right:-3px;background:#f87171;color:#fff;border-radius:99px;font-size:9px;font-weight:700;min-width:14px;height:14px;line-height:14px;text-align:center;padding:0 3px"></span>
+        </button>
+        <div id="prof-fab-menu" style="display:none;position:absolute;right:0;bottom:calc(100% + 8px);background:var(--cb-primary);border:0.5px solid var(--cbr-secondary);border-radius:12px;padding:6px;min-width:200px;box-shadow:0 8px 32px rgba(0,0,0,0.4);z-index:200;animation:ctxFadeIn .12s ease">
+          <!-- Notifications -->
+          <button class="prof-fab-item" id="prof-fab-notifs" onclick="_profFabOpenNotifs()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Notifications
+            <span id="prof-fab-notifs-badge" style="display:none;margin-left:auto;background:#f87171;color:#fff;border-radius:99px;font-size:9px;font-weight:700;min-width:18px;height:18px;line-height:18px;text-align:center;padding:0 4px"></span>
+          </button>
+          <!-- Suggestions -->
+          <button class="prof-fab-item" onclick="openSuggestionsPanel();_profFabClose()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Suggestions élèves
+          </button>
+          <div style="height:0.5px;background:var(--cbr-tertiary);margin:4px 2px"></div>
+          <!-- Paramètres -->
+          <button class="prof-fab-item" onclick="showProfTab('parametres');_profFabClose()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Paramètres
+          </button>
+          <!-- Thème -->
+          <button class="prof-fab-item" id="prof-fab-theme-btn" onclick="toggleTheme();_profFabUpdateTheme()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            <span id="prof-fab-theme-lbl">Mode clair</span>
+          </button>
+          <div style="height:0.5px;background:var(--cbr-tertiary);margin:4px 2px"></div>
+          <!-- Déconnexion -->
+          <button class="prof-fab-item" style="color:var(--ct-danger)" onclick="doLogout()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Déconnexion
+          </button>
+        </div>
+      </div>
     </div>
   </nav>
 
@@ -2658,21 +2700,36 @@ function submitSelfEval(skillId){
   if(!currentStudent.selfEval) currentStudent.selfEval={};
   currentStudent.selfEval[skillId]=score;
   saveLocal();
-  // Notification Firebase pour le prof si score ≥ 8
-  if(score>=8) _notifyProfSelfEval(skillId, score);
+  // Notification Firebase pour le prof si score ≥ 8 ou < 3
+  if(score>=8 || score<3) _notifyProfSelfEval(skillId, score);
+  // Alerte élève si score < 3
+  if(score<3){
+    var alertDiv=document.getElementById('pop-eval-alert');
+    if(!alertDiv){
+      alertDiv=document.createElement('div');
+      alertDiv.id='pop-eval-alert';
+      alertDiv.style.cssText='font-size:11px;color:var(--ct-warning);background:var(--cb-warning);border:0.5px solid var(--cbr-warning);border-radius:var(--br-md);padding:6px 10px;margin-top:6px;line-height:1.4';
+      alertDiv.textContent='⚠️ Note faible enregistrée. Ton professeur sera informé pour t\'aider.';
+      var wrap=document.querySelector('.self-eval-wrap');
+      if(wrap) wrap.appendChild(alertDiv);
+    }
+  }
   // Feedback visuel
   var btn=document.querySelector('.self-eval-send');
-  if(btn){btn.textContent='✓ Envoyé !';btn.classList.remove('btn-info');btn.classList.add('btn-success');btn.disabled=true;}
+  if(btn){btn.textContent='✓ Enregistré !';btn.classList.remove('btn-info');btn.classList.add('btn-success');btn.disabled=true;}
 }
 
 function _notifyProfSelfEval(skillId, score){
   if(!_db) return;
+  var sk=skillsData[currentCycle]||[];
+  var skillLabel=(sk.find(function(s){return s.id===skillId;})||{}).l||skillId;
   var notif={
     id:'notif_'+Date.now(),
-    type:'selfEval',
+    type: score<3 ? 'selfEvalLow' : 'selfEval',
     studentId:currentStudent.id,
     studentName:currentStudent.name,
     skillId:skillId,
+    skillLabel:skillLabel,
     score:score,
     date:new Date().toLocaleDateString('fr-FR'),
     read:false
@@ -2691,21 +2748,13 @@ function _loadProfNotifications(){
   });
 }
 function _updateNotifBadge(){
-  var unread=_profNotifications.filter(function(n){return !n.read&&n.score>=8;});
-  // Badge sur le tab élèves
-  var tab=document.getElementById('ptab-eleves');
-  if(tab){
-    var badge=document.getElementById('notif-tab-badge');
-    if(!badge){
-      badge=document.createElement('span');
-      badge.id='notif-tab-badge';
-      badge.className='eval-pending-badge';
-      tab.appendChild(badge);
-    }
-    if(unread.length){badge.textContent=unread.length;badge.style.display='inline-block';}
-    else badge.style.display='none';
-  }
-  renderHome(); // refresh la liste pour mettre à jour les badges par élève
+  var unread=_profNotifications.filter(function(n){return !n.read&&(n.score>=8||n.score<3);});
+  // Badge FAB prof
+  var fabBadge=document.getElementById('prof-fab-badge');
+  var notifsBadge=document.getElementById('prof-fab-notifs-badge');
+  if(fabBadge){if(unread.length){fabBadge.textContent=unread.length;fabBadge.style.display='inline-block';}else fabBadge.style.display='none';}
+  if(notifsBadge){if(unread.length){notifsBadge.textContent=unread.length;notifsBadge.style.display='inline-block';}else notifsBadge.style.display='none';}
+  // Pas de renderHome() ici pour éviter les boucles — le badge par élève est mis à jour à la demande
 }
 function _markNotifsReadFor(studentId){
   _profNotifications.filter(function(n){return n.studentId===studentId&&!n.read;}).forEach(function(n){
@@ -2713,6 +2762,104 @@ function _markNotifsReadFor(studentId){
     if(_db) _db.ref('sax_notifications/'+n.id+'/read').set(true);
   });
   _updateNotifBadge();
+}
+
+/* ── FAB PROF (menu ⋯) ── */
+var _profFabOpen=false;
+function _profFabToggle(){
+  _profFabOpen=!_profFabOpen;
+  document.getElementById('prof-fab-menu').style.display=_profFabOpen?'block':'none';
+  _profFabUpdateTheme();
+}
+function _profFabClose(){
+  _profFabOpen=false;
+  var m=document.getElementById('prof-fab-menu');if(m)m.style.display='none';
+}
+function _profFabUpdateTheme(){
+  var lbl=document.getElementById('prof-fab-theme-lbl');
+  if(lbl)lbl.textContent=document.documentElement.classList.contains('light')?'Mode sombre':'Mode clair';
+}
+document.addEventListener('click',function(e){
+  var wrap=document.getElementById('prof-fab-wrap');
+  if(_profFabOpen&&wrap&&!wrap.contains(e.target))_profFabClose();
+});
+
+/* ── VOLET NOTIFICATIONS PROF ── */
+function _profFabOpenNotifs(){_profFabClose();openNotifsPanel();}
+function openNotifsPanel(){
+  var existing=document.getElementById('modal-notifs-prof');
+  if(existing){existing.classList.add('open');_renderNotifsPanel();return;}
+  var modal=document.createElement('div');
+  modal.id='modal-notifs-prof';
+  modal.className='modal-overlay';
+  modal.setAttribute('onclick',"if(event.target===this)closeModal('modal-notifs-prof')");
+  modal.innerHTML='<div class="modal-box" style="max-width:480px;max-height:85vh;overflow-y:auto">'
+    +'<h3 style="margin-bottom:4px">Notifications auto-évaluation</h3>'
+    +'<p style="font-size:12px;color:var(--ct-secondary);margin-bottom:12px">Notes ≥ 8 ou &lt; 3 signalées par les élèves.</p>'
+    +'<div id="notifs-panel-body"></div>'
+    +'<div class="modal-footer" style="margin-top:12px">'
+    +'<button class="btn btn-sm" onclick="_markAllNotifsRead()">Tout marquer lu</button>'
+    +'<button class="btn" onclick="closeModal(\'modal-notifs-prof\')">Fermer</button>'
+    +'</div></div>';
+  document.body.appendChild(modal);
+  openModal('modal-notifs-prof');
+  _renderNotifsPanel();
+}
+function _renderNotifsPanel(){
+  var body=document.getElementById('notifs-panel-body');if(!body)return;
+  var all=_profNotifications.filter(function(n){return n.score>=8||n.score<3;});
+  if(!all.length){body.innerHTML='<div style="font-size:13px;color:var(--ct-tertiary);text-align:center;padding:1.5rem">Aucune notification</div>';return;}
+  all.sort(function(a,b){return (a.read?1:0)-(b.read?1:0)||(b.id>a.id?1:-1);});
+  var html='';
+  all.forEach(function(n){
+    var isLow=n.score<3;
+    var skill=escHtml(n.skillLabel||n.skillId||'');
+    var scoreColor=n.score>=8?'var(--ct-success)':'var(--ct-warning)';
+    var scoreStr='<strong style="color:'+scoreColor+'">'+n.score+'/10</strong>';
+    var typeLabel=isLow?'⚠️ Note faible':'⭐ Excellente note';
+    var cls='notif-item'+(n.read?'':isLow?' low':' unread');
+    html+='<div class="'+cls+'" id="notif-'+n.id+'">'
+      +'<div class="notif-item-title">'+typeLabel+' — '+escHtml(n.studentName||'')+'</div>'
+      +'<div class="notif-item-sub">Compétence : <em>'+skill+'</em></div>'
+      +'<div class="notif-item-sub">Note : '+scoreStr+' · '+(n.date||'')+'</div>';
+    if(!n.responded){
+      html+='<div class="notif-item-actions">'
+        +(n.score>=8?'<button class="btn btn-success btn-sm" onclick="_respondNotif(\''+n.id+'\',true,null)">✓ Valider la compétence</button>':'')
+        +'<button class="btn btn-sm" onclick="_showNotifRejectInput(\''+n.id+'\')">'+(isLow?'💬 Répondre':'✗ Refuser')+'</button>'
+        +'</div>'
+        +'<div id="notif-reject-'+n.id+'" style="display:none;margin-top:6px">'
+        +'<input type="text" placeholder="Message pour l\'élève (optionnel)" style="margin-bottom:4px;font-size:11px" id="notif-reject-txt-'+n.id+'">'
+        +'<button class="btn btn-warn btn-sm" onclick="_respondNotif(\''+n.id+'\',false,document.getElementById(\'notif-reject-txt-'+n.id+'\').value)">Envoyer</button>'
+        +'</div>';
+    } else {
+      html+='<div style="font-size:11px;color:var(--ct-tertiary);margin-top:4px">'
+        +(n.approved?'✓ Validé':'✗ Refusé')
+        +(n.justification?' — '+escHtml(n.justification):'')
+        +'</div>';
+    }
+    html+='</div>';
+  });
+  body.innerHTML=html;
+}
+function _showNotifRejectInput(id){
+  var div=document.getElementById('notif-reject-'+id);
+  if(div)div.style.display=div.style.display==='none'?'block':'none';
+}
+function _respondNotif(notifId,approved,justification){
+  var n=_profNotifications.find(function(x){return x.id===notifId;});if(!n)return;
+  n.read=true;n.responded=true;n.approved=!!approved;n.justification=justification||'';
+  if(_db){_db.ref('sax_notifications/'+notifId).update({read:true,responded:true,approved:!!approved,justification:justification||''});}
+  if(approved&&n.score>=8){
+    var stu=students.find(function(s){return s.id===n.studentId;});
+    if(stu){if(!stu.skillStates)stu.skillStates={};stu.skillStates[n.skillId]='done';saveLocal();}
+  }
+  _updateNotifBadge();_renderNotifsPanel();
+}
+function _markAllNotifsRead(){
+  _profNotifications.forEach(function(n){
+    if(!n.read){n.read=true;if(_db)_db.ref('sax_notifications/'+n.id+'/read').set(true);}
+  });
+  _updateNotifBadge();_renderNotifsPanel();
 }
 
 /* ── CYCLE STATUS ── */
@@ -3598,8 +3745,8 @@ function showPopup(skill,nodeX,nodeY,clientX,clientY){
       <div class="self-eval-score" id="pop-eval-score" style="color:${_evalColor(displayScore)}">${displayScore}/10</div>
       <input type="range" class="self-eval-slider" id="pop-eval-slider" min="0" max="10" step="1" value="${displayScore}"
         oninput="var v=+this.value;document.getElementById('pop-eval-score').textContent=v+'/10';document.getElementById('pop-eval-score').style.color=_evalColor(v)">
-      <div class="self-eval-ticks"><span>0</span><span>2</span><span>4</span><span>5</span><span>6</span><span>8</span><span>10</span></div>
-      <button class="btn self-eval-send btn-info" onclick="submitSelfEval('${skill.id}')">Envoyer mon évaluation</button>
+      <div class="self-eval-ticks"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+      <button class="btn self-eval-send btn-info" onclick="submitSelfEval('${skill.id}')">Enregistrer mon auto-évaluation</button>
     </div>`;
   }
   /* Positionnement relatif au viewport — jamais hors écran */
@@ -4005,7 +4152,7 @@ function buildTileEl(tile,colIdx,tileIdx,colId){
   } else if(tile.type==='download'){
     previewBtnHtml = `<button class="tile-expand-btn" onclick="event.stopPropagation();downloadTileFile('${tile.id}');trackInteraction('${tile.id}')" title="Télécharger"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>`;
   } else if(canPreview){
-    previewBtnHtml = `<button class="tile-expand-btn" onclick="event.stopPropagation();openTilePreview('${tile.type==='image'?_imgSrcForType.replace(/'/g,"\\'"):tile.id}','${(tile.title||'').replace(/'/g,"\\'")}','${tile.type}')" title="Aperçu agrandi"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>`;
+    previewBtnHtml = `<button class="tile-expand-btn" onclick="event.stopPropagation();openTilePreview('${tile.type==='image'?_imgSrcForType.replace(/'/g,"\\'"):tile.id}','${(tile.title||'').replace(/'/g,"\\'")}','${tile.type}')" title="Aperçu agrandi"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>`;
   }
 
   // Badge : label et couleur (PDF détecté dynamiquement)
