@@ -220,9 +220,7 @@ html.light .hud-botbar{background:linear-gradient(to top,rgba(242,245,255,1) 0%,
 /* ── AUTO-ÉVALUATION ÉLÈVE ── */
 .self-eval-wrap{margin-top:10px;border-top:0.5px solid rgba(55,138,221,0.2);padding-top:10px}
 .self-eval-label{font-size:11px;color:var(--ct-secondary);margin-bottom:6px}
-/* Slider qui va bien jusqu'à 0 et 10 */
-.self-eval-slider-wrap{position:relative;padding:0 0 2px;margin-bottom:2px}
-.self-eval-slider{width:100%;accent-color:#378ADD;cursor:pointer;height:4px;margin:0;display:block;-webkit-appearance:none;appearance:none}
+.self-eval-slider{width:100%;accent-color:#378ADD;cursor:pointer;height:4px;margin:0 0 4px}
 .self-eval-ticks{display:grid;grid-template-columns:repeat(11,1fr);font-size:9px;color:var(--ct-tertiary);font-family:var(--font-mono);margin-bottom:6px}
 .self-eval-ticks span{text-align:center;}
 .self-eval-score{font-size:22px;font-weight:700;font-family:var(--font-mono);text-align:center;margin:4px 0;transition:color .2s}
@@ -850,7 +848,15 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
       Outils
     </button>
 
-    <div class="prof-nav-end" style="display:none"></div>
+    <div class="prof-nav-end">
+      <!-- Bouton trigger menu prof -->
+      <div style="position:relative" id="prof-fab-wrap">
+        <button id="prof-fab-btn" onclick="_profFabToggle()" style="position:relative;padding:6px 8px;transition:all .15s" class="btn btn-sm" title="Menu">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          <span id="prof-fab-badge" style="display:none;position:absolute;top:-3px;right:-3px;background:#f87171;color:#fff;border-radius:99px;font-size:9px;font-weight:700;min-width:14px;height:14px;line-height:14px;text-align:center;padding:0 3px"></span>
+        </button>
+      </div>
+    </div>
   </nav>
 
   <!-- Contenu dynamique -->
@@ -1828,7 +1834,7 @@ html.light .congrats-overlay .btn-info:hover{background:#163060!important;border
     </button>
   </div>
   <!-- Bouton toggle -->
-  <button id="prof-fab-toggle" onclick="_profFabToggle()" class="prof-fab-toggle-btn" title="Menu">
+  <button id="prof-fab-toggle" onclick="_profFabToggle()" style="width:44px;height:44px;border-radius:50%;background:rgba(15,20,32,0.88);border:0.5px solid var(--cbr-secondary);color:var(--ct-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);box-shadow:0 2px 12px rgba(0,0,0,0.35);transition:all .15s;position:relative" title="Menu">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
     <span id="prof-fab-badge" style="display:none;position:absolute;top:-3px;right:-3px;background:#f87171;color:#fff;border-radius:99px;font-size:9px;font-weight:700;min-width:14px;height:14px;line-height:14px;text-align:center;padding:0 3px"></span>
   </button>
@@ -1980,16 +1986,6 @@ html.light .ag-week-wrap,.html.light .ag-month-grid{border-color:var(--cbr-terti
 .sfab-btn.logout{color:var(--ct-danger);border-color:var(--cbr-danger)}
 .sfab-btn.logout:hover{background:var(--cb-danger)}
 html.light .sfab-btn{background:rgba(255,255,255,0.94);box-shadow:0 2px 12px rgba(100,120,160,0.18)}
-html.light .sfab-btn:hover{background:var(--cb-secondary)}
-/* Bouton toggle FAB prof */
-.prof-fab-toggle-btn{
-  width:44px;height:44px;border-radius:50%;position:relative;
-  background:rgba(15,20,32,0.88);border:0.5px solid var(--cbr-secondary);
-  color:var(--ct-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;
-  backdrop-filter:blur(10px);box-shadow:0 2px 12px rgba(0,0,0,0.35);transition:all .15s;
-}
-.prof-fab-toggle-btn:hover{border-color:var(--cbr-info);color:var(--ct-info)}
-html.light .prof-fab-toggle-btn{background:rgba(255,255,255,0.94);box-shadow:0 2px 12px rgba(100,120,160,0.18)}
 #student-fab-toggle{
   width:44px;height:44px;border-radius:50%;
   background:rgba(15,20,32,0.88);
@@ -2279,10 +2275,7 @@ async function loadLocal(){
 
   if(fbOk && _db){
     try{
-      const snap = await Promise.race([
-        _db.ref(FIREBASE_PATH).once('value'),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase timeout (6s)')), 6000))
-      ]);
+      const snap = await _db.ref(FIREBASE_PATH).once('value');
       cloudData = snap.val();
     }catch(e){
       console.warn('Firebase read failed, using localStorage:', e);
@@ -2341,7 +2334,7 @@ async function loadLocal(){
   saveLocal();
   _cloudReady = true;
   loader.remove();
-  // sc-login reste visible (le loader le couvrait – plus besoin de le réafficher)
+  document.getElementById('sc-login').style.display = '';
 
   // Écouter les mises à jour en temps réel (sync multi-onglets / multi-appareils)
   if(fbOk && _db){
@@ -3777,38 +3770,13 @@ function showPopup(skill,nodeX,nodeY,clientX,clientY){
     const selfEvals=currentStudent.selfEval||{};
     const curScore=selfEvals[skill.id]??null;
     const displayScore=curScore!=null?curScore:5;
-    // Chercher une éventuelle réponse du prof dans Firebase
-    var _profReply='';
-    if(typeof _db!=='undefined'&&_db&&curScore!=null){
-      // Lire depuis les notifications locales si disponibles (chargées par l'élève)
-      try{
-        _db.ref('sax_notifications').orderByChild('skillId').equalTo(skill.id).once('value').then(function(snap){
-          var d=snap.val();if(!d)return;
-          Object.values(d).forEach(function(n){
-            if(n.studentId===currentStudent.id&&n.responded){
-              var el=document.getElementById('pop-prof-reply-'+skill.id);
-              if(el){
-                el.style.display='flex';
-                el.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
-                  +(n.approved
-                    ?'<span style="color:var(--ct-success)">Professeur : ✓ Validé !'+(n.justification?' — '+escHtml(n.justification):'')+'</span>'
-                    :'<span style="color:var(--ct-warning)">Professeur : pas encore validé.'+(n.justification?' — '+escHtml(n.justification):'')+'</span>');
-              }
-            }
-          });
-        });
-      }catch(e){}
-    }
     btns.innerHTML=`<div class="self-eval-wrap" style="width:100%">
       <div class="self-eval-label">Mon auto-évaluation</div>
       <div class="self-eval-score" id="pop-eval-score" style="color:${_evalColor(displayScore)}">${displayScore}/10</div>
-      <div class="self-eval-slider-wrap">
-        <input type="range" class="self-eval-slider" id="pop-eval-slider" min="0" max="10" step="1" value="${displayScore}"
-          oninput="var v=+this.value;document.getElementById('pop-eval-score').textContent=v+'/10';document.getElementById('pop-eval-score').style.color=_evalColor(v)">
-      </div>
+      <input type="range" class="self-eval-slider" id="pop-eval-slider" min="0" max="10" step="1" value="${displayScore}"
+        oninput="var v=+this.value;document.getElementById('pop-eval-score').textContent=v+'/10';document.getElementById('pop-eval-score').style.color=_evalColor(v)">
       <div class="self-eval-ticks"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
       <button class="btn self-eval-send btn-info" onclick="submitSelfEval('${skill.id}')">Enregistrer mon auto-évaluation</button>
-      <div id="pop-prof-reply-${skill.id}" style="display:none;align-items:flex-start;gap:6px;font-size:11px;margin-top:8px;padding:6px 8px;border-radius:var(--br-md);background:var(--cb-secondary);border:0.5px solid var(--cbr-tertiary)"></div>
     </div>`;
   }
   /* Positionnement relatif au viewport — jamais hors écran */
@@ -4007,7 +3975,7 @@ function youtubeEmbedHtml(info,sizeClass,tileId){
   return `<div style="position:relative;border-radius:6px;overflow:hidden;margin-bottom:0">
     <iframe style="width:100%;height:${h};border:none;display:block" src="${embedUrl}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;fullscreen" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox" loading="lazy"></iframe>
     <div style="position:absolute;inset:0;cursor:pointer;z-index:1" onclick="this.style.display='none';${trackJs}" title="Lancer la vidéo"></div>
-    <button onclick="event.stopPropagation();openYoutubeExpand('${embedUrl.replace(/'/g,"\\'")}');" title="Agrandir" style="display:none"></button>
+    <button onclick="event.stopPropagation();openYoutubeExpand('${embedUrl.replace(/'/g,"\\'")}');" title="Agrandir" style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.65);border:none;border-radius:6px;cursor:pointer;padding:4px 7px;display:flex;align-items:center;gap:4px;color:#fff;font-size:10px;font-family:var(--font-sans);backdrop-filter:blur(4px);z-index:2"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Agrandir</button>
   </div>`;
 }
 
@@ -4327,22 +4295,16 @@ function openTilePreview(tileIdOrSrc, title, kind){
     boardColumns.forEach(function(col){col.tiles.forEach(function(t){if(t.id===tileIdOrSrc)tile=t;});});
   }
 
-  // Sur mobile/Android : plein écran modal (pas de fenêtre flottante)
-  var isMobile=/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent)||window.innerWidth<600;
-
   var win=document.createElement('div');
   win.id='tile-preview-win';
-  if(isMobile){
-    win.style.cssText='position:fixed;inset:0;z-index:9600;background:var(--cb-primary);display:flex;flex-direction:column;overflow:hidden';
-  } else {
-    win.style.cssText='position:fixed;z-index:9600;background:var(--cb-primary);border:0.5px solid var(--cbr-secondary);border-radius:14px;box-shadow:0 12px 48px rgba(0,0,0,0.55);display:flex;flex-direction:column;overflow:hidden;resize:both;min-width:320px;min-height:200px;max-width:90vw;max-height:88vh;width:480px;height:auto';
-    win.style.left=Math.max(20,window.innerWidth/2-240)+'px';
-    win.style.top=Math.max(60,window.innerHeight/2-200)+'px';
-  }
+  win.style.cssText='position:fixed;z-index:9600;background:var(--cb-primary);border:0.5px solid var(--cbr-secondary);border-radius:14px;box-shadow:0 12px 48px rgba(0,0,0,0.55);display:flex;flex-direction:column;overflow:hidden;resize:both;min-width:320px;min-height:200px;max-width:90vw;max-height:88vh;width:480px;height:auto';
+  // Position initiale : centré
+  win.style.left=Math.max(20,window.innerWidth/2-240)+'px';
+  win.style.top=Math.max(60,window.innerHeight/2-200)+'px';
 
-  // Header
+  // Header drag
   var header=document.createElement('div');
-  header.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:0.5px solid var(--cbr-tertiary);'+(isMobile?'':'cursor:grab;')+'flex-shrink:0;background:var(--cb-secondary);user-select:none';
+  header.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:0.5px solid var(--cbr-tertiary);cursor:grab;flex-shrink:0;background:var(--cb-secondary);user-select:none';
   header.innerHTML='<div style="flex:1;font-size:13px;font-weight:500;color:var(--ct-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(title||'Aperçu')+'</div>'
     +'<button onclick="closeTilePreview()" style="background:none;border:none;cursor:pointer;color:var(--ct-tertiary);font-size:18px;padding:2px 6px;line-height:1;flex-shrink:0">✕</button>';
   win.appendChild(header);
@@ -4412,23 +4374,38 @@ function openTilePreview(tileIdOrSrc, title, kind){
     }, true);
   }, 200);
 
-  // Drag souris (desktop seulement)
-  if(!isMobile){
-    var dragging=false,ox=0,oy=0,startL=0,startT=0;
-    header.addEventListener('mousedown',function(e){
-      dragging=true;ox=e.clientX;oy=e.clientY;
-      startL=parseInt(win.style.left)||0;startT=parseInt(win.style.top)||0;
-      header.style.cursor='grabbing';e.preventDefault();
-    });
-    document.addEventListener('mousemove',function(e){
-      if(!dragging)return;
-      var nl=startL+(e.clientX-ox),nt=startT+(e.clientY-oy);
-      nl=Math.max(0,Math.min(window.innerWidth-100,nl));
-      nt=Math.max(0,Math.min(window.innerHeight-60,nt));
-      win.style.left=nl+'px';win.style.top=nt+'px';
-    });
-    document.addEventListener('mouseup',function(){dragging=false;header.style.cursor='grab';});
-  }
+  // Drag
+  var dragging=false,ox=0,oy=0,startL=0,startT=0;
+  header.addEventListener('mousedown',function(e){
+    dragging=true;ox=e.clientX;oy=e.clientY;
+    startL=parseInt(win.style.left)||0;startT=parseInt(win.style.top)||0;
+    header.style.cursor='grabbing';e.preventDefault();
+  });
+  document.addEventListener('mousemove',function(e){
+    if(!dragging)return;
+    var nl=startL+(e.clientX-ox),nt=startT+(e.clientY-oy);
+    nl=Math.max(0,Math.min(window.innerWidth-100,nl));
+    nt=Math.max(0,Math.min(window.innerHeight-60,nt));
+    win.style.left=nl+'px';win.style.top=nt+'px';
+  });
+  document.addEventListener('mouseup',function(){dragging=false;header.style.cursor='grab';});
+
+  // Touch drag
+  var tx=0,ty=0,tsl=0,tst=0;
+  header.addEventListener('touchstart',function(e){
+    var t=e.touches[0];tx=t.clientX;ty=t.clientY;
+    tsl=parseInt(win.style.left)||0;tst=parseInt(win.style.top)||0;
+    e.preventDefault();
+  },{passive:false});
+  header.addEventListener('touchmove',function(e){
+    var t=e.touches[0];
+    var nl=tsl+(t.clientX-tx),nt=tst+(t.clientY-ty);
+    nl=Math.max(0,Math.min(window.innerWidth-100,nl));
+    nt=Math.max(0,Math.min(window.innerHeight-60,nt));
+    win.style.left=nl+'px';win.style.top=nt+'px';
+    e.preventDefault();
+  },{passive:false});
+}
 
 function closeTilePreview(){
   if(_tilePreviewWin){_tilePreviewWin.remove();_tilePreviewWin=null;}
@@ -4488,7 +4465,6 @@ function toggleTheme(){
   const isLight=document.documentElement.classList.toggle('light');
   try{localStorage.setItem('sax_theme',isLight?'light':'dark')}catch(e){}
   _updateThemeBtns();
-  _profFabUpdateTheme();
 }
 function _updateThemeBtns(){
   const isLight=document.documentElement.classList.contains('light');
@@ -4498,7 +4474,6 @@ function _updateThemeBtns(){
   const sl=document.getElementById('theme-label-settings');
   if(sb)sb.textContent=isLight?'Sombre':'Clair';
   if(sl)sl.textContent=isLight?'Thème clair actif':'Thème sombre actif';
-  _profFabUpdateTheme();
 }
 (function(){
   try{const t=localStorage.getItem('sax_theme');if(t==='light')document.documentElement.classList.add('light');}catch(e){}
@@ -5566,6 +5541,7 @@ function buildShareTile(tile, colIdx, tileIdx, colId){
       ytExpandBtn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg> Agrandir';
       (function(_eu){ytExpandBtn.onclick=function(e){e.stopPropagation();openYoutubeExpand(_eu);};})(info.embedUrl);
       ytWrap.appendChild(iframe);
+      ytWrap.appendChild(ytExpandBtn);
       wrap.appendChild(ytWrap);
     } else if(info&&info.platform==='spotify'){
       var sdiv=document.createElement('div');
@@ -5879,9 +5855,11 @@ function _stopMetroProf(){
   _metroProf.beat=0;
 }
 
-// Le loader plein-écran (z-index:9999) masque déjà le login pendant le chargement.
-// L'ancien DOMContentLoaded qui masquait sc-login créait une race condition :
-// si Firebase répondait avant DOMContentLoaded, le login restait caché définitivement.
+// Masquer l'écran login pendant le chargement cloud
+document.addEventListener('DOMContentLoaded', ()=>{
+  const sl = document.getElementById('sc-login');
+  if(sl) sl.style.display='none';
+});
 loadLocal().then(()=>{ _restoreSession(); setTimeout(function(){ renderYtPlaylist('yt-pl-div-prof','yt-pl-label-prof'); renderYtPlaylist('yt-pl-div-toolbox','yt-pl-label-toolbox'); }, 200); });
 
 function _restoreSession(){
