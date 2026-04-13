@@ -2341,7 +2341,7 @@ async function loadLocal(){
   saveLocal();
   _cloudReady = true;
   loader.remove();
-  document.getElementById('sc-login').style.display = '';
+  // sc-login reste visible (le loader le couvrait – plus besoin de le réafficher)
 
   // Écouter les mises à jour en temps réel (sync multi-onglets / multi-appareils)
   if(fbOk && _db){
@@ -5879,11 +5879,9 @@ function _stopMetroProf(){
   _metroProf.beat=0;
 }
 
-// Masquer l'écran login pendant le chargement cloud
-document.addEventListener('DOMContentLoaded', ()=>{
-  const sl = document.getElementById('sc-login');
-  if(sl) sl.style.display='none';
-});
+// Le loader plein-écran (z-index:9999) masque déjà le login pendant le chargement.
+// L'ancien DOMContentLoaded qui masquait sc-login créait une race condition :
+// si Firebase répondait avant DOMContentLoaded, le login restait caché définitivement.
 loadLocal().then(()=>{ _restoreSession(); setTimeout(function(){ renderYtPlaylist('yt-pl-div-prof','yt-pl-label-prof'); renderYtPlaylist('yt-pl-div-toolbox','yt-pl-label-toolbox'); }, 200); });
 
 function _restoreSession(){
