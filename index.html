@@ -233,8 +233,8 @@ html.light .hud-botbar{background:linear-gradient(to top,rgba(242,245,255,1) 0%,
 .self-eval-slider::-webkit-slider-runnable-track{height:4px;border-radius:99px;background:var(--cbr-tertiary)}
 .self-eval-slider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#378ADD;cursor:pointer;border:none;box-shadow:0 0 0 2px rgba(55,138,221,.25)}
 .self-eval-slider::-moz-range-track{height:4px;border-radius:99px;background:var(--cbr-tertiary)}
-.self-eval-ticks{display:flex;justify-content:space-between;font-size:9px;color:var(--ct-tertiary);font-family:var(--font-mono);margin-bottom:6px;width:calc(100% - 18px);margin-left:auto;margin-right:auto}
-.self-eval-ticks span{width:0;overflow:visible;text-align:center;white-space:nowrap;display:inline-block}
+.self-eval-ticks{position:relative;height:12px;margin-bottom:6px}
+.self-eval-ticks span{position:absolute;font-size:9px;color:var(--ct-tertiary);font-family:var(--font-mono);transform:translateX(-50%);white-space:nowrap}
 .self-eval-score{font-size:22px;font-weight:700;font-family:var(--font-mono);text-align:center;margin:4px 0;transition:color .2s}
 .self-eval-send{width:100%;margin-top:4px;font-size:11px;padding:5px 0;border-radius:99px}
 .self-eval-prof-score{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:99px;border:0.5px solid;margin-top:4px}
@@ -2733,6 +2733,19 @@ function _evalColor(v){
 }
 
 function submitSelfEval(skillId){
+  // Générer les ticks positionnés absolument après render
+  (function(){
+    var ticksEl=document.getElementById('pop-eval-ticks');
+    if(!ticksEl)return;
+    ticksEl.innerHTML='';
+    for(var i=0;i<=10;i++){
+      var sp=document.createElement('span');
+      sp.textContent=i;
+      // Position exacte : centre du thumb à valeur i = i/10 * (100% - thumbW) + thumbW/2
+      sp.style.left='calc('+i+' * (100% - 18px) / 10 + 9px)';
+      ticksEl.appendChild(sp);
+    }
+  })();
   var slider=document.getElementById('pop-eval-slider');
   if(!slider) return;
   var score=parseInt(slider.value);
@@ -2956,14 +2969,12 @@ function _markAllNotifsRead(){
     if(!n.read){
       n.read=true;
       if(_db)_db.ref('sax_notifications/'+n.id+'/read').set(true);
-      // Effacer le selfEval correspondant pour faire disparaître le badge élève
-      var stu=students.find(function(s){return s.id===n.studentId;});
-      if(stu&&stu.selfEval&&n.skillId in stu.selfEval) delete stu.selfEval[n.skillId];
     }
   });
   saveLocal();
   _updateNotifBadge();_renderNotifsPanel();
-  if(profMode&&document.getElementById('sc-home')?.classList.contains('active'))renderHome();
+  // Rafraîchir les badges sur la home sans re-render complet
+  document.querySelectorAll('.eval-pending-badge').forEach(function(el){el.style.display='none';});
 }
 
 /* ── CYCLE STATUS ── */
@@ -3028,7 +3039,12 @@ function renderHome(){
         ? '<button class="btn btn-success btn-sm" style="white-space:nowrap" onclick="openExamModal(\'' + s.id + '\')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Valider</button>'
         : '';
       // Badge auto-éval en attente (score ≥ 8)
-      var _pendingEvals=Object.entries(s.selfEval||{}).filter(function(e){return e[1]>=8;});
+      // Badge : compter uniquement les selfEval dont la notif correspondante est non lue
+      var _pendingEvals=Object.entries(s.selfEval||{}).filter(function(e){
+        return e[1]>=8 && _profNotifications.some(function(n){
+          return n.studentId===s.id && n.skillId===e[0] && !n.read;
+        });
+      });
       var _sid=s.id;
       var _evalBadge=_pendingEvals.length
         ?`<span class="eval-pending-badge" title="${_pendingEvals.length} auto-éval(s) ≥ 8/10 en attente de validation" style="cursor:pointer" onclick="event.stopPropagation();_profFabOpenNotifs('${_sid}')">${_pendingEvals.length}</span>`
@@ -3875,7 +3891,7 @@ function showPopup(skill,nodeX,nodeY,clientX,clientY){
         <input type="range" class="self-eval-slider" id="pop-eval-slider" min="0" max="10" step="1" value="${displayScore}"
           oninput="var v=+this.value;document.getElementById('pop-eval-score').textContent=v+'/10';document.getElementById('pop-eval-score').style.color=_evalColor(v)">
       </div>
-      <div class="self-eval-ticks"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+      <div class="self-eval-ticks" id="pop-eval-ticks"></div>
       <button class="btn self-eval-send btn-info" onclick="submitSelfEval('${skill.id}')">Enregistrer mon auto-évaluation</button>
       <div id="pop-prof-reply-${skill.id}" style="display:none;align-items:flex-start;gap:6px;font-size:11px;margin-top:8px;padding:6px 8px;border-radius:var(--br-md);background:var(--cb-secondary);border:0.5px solid var(--cbr-tertiary)"></div>
     </div>`;
