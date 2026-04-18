@@ -2272,14 +2272,19 @@ async function loadLocal(){
     + '<style>@keyframes ldbar{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}</style>';
   document.body.appendChild(loader);
 
-  // Initialiser Firebase
-  const fbOk = _initFirebase();
-
+  // Initialiser Firebase (déclaré avant try pour être accessible dans le listener)
+  let fbOk = false;
   let cloudData = null;
+
+  try {
+  fbOk = _initFirebase();
 
   if(fbOk && _db){
     try{
-      const snap = await _db.ref(FIREBASE_PATH).once('value');
+      const snap = await Promise.race([
+        _db.ref(FIREBASE_PATH).once('value'),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase timeout (6s)')), 6000))
+      ]);
       cloudData = snap.val();
     }catch(e){
       console.warn('Firebase read failed, using localStorage:', e);
@@ -2337,8 +2342,15 @@ async function loadLocal(){
 
   saveLocal();
   _cloudReady = true;
-  loader.remove();
-  show('sc-login');
+
+  } catch(fatalErr) {
+    console.error('loadLocal fatal error:', fatalErr);
+    _cloudReady = true;
+    for(let c=1;c<=3;c++) if(!Array.isArray(skillsData[c])||!skillsData[c].length) skillsData[c]=JSON.parse(JSON.stringify(DEFAULT_SKILLS[c]));
+  } finally {
+    loader.remove();
+    show('sc-login'); // Toujours affiché, quoi qu'il arrive
+  }
 
   // Écouter les mises à jour en temps réel (sync multi-onglets / multi-appareils)
   if(fbOk && _db){
@@ -5876,10 +5888,9 @@ function _stopMetroProf(){
   _metroProf.beat=0;
 }
 
-// Le loader plein-écran (z-index:9999) masque le login pendant le chargement.
-// L'ancien DOMContentLoaded qui forçait display:none causait un blocage permanent
-// quand Firebase n'était pas disponible (loadLocal() sans await → sync → DOMContentLoaded
-// se déclenchait après et cachait définitivement le login).
+// Le loader plein-écran (z-index:9999) masque déjà le login pendant le chargement.
+// L'ancien DOMContentLoaded qui masquait sc-login créait une race condition :
+// si Firebase répondait avant DOMContentLoaded, le login restait caché définitivement.
 loadLocal().then(()=>{ _restoreSession(); setTimeout(function(){ renderYtPlaylist('yt-pl-div-prof','yt-pl-label-prof'); renderYtPlaylist('yt-pl-div-toolbox','yt-pl-label-toolbox'); }, 200); });
 
 function _restoreSession(){
