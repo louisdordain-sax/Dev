@@ -234,7 +234,7 @@ html.light .hud-botbar{background:linear-gradient(to top,rgba(242,245,255,1) 0%,
 .self-eval-slider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#378ADD;cursor:pointer;border:none;box-shadow:0 0 0 2px rgba(55,138,221,.25)}
 .self-eval-slider::-moz-range-track{height:4px;border-radius:99px;background:var(--cbr-tertiary)}
 .self-eval-ticks{display:flex;justify-content:space-between;font-size:9px;color:var(--ct-tertiary);font-family:var(--font-mono);margin-bottom:6px;width:calc(100% - 18px);margin-left:auto;margin-right:auto}
-.self-eval-ticks span{text-align:center;flex:0 0 auto}
+.self-eval-ticks span{width:0;overflow:visible;text-align:center;white-space:nowrap;display:inline-block}
 .self-eval-score{font-size:22px;font-weight:700;font-family:var(--font-mono);text-align:center;margin:4px 0;transition:color .2s}
 .self-eval-send{width:100%;margin-top:4px;font-size:11px;padding:5px 0;border-radius:99px}
 .self-eval-prof-score{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:99px;border:0.5px solid;margin-top:4px}
@@ -2793,7 +2793,26 @@ function _updateNotifBadge(){
   var notifsBadge=document.getElementById('prof-fab-notifs-badge');
   if(fabBadge){if(unread.length){fabBadge.textContent=unread.length;fabBadge.style.display='inline-block';}else fabBadge.style.display='none';}
   if(notifsBadge){if(unread.length){notifsBadge.textContent=unread.length;notifsBadge.style.display='inline-block';}else notifsBadge.style.display='none';}
-  // Pas de renderHome() ici pour éviter les boucles — le badge par élève est mis à jour à la demande
+  // Mettre à jour les badges par élève directement dans le DOM (sans re-render)
+  students.forEach(function(s){
+    var pending=Object.entries(s.selfEval||{}).filter(function(e){
+      // Ne compter que les évals dont la notif n'est pas encore répondue/lue
+      return e[1]>=8 && _profNotifications.some(function(n){
+        return n.studentId===s.id && n.skillId===e[0] && !n.read;
+      });
+    });
+    // Chercher le badge dans le DOM de la home
+    document.querySelectorAll('.eval-pending-badge').forEach(function(el){
+      if(el.closest && el.closest('[data-sid="'+s.id+'"]')){
+        if(pending.length){el.textContent=pending.length;el.style.display='inline-block';}
+        else el.style.display='none';
+      }
+    });
+  });
+  // Si aucune notif non lue, cacher tous les badges élèves
+  if(!unread.length){
+    document.querySelectorAll('.eval-pending-badge').forEach(function(el){el.style.display='none';});
+  }
 }
 function _markNotifsReadFor(studentId){
   _profNotifications.filter(function(n){return n.studentId===studentId&&!n.read;}).forEach(function(n){
@@ -3018,6 +3037,7 @@ function renderHome(){
       var _examHtml = cs==='awaiting_exam'
         ? '<div style="margin-top:3px"><span style="font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(239,159,39,.12);color:#EF9F27;border:0.5px solid rgba(239,159,39,.4);font-weight:600;white-space:nowrap;font-family:var(--font-mono)">' + _cycleYear + '</span><span style="font-size:10px;color:var(--ct-tertiary);margin-left:5px">— examen</span></div>'
         : '<div style="margin-top:3px;display:flex;align-items:center;gap:6px"><span style="font-size:10px;padding:1px 7px;border-radius:99px;background:' + s.color + '22;color:' + s.color + ';border:0.5px solid ' + s.color + '66;font-weight:700;font-family:var(--font-mono)">' + _cycleYear + '</span><span style="font-size:10px;color:var(--ct-secondary)">' + done + '/' + total + ' (' + pct + '%)</span></div><div style="height:3px;background:var(--cb-secondary);border-radius:99px;overflow:hidden;margin-top:4px"><div style="height:100%;border-radius:99px;width:' + pct + '%;background:' + s.color + '"></div></div>';
+      row.dataset.sid=s.id;
       row.innerHTML=`
         <div class="avatar" style="background:${s.color}22;color:${s.color};width:36px;height:36px;font-size:12px;flex-shrink:0">${initials(s.name)}</div>
         <div style="flex:1;min-width:0">
