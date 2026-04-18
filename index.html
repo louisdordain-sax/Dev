@@ -2837,30 +2837,49 @@ document.addEventListener('click',function(e){
 });
 
 /* ── VOLET NOTIFICATIONS PROF ── */
-function _profFabOpenNotifs(){_profFabClose();openNotifsPanel();}
-function openNotifsPanel(){
+function _profFabOpenNotifs(studentId){_profFabClose();openNotifsPanel(studentId||null);}
+function openNotifsPanel(studentId){
+  _notifsPanelStudentFilter=studentId||null;
   var existing=document.getElementById('modal-notifs-prof');
   if(existing){existing.classList.add('open');_renderNotifsPanel();return;}
   var modal=document.createElement('div');
   modal.id='modal-notifs-prof';
   modal.className='modal-overlay';
-  modal.setAttribute('onclick',"if(event.target===this)closeModal('modal-notifs-prof')");
+  var closeFn="closeModal('modal-notifs-prof');_notifsPanelStudentFilter=null;";
+  modal.setAttribute('onclick',"if(event.target===this){"+closeFn+"}");
   modal.innerHTML='<div class="modal-box" style="max-width:480px;max-height:85vh;overflow-y:auto">'
-    +'<h3 style="margin-bottom:4px">Notifications auto-évaluation</h3>'
+    +'<h3 id="notifs-panel-title" style="margin-bottom:4px">Notifications auto-évaluation</h3>'
     +'<p style="font-size:12px;color:var(--ct-secondary);margin-bottom:12px">Notes ≥ 8 ou &lt; 3 signalées par les élèves.</p>'
     +'<div id="notifs-panel-body"></div>'
     +'<div class="modal-footer" style="margin-top:12px">'
     +'<button class="btn btn-sm" onclick="_markAllNotifsRead()">Tout marquer lu</button>'
-    +'<button class="btn" onclick="closeModal(\'modal-notifs-prof\')">Fermer</button>'
+    +'<button class="btn" id="notifs-panel-close-btn">Fermer</button>'
     +'</div></div>';
   document.body.appendChild(modal);
+  document.getElementById('notifs-panel-close-btn').onclick=function(){closeModal('modal-notifs-prof');_notifsPanelStudentFilter=null;};
   openModal('modal-notifs-prof');
   _renderNotifsPanel();
 }
 function _renderNotifsPanel(){
   var body=document.getElementById('notifs-panel-body');if(!body)return;
-  var all=_profNotifications.filter(function(n){return n.score>=8||n.score<3;});
-  if(!all.length){body.innerHTML='<div style="font-size:13px;color:var(--ct-tertiary);text-align:center;padding:1.5rem">Aucune notification</div>';return;}
+  // Titre du panneau : nom de l'élève si filtre actif
+  var titleEl=document.getElementById('notifs-panel-title');
+  if(titleEl){
+    if(_notifsPanelStudentFilter){
+      var _fs=students.find(function(s){return s.id===_notifsPanelStudentFilter;});
+      titleEl.textContent=_fs?'Notifs — '+_fs.name:'Notifications';
+    } else {
+      titleEl.textContent='Notifications';
+    }
+  }
+  var all=_profNotifications.filter(function(n){
+    if(n.score<8&&n.score>=3) return false;
+    if(_notifsPanelStudentFilter&&n.studentId!==_notifsPanelStudentFilter) return false;
+    return true;
+  });
+  if(!all.length){body.innerHTML='<div style="font-size:13px;color:var(--ct-tertiary);text-align:center;padding:1.5rem">Aucune notification'
+    +(_notifsPanelStudentFilter?'<br><button class="btn btn-sm" style="margin-top:8px" onclick="_notifsPanelStudentFilter=null;_renderNotifsPanel()">Voir toutes</button>':'')
+    +'</div>';return;}
   all.sort(function(a,b){return (a.read?1:0)-(b.read?1:0)||(b.id>a.id?1:-1);});
   var html='';
   all.forEach(function(n){
@@ -2991,8 +3010,9 @@ function renderHome(){
         : '';
       // Badge auto-éval en attente (score ≥ 8)
       var _pendingEvals=Object.entries(s.selfEval||{}).filter(function(e){return e[1]>=8;});
+      var _sid=s.id;
       var _evalBadge=_pendingEvals.length
-        ?`<span class="eval-pending-badge" title="${_pendingEvals.length} auto-éval(s) ≥ 8/10 en attente de validation">${_pendingEvals.length}</span>`
+        ?`<span class="eval-pending-badge" title="${_pendingEvals.length} auto-éval(s) ≥ 8/10 en attente de validation" style="cursor:pointer" onclick="event.stopPropagation();_profFabOpenNotifs('${_sid}')">${_pendingEvals.length}</span>`
         :'';
       var _cycleYear = getCycleYear(s);
       var _examHtml = cs==='awaiting_exam'
