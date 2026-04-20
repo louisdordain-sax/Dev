@@ -3665,12 +3665,12 @@ function drawRadial(){
       if(isH||isS){ctx.translate(sx,sy);ctx.scale(isH?1.55:1.22,isH?1.55:1.22);ctx.translate(-sx,-sy)}
       // Anneau pulsant pour retour prof non vu
       if(_unreadProfReplies.has(skill.id)){
-        const pulseR=RSN_n*(1.6+0.3*Math.sin(t3d*2.4));
-        const pulseA=0.55+0.3*Math.sin(t3d*2.4);
+        const pulseR=RSN_n*(1.08+0.06*Math.sin(t3d*2.2));
+        const pulseA=0.18+0.10*Math.sin(t3d*2.2);
         ctx.save();
         ctx.beginPath();ctx.arc(sx,sy,pulseR,0,Math.PI*2);
-        ctx.strokeStyle='#f59e0b';ctx.lineWidth=2;ctx.globalAlpha=pulseA;
-        ctx.shadowColor='#f59e0b';ctx.shadowBlur=16;
+        ctx.strokeStyle='#f59e0b';ctx.lineWidth=1.2;ctx.globalAlpha=pulseA;
+        ctx.shadowColor='#f59e0b';ctx.shadowBlur=6;
         ctx.stroke();ctx.restore();
       }
       const glA=s==='locked'?(_light?0.02:0.055):(_light?0.08:0.25)+0.07*Math.sin(t3d+sx*0.007);
